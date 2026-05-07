@@ -1,0 +1,22 @@
+regenerate_token:
+  name: Token neu generieren
+  description: Erzeugt einen neuen zufälligen Token für einen bestehenden API-Eintrag und macht den alten ungültig.
+  target:
+    entity: null
+  fields:
+    old_token:
+      name: Aktueller Token
+      description: Der bestehende Token, der ersetzt werden soll.
+      required: true
+      example: "abc123..."
+      selector:
+        text:
+          type: text
+    token_name:
+      name: Token-Name (optional)
+      description: Alternativ zum Token kann der Name des Eintrags angegeben werden.
+      required: false
+      example: "Wetterdienst"
+      selector:
+        text:
+          type: text
