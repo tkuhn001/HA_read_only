@@ -25,12 +25,11 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 try:
-    from homeassistant.http import HomeAssistantView
+    from homeassistant.helpers.http import HomeAssistantView
 except ImportError:
     HomeAssistantView = None
     _LOGGER.warning(
-        "HomeAssistantView not available in this HA version; "
-        "read-only API endpoints disabled."
+        "HomeAssistantView not available; read-only API endpoints disabled."
     )
 
 
