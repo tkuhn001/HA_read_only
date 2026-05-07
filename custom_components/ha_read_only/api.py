@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import fnmatch
 import logging
+import time
 
 from aiohttp import web
 from homeassistant.core import HomeAssistant
@@ -21,9 +22,14 @@ from .const import (
     CONF_TOKEN,
     DOMAIN,
     HEADER_TOKEN_NAME,
+    RATE_LIMIT_MAX_PER_IP,
+    RATE_LIMIT_MAX_PER_TOKEN,
+    RATE_LIMIT_WINDOW,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+_RATE_LIMITS: dict[tuple[str, str], list[float]] = {}
 
 try:
     from homeassistant.helpers.http import HomeAssistantView
@@ -34,6 +40,31 @@ except ImportError:
     )
 
 
+def _rate_limit(key: tuple[str, str]) -> bool:
+    """Check and record a request for rate limiting. Returns True if allowed."""
+    now = time.monotonic()
+    window_start = now - RATE_LIMIT_WINDOW
+    records = _RATE_LIMITS.get(key, [])
+    records = [t for t in records if t > window_start]
+    max_limit = RATE_LIMIT_MAX_PER_IP if key[0] == "ip" else RATE_LIMIT_MAX_PER_TOKEN
+    if len(records) >= max_limit:
+        return False
+    records.append(now)
+    _RATE_LIMITS[key] = records
+    if len(_RATE_LIMITS) > 10000:
+        _trim_rate_limits()
+    return True
+
+
+def _trim_rate_limits() -> None:
+    """Remove expired entries from rate limit cache."""
+    now = time.monotonic()
+    cutoff = now - RATE_LIMIT_WINDOW
+    expired = [k for k, v in _RATE_LIMITS.items() if not any(t > cutoff for t in v)]
+    for k in expired:
+        del _RATE_LIMITS[k]
+
+
 async def async_setup_api(hass: HomeAssistant) -> None:
     """Register the API views."""
     if HomeAssistantView is None:
@@ -42,6 +73,24 @@ async def async_setup_api(hass: HomeAssistant) -> None:
     hass.http.register_view(StatesView)
     hass.http.register_view(SingleStateView)
     hass.http.register_view(EntityListView)
+    _LOGGER.info("Read-only API endpoints registered at %s/*", API_PREFIX)
+
+
+def _get_client_ip(request: web.Request) -> str:
+    """Extract client IP from request."""
+    if forwarded := request.headers.get("X-Forwarded-For"):
+        return forwarded.split(",")[0].strip()
+    if peername := request.transport.get_extra_info("peername"):
+        return peername[0]
+    return "unknown"
+
+
+def _get_token_name(hass: HomeAssistant, token: str) -> str:
+    """Get the friendly name for a token."""
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.data.get(CONF_TOKEN) == token:
+            return entry.title or entry.data.get(CONF_TOKEN_NAME, "Unnamed")
+    return "Unknown"
 
 
 def _find_entry_by_token(hass: HomeAssistant, token: str):
@@ -167,19 +216,35 @@ if HomeAssistantView is not None:
 
         async def get(self, request: web.Request) -> web.Response:
             hass = request.app["hass"]
+            ip = _get_client_ip(request)
             token = request.headers.get(HEADER_TOKEN_NAME)
 
+            if not _rate_limit(("ip", ip)):
+                _LOGGER.warning("Rate limit exceeded for IP %s", ip)
+                return web.json_response({"error": "Too many requests"}, status=429)
+            if token and not _rate_limit(("token", token)):
+                _LOGGER.warning("Rate limit exceeded for token")
+                return web.json_response({"error": "Too many requests"}, status=429)
+
             if not token:
+                _LOGGER.warning("Request without token from IP %s", ip)
                 return web.json_response({"error": "Token required"}, status=401)
 
             entry = _find_entry_by_token(hass, token)
             if not entry:
+                _LOGGER.warning("Invalid token attempt from IP %s", ip)
                 return web.json_response({"error": "Invalid token"}, status=401)
 
             try:
                 states = _get_allowed_states(hass, entry.data)
+                token_name = _get_token_name(hass, token)
+                _LOGGER.info(
+                    "States request – token: %s, entities: %d",
+                    token_name, len(states),
+                )
                 return web.json_response(states)
             except Exception as err:
+                _LOGGER.exception("Error processing states request: %s", err)
                 return web.json_response({"error": str(err)}, status=500)
 
     class SingleStateView(HomeAssistantView):
@@ -191,16 +256,30 @@ if HomeAssistantView is not None:
 
         async def get(self, request: web.Request, entity_id: str) -> web.Response:
             hass = request.app["hass"]
+            ip = _get_client_ip(request)
             token = request.headers.get(HEADER_TOKEN_NAME)
 
+            if not _rate_limit(("ip", ip)):
+                _LOGGER.warning("Rate limit exceeded for IP %s", ip)
+                return web.json_response({"error": "Too many requests"}, status=429)
+            if token and not _rate_limit(("token", token)):
+                _LOGGER.warning("Rate limit exceeded for token")
+                return web.json_response({"error": "Too many requests"}, status=429)
+
             if not token:
+                _LOGGER.warning("Request without token from IP %s", ip)
                 return web.json_response({"error": "Token required"}, status=401)
 
             entry = _find_entry_by_token(hass, token)
             if not entry:
+                _LOGGER.warning("Invalid token attempt from IP %s", ip)
                 return web.json_response({"error": "Invalid token"}, status=401)
 
             if not _is_entity_allowed(entity_id, entry.data, hass):
+                token_name = _get_token_name(hass, token)
+                _LOGGER.info(
+                    "Blocked entity %s for token %s", entity_id, token_name,
+                )
                 return web.json_response({"error": "Entity not allowed"}, status=403)
 
             state = hass.states.get(entity_id)
@@ -219,13 +298,23 @@ if HomeAssistantView is not None:
 
         async def get(self, request: web.Request) -> web.Response:
             hass = request.app["hass"]
+            ip = _get_client_ip(request)
             token = request.headers.get(HEADER_TOKEN_NAME)
 
+            if not _rate_limit(("ip", ip)):
+                _LOGGER.warning("Rate limit exceeded for IP %s", ip)
+                return web.json_response({"error": "Too many requests"}, status=429)
+            if token and not _rate_limit(("token", token)):
+                _LOGGER.warning("Rate limit exceeded for token")
+                return web.json_response({"error": "Too many requests"}, status=429)
+
             if not token:
+                _LOGGER.warning("Request without token from IP %s", ip)
                 return web.json_response({"error": "Token required"}, status=401)
 
             entry = _find_entry_by_token(hass, token)
             if not entry:
+                _LOGGER.warning("Invalid token attempt from IP %s", ip)
                 return web.json_response({"error": "Invalid token"}, status=401)
 
             if not entry.data.get(CONF_PROVIDE_ENTITIES_LIST, False):
@@ -237,8 +326,14 @@ if HomeAssistantView is not None:
             try:
                 states = _get_allowed_states(hass, entry.data)
                 only_ids = entry.data.get(CONF_RETURN_ONLY_IDS, False)
+                token_name = _get_token_name(hass, token)
+                _LOGGER.info(
+                    "Entity list request – token: %s, entities: %d",
+                    token_name, len(states),
+                )
                 if only_ids:
                     return web.json_response([s["entity_id"] for s in states])
                 return web.json_response(states)
             except Exception as err:
+                _LOGGER.exception("Error processing entities request: %s", err)
                 return web.json_response({"error": str(err)}, status=500)
