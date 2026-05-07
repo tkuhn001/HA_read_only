@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import secrets
 from typing import Any
 
@@ -23,6 +24,8 @@ from .const import (
     CONF_TOKEN_NAME,
     DOMAIN,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 STEP_USER_SCHEMA = vol.Schema({
     vol.Required(CONF_TOKEN_NAME): selector.TextSelector(),
@@ -120,7 +123,14 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 1: Token name."""
         errors = {}
         if user_input is not None:
-            self._data[CONF_TOKEN_NAME] = user_input[CONF_TOKEN_NAME]
+            try:
+                self._data[CONF_TOKEN_NAME] = user_input[CONF_TOKEN_NAME]
+            except Exception as err:
+                _LOGGER.exception("Error in step 1: %s", err)
+                errors["base"] = "unknown"
+                return self.async_show_form(
+                    step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors,
+                )
             return await self.async_step_domains_areas()
 
         return self.async_show_form(
@@ -133,13 +143,38 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 2: Domains & Areas."""
         errors = {}
         if user_input is not None:
-            self._data[CONF_ALLOWED_DOMAINS] = user_input.get(CONF_ALLOWED_DOMAINS, [])
-            self._data[CONF_ALLOWED_AREAS] = user_input.get(CONF_ALLOWED_AREAS, [])
+            try:
+                raw_domains = user_input.get(CONF_ALLOWED_DOMAINS) or []
+                raw_areas = user_input.get(CONF_ALLOWED_AREAS) or []
+                self._data[CONF_ALLOWED_DOMAINS] = list(raw_domains)
+                self._data[CONF_ALLOWED_AREAS] = list(raw_areas)
+                _LOGGER.debug(
+                    "Step 2 submitted: domains=%s areas=%s",
+                    self._data[CONF_ALLOWED_DOMAINS],
+                    self._data[CONF_ALLOWED_AREAS],
+                )
+            except Exception as err:
+                _LOGGER.exception("Error in step 2 submission: %s", err)
+                errors["base"] = "unknown"
+                schema = await self._build_domains_areas_schema()
+                return self.async_show_form(
+                    step_id="domains_areas",
+                    data_schema=schema,
+                    errors=errors,
+                )
             return await self.async_step_entities_patterns()
 
-        domain_options = _get_domain_options(self.hass)
+        schema = await self._build_domains_areas_schema()
+        return self.async_show_form(
+            step_id="domains_areas",
+            data_schema=schema,
+            errors=errors,
+        )
 
-        schema = vol.Schema({
+    async def _build_domains_areas_schema(self) -> vol.Schema:
+        """Build the schema for step 2."""
+        domain_options = _get_domain_options(self.hass)
+        return vol.Schema({
             vol.Optional(
                 CONF_ALLOWED_DOMAINS,
                 default=self._data.get(CONF_ALLOWED_DOMAINS, []),
@@ -158,21 +193,33 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
         })
 
-        return self.async_show_form(
-            step_id="domains_areas",
-            data_schema=schema,
-            errors=errors,
-        )
-
     async def async_step_entities_patterns(self, user_input=None):
         """Step 3: Entities & Wildcard-Patterns."""
         errors = {}
         if user_input is not None:
-            self._data[CONF_ALLOWED_ENTITIES] = user_input.get(CONF_ALLOWED_ENTITIES, [])
-            self._data[CONF_ALLOWED_PATTERNS] = user_input.get(CONF_ALLOWED_PATTERNS, "")
+            try:
+                raw_entities = user_input.get(CONF_ALLOWED_ENTITIES) or []
+                self._data[CONF_ALLOWED_ENTITIES] = list(raw_entities)
+                self._data[CONF_ALLOWED_PATTERNS] = user_input.get(CONF_ALLOWED_PATTERNS) or ""
+            except Exception as err:
+                _LOGGER.exception("Error in step 3: %s", err)
+                errors["base"] = "unknown"
+                return self.async_show_form(
+                    step_id="entities_patterns",
+                    data_schema=self._build_entities_schema(),
+                    errors=errors,
+                )
             return await self.async_step_block_list()
 
-        schema = vol.Schema({
+        return self.async_show_form(
+            step_id="entities_patterns",
+            data_schema=self._build_entities_schema(),
+            errors=errors,
+        )
+
+    def _build_entities_schema(self) -> vol.Schema:
+        """Build schema for step 3."""
+        return vol.Schema({
             vol.Optional(
                 CONF_ALLOWED_ENTITIES,
                 default=self._data.get(CONF_ALLOWED_ENTITIES, []),
@@ -190,21 +237,33 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
         })
 
-        return self.async_show_form(
-            step_id="entities_patterns",
-            data_schema=schema,
-            errors=errors,
-        )
-
     async def async_step_block_list(self, user_input=None):
         """Step 4: Block list."""
         errors = {}
         if user_input is not None:
-            self._data[CONF_BLOCKED_ENTITIES] = user_input.get(CONF_BLOCKED_ENTITIES, [])
-            self._data[CONF_BLOCKED_PATTERNS] = user_input.get(CONF_BLOCKED_PATTERNS, "")
+            try:
+                raw_blocked = user_input.get(CONF_BLOCKED_ENTITIES) or []
+                self._data[CONF_BLOCKED_ENTITIES] = list(raw_blocked)
+                self._data[CONF_BLOCKED_PATTERNS] = user_input.get(CONF_BLOCKED_PATTERNS) or ""
+            except Exception as err:
+                _LOGGER.exception("Error in step 4: %s", err)
+                errors["base"] = "unknown"
+                return self.async_show_form(
+                    step_id="block_list",
+                    data_schema=self._build_block_schema(),
+                    errors=errors,
+                )
             return await self.async_step_options_step()
 
-        schema = vol.Schema({
+        return self.async_show_form(
+            step_id="block_list",
+            data_schema=self._build_block_schema(),
+            errors=errors,
+        )
+
+    def _build_block_schema(self) -> vol.Schema:
+        """Build schema for step 4."""
+        return vol.Schema({
             vol.Optional(
                 CONF_BLOCKED_ENTITIES,
                 default=self._data.get(CONF_BLOCKED_ENTITIES, []),
@@ -222,28 +281,39 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
         })
 
-        return self.async_show_form(
-            step_id="block_list",
-            data_schema=schema,
-            errors=errors,
-        )
-
     async def async_step_options_step(self, user_input=None):
         """Step 5: API options."""
         errors = {}
         if user_input is not None:
-            self._data[CONF_PROVIDE_ENTITIES_LIST] = user_input.get(
-                CONF_PROVIDE_ENTITIES_LIST, False
-            )
-            self._data[CONF_RETURN_ONLY_IDS] = user_input.get(
-                CONF_RETURN_ONLY_IDS, False
-            )
-            self._data[CONF_INCLUDE_ATTRIBUTES] = user_input.get(
-                CONF_INCLUDE_ATTRIBUTES, True
-            )
+            try:
+                self._data[CONF_PROVIDE_ENTITIES_LIST] = bool(
+                    user_input.get(CONF_PROVIDE_ENTITIES_LIST, False)
+                )
+                self._data[CONF_RETURN_ONLY_IDS] = bool(
+                    user_input.get(CONF_RETURN_ONLY_IDS, False)
+                )
+                self._data[CONF_INCLUDE_ATTRIBUTES] = bool(
+                    user_input.get(CONF_INCLUDE_ATTRIBUTES, True)
+                )
+            except Exception as err:
+                _LOGGER.exception("Error in step 5: %s", err)
+                errors["base"] = "unknown"
+                return self.async_show_form(
+                    step_id="options_step",
+                    data_schema=self._build_options_schema(),
+                    errors=errors,
+                )
             return await self.async_step_review()
 
-        schema = vol.Schema({
+        return self.async_show_form(
+            step_id="options_step",
+            data_schema=self._build_options_schema(),
+            errors=errors,
+        )
+
+    def _build_options_schema(self) -> vol.Schema:
+        """Build schema for step 5."""
+        return vol.Schema({
             vol.Optional(
                 CONF_PROVIDE_ENTITIES_LIST,
                 default=self._data.get(CONF_PROVIDE_ENTITIES_LIST, False),
@@ -258,20 +328,29 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ): selector.BooleanSelector(),
         })
 
-        return self.async_show_form(
-            step_id="options_step",
-            data_schema=schema,
-            errors=errors,
-        )
-
     async def async_step_review(self, user_input=None):
         """Step 6: Review & confirm token creation."""
+        errors = {}
         if user_input is not None:
-            self._data[CONF_TOKEN] = secrets.token_urlsafe(32)
-            return self.async_create_entry(
-                title=self._data[CONF_TOKEN_NAME],
-                data=self._data,
-            )
+            try:
+                self._data[CONF_TOKEN] = secrets.token_urlsafe(32)
+                return self.async_create_entry(
+                    title=self._data[CONF_TOKEN_NAME],
+                    data=self._data,
+                )
+            except Exception as err:
+                _LOGGER.exception("Error creating entry: %s", err)
+                errors["base"] = "unknown"
+                return self.async_show_form(
+                    step_id="review",
+                    data_schema=vol.Schema({}),
+                    errors=errors,
+                    description_placeholders={
+                        "token": self._data.get(CONF_TOKEN, "?"),
+                        "token_name": self._data.get(CONF_TOKEN_NAME, ""),
+                        "summary": _build_summary(self._data),
+                    },
+                )
 
         token = secrets.token_urlsafe(32)
         self._data[CONF_TOKEN] = token
@@ -280,6 +359,7 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="review",
             data_schema=vol.Schema({}),
+            errors=errors,
             description_placeholders={
                 "token": token,
                 "token_name": self._data.get(CONF_TOKEN_NAME, ""),
