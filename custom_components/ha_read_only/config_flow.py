@@ -144,52 +144,53 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             try:
-                raw_domains = user_input.get(CONF_ALLOWED_DOMAINS) or []
-                raw_areas = user_input.get(CONF_ALLOWED_AREAS) or []
-                self._data[CONF_ALLOWED_DOMAINS] = list(raw_domains)
-                self._data[CONF_ALLOWED_AREAS] = list(raw_areas)
-                _LOGGER.debug(
-                    "Step 2 submitted: domains=%s areas=%s",
+                raw_domains = user_input.get(CONF_ALLOWED_DOMAINS) or ""
+                raw_areas = user_input.get(CONF_ALLOWED_AREAS) or ""
+                self._data[CONF_ALLOWED_DOMAINS] = [
+                    d.strip() for d in raw_domains.split(",") if d.strip()
+                ]
+                self._data[CONF_ALLOWED_AREAS] = [
+                    a.strip() for a in raw_areas.split(",") if a.strip()
+                ]
+                _LOGGER.warning(
+                    "STEP2_OK: domains=%s areas=%s",
                     self._data[CONF_ALLOWED_DOMAINS],
                     self._data[CONF_ALLOWED_AREAS],
                 )
+                return await self.async_step_entities_patterns()
             except Exception as err:
-                _LOGGER.exception("Error in step 2 submission: %s", err)
+                _LOGGER.exception("STEP2_ERR: %s", err)
                 errors["base"] = "unknown"
-                schema = await self._build_domains_areas_schema()
                 return self.async_show_form(
                     step_id="domains_areas",
-                    data_schema=schema,
+                    data_schema=self._build_domains_schema(),
                     errors=errors,
                 )
-            return await self.async_step_entities_patterns()
 
-        schema = await self._build_domains_areas_schema()
         return self.async_show_form(
             step_id="domains_areas",
-            data_schema=schema,
+            data_schema=self._build_domains_schema(),
             errors=errors,
         )
 
-    async def _build_domains_areas_schema(self) -> vol.Schema:
-        """Build the schema for step 2."""
-        domain_options = _get_domain_options(self.hass)
+    def _build_domains_schema(self) -> vol.Schema:
+        """Build minimal step 2 schema with text inputs."""
         return vol.Schema({
             vol.Optional(
                 CONF_ALLOWED_DOMAINS,
-                default=self._data.get(CONF_ALLOWED_DOMAINS, []),
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=domain_options,
-                    multiple=True,
-                    mode=selector.SelectSelectorMode.DROPDOWN,
+                default=", ".join(self._data.get(CONF_ALLOWED_DOMAINS, [])),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    placeholder="z. B. light, sensor, climate",
                 ),
             ),
             vol.Optional(
                 CONF_ALLOWED_AREAS,
-                default=self._data.get(CONF_ALLOWED_AREAS, []),
-            ): selector.AreaSelector(
-                selector.AreaSelectorConfig(multiple=True),
+                default=", ".join(self._data.get(CONF_ALLOWED_AREAS, [])),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    placeholder="z. B. living_room, kitchen",
+                ),
             ),
         })
 
