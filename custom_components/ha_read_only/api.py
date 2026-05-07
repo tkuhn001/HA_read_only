@@ -3,7 +3,7 @@ from __future__ import annotations
 import fnmatch
 
 from aiohttp import web
-from homeassistant.components.http import HomeAssistantView
+from homeassistant.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from .const import (
