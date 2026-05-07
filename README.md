@@ -1,11 +1,12 @@
 # HA Read-Only API
 
-Eine Home-Assistant-Custom-Integration zum Bereitstellen einer sicheren, **read-only** HTTP-API für externe Systeme.
+Eine Home-Assistant-Custom-Integration zum Bereitstellen einer sicheren, **read-only** HTTP-API für externe Systeme mit integriertem Admin-Panel zur Token-Verwaltung.
 
 Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugin die **granulare Steuerung**, welche Entitäten, Domains oder Bereiche ein bestimmtes externes System sehen darf – und das **ohne Schreibrechte**.
 
 ## Features
 
+- **Sidebar-Admin-Panel** – Professionelle Management-Oberfläche in derHA-Seitenleiste
 - **Token-basierte Authentifizierung** – pro externem System ein eigener Token
 - **Feingranulare Berechtigungen**:
   - Einzelne Entitäten
@@ -13,12 +14,16 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
   - Bereiche (Areas)
   - Wildcard-Patterns (`light.kueche_*`, `sensor.*`)
   - Block-Liste zum expliziten Ausschließen
-- **Read-Only** – keine POST/PUT/DELETE-Endpoints
+- **Read-Only** – keine POST/PUT/DELETE-Endpoints (außer Admin-API)
 - **Konfigurierbar pro Token**:
   - Ob Attribute mitgeliefert werden
   - Ob der `/entities`-Endpoint aktiviert ist
+  - Ob nur IDs zurückgegeben werden
 - **Komfortabler Setup-Wizard** (6 Schritte) im HA-Frontend
 - **Optionen-Flow** zum späteren Bearbeiten oder Token-Neu-Generieren
+- **Rate-Limiting** – 100 Requests/Minute pro IP, 500/Minute pro Token
+- **Logging** – Sicherheitsrelevante Ereignisse werden in den HA Core Logs protokolliert
+- **Globale Token-Verwaltung** via Services oder Admin-Panel
 
 ## Installation
 
@@ -36,6 +41,15 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
 
 ## Konfiguration
 
+Nach der Installation erscheint ein neuer Eintrag **„HA Read-Only”** in der HA-Seitenleiste. Dort kannst du alle Tokens verwalten:
+
+- **Token erstellen** – Name und Berechtigungen festlegen, Token wird angezeigt
+- **Token bearbeiten** – Berechtigungen nachträglich ändern
+- **Token neu generieren** – Alter wird sofort ungültig, neuer Token wird angezeigt
+- **Token löschen** – Dauerhaft entfernen
+
+Alternativ über den klassischen Weg:
+
 1. Gehe zu **Einstellungen → Geräte & Dienste → Integration hinzufügen**
 2. Suche nach **„HA Read-Only API”**
 3. Folge dem 6-Schritte-Wizard:
@@ -48,7 +62,7 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
 
 ### Token bearbeiten
 
-Über **Einstellungen → Geräte & Dienste → HA Read-Only API → Optionen** kannst du:
+Über **Einstellungen → Geräte & Dienste → HA Read-Only API → Optionen** oder direkt im Admin-Panel (Sidebar) kannst du:
 - Berechtigungen bearbeiten
 - Token neu generieren (alter wird sofort ungültig)
 
@@ -121,9 +135,25 @@ Ohne diese Option (gleiches Format wie `/states`).
 | 401 | Token fehlt oder ungültig |
 | 403 | Entität nicht berechtigt / Endpoint deaktiviert |
 | 404 | Entität nicht gefunden |
+| 429 | Rate-Limit überschritten |
 | 500 | Interner Fehler |
 
-## Service
+## Admin-API (nur für das integrierte Admin-Panel)
+
+Die folgenden Endpoints sind **nur für HA-Administratoren** zugänglich (Session-Auth, nicht Custom-Token) und werden vom Admin-Panel in der Seitenleiste genutzt:
+
+| Methode | Endpoint | Beschreibung |
+|--------|----------|-------------|
+| GET | `/api/ha_read_only/admin` | Admin-Panel HTML-Seite |
+| GET | `/api/ha_read_only/admin/api/options` | Verfügbare Domains, Areas, Entities |
+| GET | `/api/ha_read_only/admin/api/tokens` | Alle Tokens auflisten |
+| POST | `/api/ha_read_only/admin/api/tokens` | Neuen Token erstellen |
+| GET | `/api/ha_read_only/admin/api/tokens/{entry_id}` | Token-Details abrufen |
+| PUT | `/api/ha_read_only/admin/api/tokens/{entry_id}` | Token aktualisieren |
+| DELETE | `/api/ha_read_only/admin/api/tokens/{entry_id}` | Token löschen |
+| POST | `/api/ha_read_only/admin/api/tokens/{entry_id}/regenerate` | Token neu generieren |
+
+## Services
 
 ### `ha_read_only.regenerate_token`
 
@@ -138,12 +168,50 @@ Erzeugt einen neuen Token für einen bestehenden Eintrag.
 
 Eines der beiden Felder muss angegeben werden.
 
-**Beispiel via Developer-Tools → Dienste:**
+**Beispiel via Developer-Tools → Aktionen:**
 ```yaml
 service: ha_read_only.regenerate_token
 data:
   old_token: "abc123..."
 ```
+
+### `ha_read_only.list_tokens`
+
+Listet alle konfigurierten Tokens mit Namen und maskierten Token-Werten auf. Keine Felder erforderlich.
+
+### `ha_read_only.get_token_info`
+
+Zeigt die vollständige Konfiguration eines Tokens an (Token-Wert maskiert).
+
+| Feld | Typ | Beschreibung |
+|------|-----|-------------|
+| `token_name` | string (erforderlich) | Name des Tokens |
+
+### `ha_read_only.delete_token`
+
+Löscht einen Token-Eintrag dauerhaft. Der Token ist danach sofort ungültig.
+
+| Feld | Typ | Beschreibung |
+|------|-----|-------------|
+| `token_name` | string (erforderlich) | Name des Tokens |
+
+## Rate-Limiting
+
+Die API-Endpoints sind durch ein Rate-Limiting geschützt:
+
+- **100 Requests pro Minute** pro IP-Adresse
+- **500 Requests pro Minute** pro Token
+
+Bei Überschreitung wird HTTP 429 zurückgegeben. Die Limits können in `const.py` angepasst werden.
+
+## Logging
+
+- Normale API-Requests: `DEBUG`-Level (nur sichtbar bei aktiviertem Debug-Logging)
+- Fehlgeschlagene Authentifizierungen: `WARNING`-Level
+- Rate-Limit-Überschreitungen: `WARNING`-Level
+- Admin-Aktionen (Token erstellen/bearbeiten/löschen): `INFO`-Level
+
+Die Logs sind in den HA Core Logs einsehbar (**Einstellungen → System → Protokolle**).
 
 ## Berechtigungs-Logik
 
@@ -177,8 +245,9 @@ Wenn alle Allow-Listen leer sind, sind alle Entitäten erlaubt (Block-Liste schr
 ## Sicherheitshinweise
 
 - Die API-Endpoints sind **nicht** durch die HA-Standard-Authentifizierung geschützt – der Token ist der einzige Schutz
+- Das Admin-Panel ist **nur für HA-Administratoren** zugänglich (Session-Auth)
 - Verwende die Integration **nur in vertrauenswürdigen Netzwerken** oder schalte einen Reverse-Proxy (z. B. Nginx) mit IP-Restriktion vor
-- Ein kompromittierter Token erlaubt das Lesen der für ihn freigegebenen Daten → bei Verdacht einfach neu generieren
+- Ein kompromittierter Token erlaubt das Lesen der für ihn freigegebenen Daten → bei Verdacht einfach neu generieren (im Admin-Panel oder via Service)
 
 ## Entwicklung
 

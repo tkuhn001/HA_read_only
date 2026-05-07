@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
-from .const import CONF_TOKEN, CONF_TOKEN_NAME, DOMAIN
+from .const import API_PREFIX, CONF_TOKEN, CONF_TOKEN_NAME, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,6 +18,16 @@ try:
 except ImportError as err:
     _LOGGER.warning("API module not available, read-only HTTP endpoints disabled: %s", err)
     HAS_API = False
+
+_HAS_FRONTEND = False
+try:
+    from homeassistant.components.frontend import (
+        async_register_built_in_panel as _register_panel,
+    )
+
+    _HAS_FRONTEND = True
+except ImportError:
+    _LOGGER.warning("Frontend component not available; sidebar panel disabled")
 
 
 SERVICE_REGENERATE_TOKEN = "regenerate_token"
@@ -52,6 +62,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up HA Read-Only API from a config entry."""
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = entry.data
+
+    if _HAS_FRONTEND and "panel_registered" not in hass.data[DOMAIN]:
+        try:
+            _register_panel(
+                hass,
+                "iframe",
+                "HA Read-Only",
+                "mdi:shield-lock",
+                {"url": f"{API_PREFIX}/admin"},
+                require_admin=True,
+            )
+            hass.data[DOMAIN]["panel_registered"] = True
+            _LOGGER.info("Admin panel registered in sidebar")
+        except Exception as err:
+            _LOGGER.exception("Failed to register admin panel: %s", err)
 
     if HAS_API and "api_registered" not in hass.data[DOMAIN]:
         try:
