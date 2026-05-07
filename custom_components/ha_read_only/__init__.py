@@ -1,3 +1,4 @@
+import logging
 import secrets
 
 import voluptuous as vol
@@ -7,7 +8,16 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
 from .const import CONF_TOKEN, DOMAIN
-from .api import async_setup_api
+
+_LOGGER = logging.getLogger(__name__)
+
+try:
+    from .api import async_setup_api
+
+    HAS_API = True
+except ImportError as err:
+    _LOGGER.warning("API module not available, read-only HTTP endpoints disabled: %s", err)
+    HAS_API = False
 
 
 SERVICE_REGENERATE_TOKEN = "regenerate_token"
@@ -23,9 +33,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = entry.data
 
-    if "api_registered" not in hass.data[DOMAIN]:
-        await async_setup_api(hass)
-        hass.data[DOMAIN]["api_registered"] = True
+    if HAS_API and "api_registered" not in hass.data[DOMAIN]:
+        try:
+            await async_setup_api(hass)
+            hass.data[DOMAIN]["api_registered"] = True
+        except Exception as err:
+            _LOGGER.exception("Failed to set up API: %s", err)
 
     if "services_registered" not in hass.data[DOMAIN]:
         await async_setup_services(hass)

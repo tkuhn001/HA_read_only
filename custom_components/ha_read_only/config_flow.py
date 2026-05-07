@@ -486,10 +486,9 @@ class HaReadOnlyOptionsFlow(config_entries.OptionsFlow):
                 CONF_ALLOWED_PATTERNS,
                 default=self._data.get(CONF_ALLOWED_PATTERNS, ""),
             ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    multiline=True,
-                    placeholder="light.kueche_*\nsensor.*\n*_temperature",
-                ),
+                        selector.TextSelectorConfig(
+                            multiline=True,
+                        ),
             ),
         })
 
@@ -518,10 +517,9 @@ class HaReadOnlyOptionsFlow(config_entries.OptionsFlow):
                 CONF_BLOCKED_PATTERNS,
                 default=self._data.get(CONF_BLOCKED_PATTERNS, ""),
             ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    multiline=True,
-                    placeholder="sensor.temp_bad\nlight.garage_*\n*_unused",
-                ),
+                        selector.TextSelectorConfig(
+                            multiline=True,
+                        ),
             ),
         })
 

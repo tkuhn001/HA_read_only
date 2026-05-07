@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import fnmatch
+import logging
 
 from aiohttp import web
-from homeassistant.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
 
 from .const import (
@@ -22,9 +22,23 @@ from .const import (
     HEADER_TOKEN_NAME,
 )
 
+_LOGGER = logging.getLogger(__name__)
+
+try:
+    from homeassistant.http import HomeAssistantView
+except ImportError:
+    HomeAssistantView = None
+    _LOGGER.warning(
+        "HomeAssistantView not available in this HA version; "
+        "read-only API endpoints disabled."
+    )
+
 
 async def async_setup_api(hass: HomeAssistant) -> None:
     """Register the API views."""
+    if HomeAssistantView is None:
+        _LOGGER.warning("Cannot register API views – HomeAssistantView not available")
+        return
     hass.http.register_view(StatesView)
     hass.http.register_view(SingleStateView)
     hass.http.register_view(EntityListView)
@@ -142,89 +156,89 @@ def _get_allowed_states(hass: HomeAssistant, data: dict) -> list[dict]:
     return result
 
 
-class StatesView(HomeAssistantView):
-    """GET /api/ha_read_only/states – all allowed states."""
+if HomeAssistantView is not None:
 
-    url = f"{API_PREFIX}/states"
-    name = f"{DOMAIN}:states"
-    requires_auth = False
+    class StatesView(HomeAssistantView):
+        """GET /api/ha_read_only/states – all allowed states."""
 
-    async def get(self, request: web.Request) -> web.Response:
-        hass = request.app["hass"]
-        token = request.headers.get(HEADER_TOKEN_NAME)
+        url = f"{API_PREFIX}/states"
+        name = f"{DOMAIN}:states"
+        requires_auth = False
 
-        if not token:
-            return web.json_response({"error": "Token required"}, status=401)
+        async def get(self, request: web.Request) -> web.Response:
+            hass = request.app["hass"]
+            token = request.headers.get(HEADER_TOKEN_NAME)
 
-        entry = _find_entry_by_token(hass, token)
-        if not entry:
-            return web.json_response({"error": "Invalid token"}, status=401)
+            if not token:
+                return web.json_response({"error": "Token required"}, status=401)
 
-        try:
-            states = _get_allowed_states(hass, entry.data)
-            return web.json_response(states)
-        except Exception as err:
-            return web.json_response({"error": str(err)}, status=500)
+            entry = _find_entry_by_token(hass, token)
+            if not entry:
+                return web.json_response({"error": "Invalid token"}, status=401)
 
+            try:
+                states = _get_allowed_states(hass, entry.data)
+                return web.json_response(states)
+            except Exception as err:
+                return web.json_response({"error": str(err)}, status=500)
 
-class SingleStateView(HomeAssistantView):
-    """GET /api/ha_read_only/states/<entity_id> – single state."""
+    class SingleStateView(HomeAssistantView):
+        """GET /api/ha_read_only/states/<entity_id> – single state."""
 
-    url = f"{API_PREFIX}/states/{{entity_id}}"
-    name = f"{DOMAIN}:single_state"
-    requires_auth = False
+        url = f"{API_PREFIX}/states/{{entity_id}}"
+        name = f"{DOMAIN}:single_state"
+        requires_auth = False
 
-    async def get(self, request: web.Request, entity_id: str) -> web.Response:
-        hass = request.app["hass"]
-        token = request.headers.get(HEADER_TOKEN_NAME)
+        async def get(self, request: web.Request, entity_id: str) -> web.Response:
+            hass = request.app["hass"]
+            token = request.headers.get(HEADER_TOKEN_NAME)
 
-        if not token:
-            return web.json_response({"error": "Token required"}, status=401)
+            if not token:
+                return web.json_response({"error": "Token required"}, status=401)
 
-        entry = _find_entry_by_token(hass, token)
-        if not entry:
-            return web.json_response({"error": "Invalid token"}, status=401)
+            entry = _find_entry_by_token(hass, token)
+            if not entry:
+                return web.json_response({"error": "Invalid token"}, status=401)
 
-        if not _is_entity_allowed(entity_id, entry.data, hass):
-            return web.json_response({"error": "Entity not allowed"}, status=403)
+            if not _is_entity_allowed(entity_id, entry.data, hass):
+                return web.json_response({"error": "Entity not allowed"}, status=403)
 
-        state = hass.states.get(entity_id)
-        if not state:
-            return web.json_response({"error": "Entity not found"}, status=404)
+            state = hass.states.get(entity_id)
+            if not state:
+                return web.json_response({"error": "Entity not found"}, status=404)
 
-        include_attrs = entry.data.get(CONF_INCLUDE_ATTRIBUTES, True)
-        return web.json_response(_build_response(state, include_attrs))
+            include_attrs = entry.data.get(CONF_INCLUDE_ATTRIBUTES, True)
+            return web.json_response(_build_response(state, include_attrs))
 
+    class EntityListView(HomeAssistantView):
+        """GET /api/ha_read_only/entities – list of allowed entities."""
 
-class EntityListView(HomeAssistantView):
-    """GET /api/ha_read_only/entities – list of allowed entities."""
+        url = f"{API_PREFIX}/entities"
+        name = f"{DOMAIN}:entities"
+        requires_auth = False
 
-    url = f"{API_PREFIX}/entities"
-    name = f"{DOMAIN}:entities"
-    requires_auth = False
+        async def get(self, request: web.Request) -> web.Response:
+            hass = request.app["hass"]
+            token = request.headers.get(HEADER_TOKEN_NAME)
 
-    async def get(self, request: web.Request) -> web.Response:
-        hass = request.app["hass"]
-        token = request.headers.get(HEADER_TOKEN_NAME)
+            if not token:
+                return web.json_response({"error": "Token required"}, status=401)
 
-        if not token:
-            return web.json_response({"error": "Token required"}, status=401)
+            entry = _find_entry_by_token(hass, token)
+            if not entry:
+                return web.json_response({"error": "Invalid token"}, status=401)
 
-        entry = _find_entry_by_token(hass, token)
-        if not entry:
-            return web.json_response({"error": "Invalid token"}, status=401)
+            if not entry.data.get(CONF_PROVIDE_ENTITIES_LIST, False):
+                return web.json_response(
+                    {"error": "Entity list endpoint is not enabled for this token"},
+                    status=403,
+                )
 
-        if not entry.data.get(CONF_PROVIDE_ENTITIES_LIST, False):
-            return web.json_response(
-                {"error": "Entity list endpoint is not enabled for this token"},
-                status=403,
-            )
-
-        try:
-            states = _get_allowed_states(hass, entry.data)
-            only_ids = entry.data.get(CONF_RETURN_ONLY_IDS, False)
-            if only_ids:
-                return web.json_response([s["entity_id"] for s in states])
-            return web.json_response(states)
-        except Exception as err:
-            return web.json_response({"error": str(err)}, status=500)
+            try:
+                states = _get_allowed_states(hass, entry.data)
+                only_ids = entry.data.get(CONF_RETURN_ONLY_IDS, False)
+                if only_ids:
+                    return web.json_response([s["entity_id"] for s in states])
+                return web.json_response(states)
+            except Exception as err:
+                return web.json_response({"error": str(err)}, status=500)
