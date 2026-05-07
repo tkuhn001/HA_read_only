@@ -227,7 +227,6 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_entities_patterns(self, user_input=None):
         _debug(f"=== STEP 3 CALLED, user_input is None={user_input is None}")
-        """Step 3: Entities & Wildcard-Patterns."""
         errors = {}
         if user_input is not None:
             try:
@@ -235,6 +234,7 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._data[CONF_ALLOWED_ENTITIES] = list(raw_entities)
                 self._data[CONF_ALLOWED_PATTERNS] = user_input.get(CONF_ALLOWED_PATTERNS) or ""
             except Exception as err:
+                _debug(f"Step 3 submit ERROR: {err}")
                 _LOGGER.exception("Error in step 3: %s", err)
                 errors["base"] = "unknown"
                 return self.async_show_form(
@@ -244,31 +244,48 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
             return await self.async_step_block_list()
 
-        return self.async_show_form(
-            step_id="entities_patterns",
-            data_schema=self._build_entities_schema(),
-            errors=errors,
-        )
+        try:
+            _debug("Step 3 rendering: building schema")
+            schema = self._build_entities_schema()
+            _debug("Step 3 rendering: schema built OK, calling async_show_form")
+            return self.async_show_form(
+                step_id="entities_patterns",
+                data_schema=schema,
+                errors=errors,
+            )
+        except Exception as err:
+            _debug(f"Step 3 render ERROR: {err}")
+            raise
 
     def _build_entities_schema(self) -> vol.Schema:
         """Build schema for step 3."""
-        return vol.Schema({
-            vol.Optional(
-                CONF_ALLOWED_ENTITIES,
-                default=self._data.get(CONF_ALLOWED_ENTITIES, []),
-            ): selector.EntitySelector(
-                selector.EntitySelectorConfig(multiple=True),
-            ),
-            vol.Optional(
-                CONF_ALLOWED_PATTERNS,
-                default=self._data.get(CONF_ALLOWED_PATTERNS, ""),
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    multiline=True,
-                    placeholder="light.kueche_*\nsensor.*\n*_temperature",
-                ),
-            ),
-        })
+        _debug("_build_entities_schema: creating vol.Schema")
+        try:
+            ec = selector.EntitySelectorConfig(multiple=True)
+            _debug(f"_build_entities_schema: EntitySelectorConfig OK: {ec}")
+            es = selector.EntitySelector(ec)
+            _debug(f"_build_entities_schema: EntitySelector OK: {es}")
+            
+            tc = selector.TextSelectorConfig(multiline=True)
+            _debug(f"_build_entities_schema: TextSelectorConfig OK: {tc}")
+            ts = selector.TextSelector(tc)
+            _debug(f"_build_entities_schema: TextSelector OK: {ts}")
+
+            schema = vol.Schema({
+                vol.Optional(
+                    CONF_ALLOWED_ENTITIES,
+                    default=self._data.get(CONF_ALLOWED_ENTITIES, []),
+                ): es,
+                vol.Optional(
+                    CONF_ALLOWED_PATTERNS,
+                    default=self._data.get(CONF_ALLOWED_PATTERNS, ""),
+                ): ts,
+            })
+            _debug("_build_entities_schema: vol.Schema OK")
+            return schema
+        except Exception as err:
+            _debug(f"_build_entities_schema ERROR: {err}")
+            raise
 
     async def async_step_block_list(self, user_input=None):
         """Step 4: Block list."""
