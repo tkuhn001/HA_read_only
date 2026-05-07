@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import secrets
 from typing import Any
 
@@ -26,6 +27,20 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+_DEBUG_FILE = None
+
+
+def _debug(msg: str) -> None:
+    """Write debug message to file in config directory."""
+    global _DEBUG_FILE
+    try:
+        if _DEBUG_FILE is None:
+            config_dir = os.environ.get("HOMEASSISTANT_CONFIG", "/config")
+            _DEBUG_FILE = os.path.join(config_dir, "ha_read_only_debug.log")
+        with open(_DEBUG_FILE, "a", encoding="utf-8") as f:
+            f.write(f"{msg}\n")
+    except Exception:
+        pass
 
 STEP_USER_SCHEMA = vol.Schema({
     vol.Required(CONF_TOKEN_NAME): selector.TextSelector(),
@@ -121,16 +136,20 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Step 1: Token name."""
+        _debug(f"=== STEP 1 CALLED, user_input={user_input}")
         errors = {}
         if user_input is not None:
             try:
                 self._data[CONF_TOKEN_NAME] = user_input[CONF_TOKEN_NAME]
+                _debug(f"Step 1 OK, name={self._data[CONF_TOKEN_NAME]}")
             except Exception as err:
+                _debug(f"Step 1 ERROR: {err}")
                 _LOGGER.exception("Error in step 1: %s", err)
                 errors["base"] = "unknown"
                 return self.async_show_form(
                     step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors,
                 )
+            _debug("Step 1 -> calling async_step_domains_areas()")
             return await self.async_step_domains_areas()
 
         return self.async_show_form(
@@ -139,62 +158,75 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_domains_areas(self, user_input=None):
-        """Step 2: Domains & Areas."""
-        errors = {}
-        if user_input is not None:
-            try:
-                raw_domains = user_input.get(CONF_ALLOWED_DOMAINS) or ""
-                raw_areas = user_input.get(CONF_ALLOWED_AREAS) or ""
-                self._data[CONF_ALLOWED_DOMAINS] = [
-                    d.strip() for d in raw_domains.split(",") if d.strip()
-                ]
-                self._data[CONF_ALLOWED_AREAS] = [
-                    a.strip() for a in raw_areas.split(",") if a.strip()
-                ]
-                _LOGGER.warning(
-                    "STEP2_OK: domains=%s areas=%s",
-                    self._data[CONF_ALLOWED_DOMAINS],
-                    self._data[CONF_ALLOWED_AREAS],
-                )
-                return await self.async_step_entities_patterns()
-            except Exception as err:
-                _LOGGER.exception("STEP2_ERR: %s", err)
-                errors["base"] = "unknown"
-                return self.async_show_form(
-                    step_id="domains_areas",
-                    data_schema=self._build_domains_schema(),
-                    errors=errors,
-                )
-
-        return self.async_show_form(
-            step_id="domains_areas",
-            data_schema=self._build_domains_schema(),
-            errors=errors,
-        )
-
-    def _build_domains_schema(self) -> vol.Schema:
-        """Build minimal step 2 schema with text inputs."""
-        return vol.Schema({
+    async def _build_domains_areas_schema(self) -> vol.Schema:
+        """Build schema for step 2."""
+        _debug("Building step 2 schema")
+        domain_options = _get_domain_options(self.hass)
+        _debug(f"Domain options: {domain_options}")
+        schema = vol.Schema({
             vol.Optional(
                 CONF_ALLOWED_DOMAINS,
-                default=", ".join(self._data.get(CONF_ALLOWED_DOMAINS, [])),
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    placeholder="z. B. light, sensor, climate",
+                default=self._data.get(CONF_ALLOWED_DOMAINS, []),
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=domain_options,
+                    multiple=True,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
                 ),
             ),
             vol.Optional(
                 CONF_ALLOWED_AREAS,
-                default=", ".join(self._data.get(CONF_ALLOWED_AREAS, [])),
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    placeholder="z. B. living_room, kitchen",
-                ),
+                default=self._data.get(CONF_ALLOWED_AREAS, []),
+            ): selector.AreaSelector(
+                selector.AreaSelectorConfig(multiple=True),
             ),
         })
+        _debug("Step 2 schema built OK")
+        return schema
+
+    async def async_step_domains_areas(self, user_input=None):
+        """Step 2: Domains & Areas."""
+        _debug(f"=== STEP 2 CALLED, user_input={user_input}")
+        _debug(f"    _data keys: {list(self._data.keys())}")
+        errors = {}
+        if user_input is not None:
+            try:
+                raw_domains = user_input.get(CONF_ALLOWED_DOMAINS) or []
+                raw_areas = user_input.get(CONF_ALLOWED_AREAS) or []
+                self._data[CONF_ALLOWED_DOMAINS] = list(raw_domains)
+                self._data[CONF_ALLOWED_AREAS] = list(raw_areas)
+                _debug(
+                    f"Step 2 submitted: domains={self._data[CONF_ALLOWED_DOMAINS]} "
+                    f"areas={self._data[CONF_ALLOWED_AREAS]}"
+                )
+            except Exception as err:
+                _debug(f"Step 2 ERROR: {err}")
+                _LOGGER.exception("ConfigFlow error in step 2: %s", err)
+                errors["base"] = "unknown"
+                schema = await self._build_domains_areas_schema()
+                return self.async_show_form(
+                    step_id="domains_areas",
+                    data_schema=schema,
+                    errors=errors,
+                )
+            _debug("Step 2 -> calling async_step_entities_patterns()")
+            return await self.async_step_entities_patterns()
+
+        _debug("Step 2: building schema and showing form")
+        try:
+            schema = await self._build_domains_areas_schema()
+        except Exception as err:
+            _debug(f"Step 2 BUILD SCHEMA ERROR: {err}")
+            raise
+        _debug("Step 2: async_show_form")
+        return self.async_show_form(
+            step_id="domains_areas",
+            data_schema=schema,
+            errors=errors,
+        )
 
     async def async_step_entities_patterns(self, user_input=None):
+        _debug(f"=== STEP 3 CALLED, user_input is None={user_input is None}")
         """Step 3: Entities & Wildcard-Patterns."""
         errors = {}
         if user_input is not None:
