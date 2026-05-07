@@ -5,6 +5,7 @@ import logging
 
 from aiohttp import web
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 
 from .const import (
     API_PREFIX,
@@ -72,7 +73,7 @@ def _match_patterns(entity_id: str, patterns: list[str]) -> bool:
 
 def _get_area_entity_ids(hass: HomeAssistant, area_ids: set[str]) -> set[str]:
     """Resolve area IDs to entity IDs using the entity registry."""
-    ent_reg = hass.helpers.entity_registry.async_get(hass)
+    ent_reg = async_get_entity_registry(hass)
     area_entities = set()
     for entity_entry in ent_reg.entities.values():
         if entity_entry.area_id in area_ids:
