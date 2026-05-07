@@ -331,7 +331,6 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             try:
-                self._data[CONF_TOKEN] = secrets.token_urlsafe(32)
                 return self.async_create_entry(
                     title=self._data[CONF_TOKEN_NAME],
                     data=self._data,
@@ -341,10 +340,9 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "unknown"
                 return self.async_show_form(
                     step_id="review",
-                    data_schema=vol.Schema({}),
+                    data_schema=self._build_review_schema(),
                     errors=errors,
                     description_placeholders={
-                        "token": self._data.get(CONF_TOKEN, "?"),
                         "token_name": self._data.get(CONF_TOKEN_NAME, ""),
                         "summary": _build_summary(self._data),
                     },
@@ -352,18 +350,24 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         token = secrets.token_urlsafe(32)
         self._data[CONF_TOKEN] = token
-        summary = _build_summary(self._data)
 
         return self.async_show_form(
             step_id="review",
-            data_schema=vol.Schema({}),
+            data_schema=self._build_review_schema(),
             errors=errors,
             description_placeholders={
-                "token": token,
                 "token_name": self._data.get(CONF_TOKEN_NAME, ""),
-                "summary": summary,
+                "summary": _build_summary(self._data),
             },
         )
+
+    def _build_review_schema(self) -> vol.Schema:
+        """Build schema for review step with visible token."""
+        token = self._data.get(CONF_TOKEN, "")
+        return vol.Schema({
+            vol.Optional("token_display", default=token):
+                selector.TextSelector(),
+        })
 
     @staticmethod
     @callback
@@ -408,17 +412,20 @@ class HaReadOnlyOptionsFlow(config_entries.OptionsFlow):
     async def async_step_regenerate(self, user_input=None):
         """Confirm token regeneration."""
         if user_input is not None:
-            self._data[CONF_TOKEN] = secrets.token_urlsafe(32)
             return self.async_create_entry(
                 title=self._entry.title, data=self._data,
             )
 
+        new_token = secrets.token_urlsafe(32)
+        self._data[CONF_TOKEN] = new_token
+
         return self.async_show_form(
             step_id="regenerate",
-            data_schema=vol.Schema({}),
-            description_placeholders={
-                "token": self._data.get(CONF_TOKEN, ""),
-            },
+            data_schema=vol.Schema({
+                vol.Optional("_new_token", default=new_token):
+                    selector.TextSelector(),
+            }),
+            description_placeholders={},
         )
 
     async def async_step_edit_entry(self, user_input=None):

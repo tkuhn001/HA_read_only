@@ -24,7 +24,7 @@
       },
       "review": {
         "title": "Token erstellen",
-        "description": "**Token:** `{token}`\n\n**Name:** {token_name}\n\n{summary}\n\nKopiere den Token jetzt. Nach der Best\u00e4tigung wird er **nie wieder** im Klartext angezeigt."
+        "description": "**Name:** {token_name}\n\n{summary}\n\nDer Token steht im Feld dar\u00fcber. Kopiere ihn jetzt. Nach der Best\u00e4tigung wird er **nie wieder** im Klartext angezeigt."
       }
     },
     "abort": {
@@ -39,7 +39,7 @@
       },
       "regenerate": {
         "title": "Token neu generieren",
-        "description": "Aktueller Token: `{token}`\n\nDer alte Token wird **sofort ung\u00fcltig**, sobald du best\u00e4tigst. Alle verbundenen Dienste m\u00fcssen mit dem neuen Token aktualisiert werden."
+        "description": "Ein neuer Token wurde erstellt und steht im Feld dar\u00fcber. Nach der Best\u00e4tigung wird der alte Token **sofort ung\u00fcltig**."
       },
       "edit_domains_areas": {
         "title": "Domains & Bereiche bearbeiten",
