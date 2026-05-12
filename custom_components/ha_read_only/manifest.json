@@ -3,11 +3,10 @@
   "name": "HA Read-Only API",
   "documentation": "https://github.com/tkuhn001/HA_read_only",
   "issue_tracker": "https://github.com/tkuhn001/HA_read_only/issues",
-  "version": "0.1.0",
+  "version": "b0512.002",
   "requirements": [],
+  "dependencies": ["frontend"],
   "homeassistant": ">=2023.5.0",
   "config_flow": true,
-  "dependencies": [],
-  "codeowners": ["@tkuhn001"],
-  "iot_class": "local_polling"
+  "codeowners": ["@tkuhn001"]
 }

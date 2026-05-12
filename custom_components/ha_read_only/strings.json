@@ -3,63 +3,19 @@
     "flow_title": "HA Read-Only API",
     "step": {
       "user": {
-        "title": "Token-Name",
-        "description": "Gib einen Namen f\u00fcr diesen API-Token ein, z. B. \u201eWetterdienst\u201c oder \u201eSmart-Home-App\u201c."
-      },
-      "domains_areas": {
-        "title": "Domains & Bereiche",
-        "description": "W\u00e4hle die Domains (z. B. `light`, `sensor`) und/oder Bereiche (Areas) aus, die dieser Token sehen darf. Wenn nichts ausgew\u00e4hlt ist, sind zun\u00e4chst alle Entit\u00e4ten erlaubt (kann sp\u00e4ter eingeschr\u00e4nkt werden)."
-      },
-      "entities_patterns": {
-        "title": "Entit\u00e4ten & Wildcard-Patterns",
-        "description": "W\u00e4hle einzelne Entit\u00e4ten aus oder definiere Wildcard-Patterns (eine pro Zeile).\n\nBeispiele:\n- `light.kueche_*` \u2013 alle Lampen mit Prefix `kueche_`\n- `sensor.*` \u2013 alle Sensoren\n- `*_temperature` \u2013 alle Entit\u00e4ten, die auf `_temperature` enden"
-      },
-      "block_list": {
-        "title": "Block-Liste",
-        "description": "Entit\u00e4ten, die ausdr\u00fccklich gesperrt werden sollen \u2013 egal ob sie durch Domains, Areas, Patterns oder die Einzelauswahl freigegeben wurden."
-      },
-      "options_step": {
-        "title": "API-Optionen",
-        "description": "Konfiguriere das Verhalten der API-Endpunkte f\u00fcr diesen Token."
-      },
-      "review": {
-        "title": "Token erstellen",
-        "description": "**Name:** {token_name}\n\n{summary}\n\nDer Token steht im Feld dar\u00fcber. Kopiere ihn jetzt. Nach der Best\u00e4tigung wird er **nie wieder** im Klartext angezeigt."
+        "title": "Setup",
+        "description": "Click 'Submit' to initialize the HA Read-Only API dashboard. All token management will be handled within the dashboard app."
       }
     },
     "abort": {
-      "already_configured": "Diese Integration ist bereits konfiguriert."
+      "already_configured": "This integration is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Token-Optionen",
-        "description": "Was m\u00f6chtest du tun?"
-      },
-      "regenerate": {
-        "title": "Token neu generieren",
-        "description": "Ein neuer Token wurde erstellt und steht im Feld dar\u00fcber. Nach der Best\u00e4tigung wird der alte Token **sofort ung\u00fcltig**."
-      },
-      "edit_domains_areas": {
-        "title": "Domains & Bereiche bearbeiten",
-        "description": "Passe die erlaubten Domains und Bereiche an."
-      },
-      "edit_entities_patterns": {
-        "title": "Entit\u00e4ten & Patterns bearbeiten",
-        "description": "Passe die erlaubten Entit\u00e4ten und Wildcard-Patterns an."
-      },
-      "edit_block_list": {
-        "title": "Block-Liste bearbeiten",
-        "description": "Passe die Block-Liste an."
-      },
-      "edit_options": {
-        "title": "API-Optionen bearbeiten",
-        "description": "Passe die API-Optionen an."
-      },
-      "edit_review": {
-        "title": "\u00c4nderungen best\u00e4tigen",
-        "description": "{summary}\n\nBest\u00e4tigst du die \u00c4nderungen?"
+        "title": "Options",
+        "description": "Token management is handled in the dashboard app accessible from the sidebar."
       }
     }
   }
