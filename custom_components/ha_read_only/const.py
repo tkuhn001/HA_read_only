@@ -1,5 +1,5 @@
 DOMAIN = "ha_read_only"
-VERSION = "b0512.002"
+VERSION = "0.2.0"
 
 STORAGE_KEY = f"{DOMAIN}.storage"
 STORAGE_VERSION = 1
