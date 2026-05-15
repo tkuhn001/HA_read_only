@@ -1,8 +1,8 @@
 # 🛡️ HA Read-Only API
 
-**Version:** 0.3.4 · **Datum:** 15. Mai 2026 · **Autor:** T. Kuhn
+**Version:** 0.3.5 · **Datum:** 15. Mai 2026 · **Autor:** T. Kuhn
 
-[![Version](https://img.shields.io/badge/version-0.3.4-blue.svg)](https://github.com/tkuhn001/HA_read_only)
+[![Version](https://img.shields.io/badge/version-0.3.5-blue.svg)](https://github.com/tkuhn001/HA_read_only)
 [![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2023.5%2B-blue.svg)](https://www.home-assistant.io/)

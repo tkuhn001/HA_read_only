@@ -1,13 +1,12 @@
 # HA Read-Only API – Home Assistant Integration
 # Copyright (c) 2026 T. Kuhn
-# Version: 0.3.4 | Datum: 15. Mai 2026
 # Lizenz: MIT – Siehe LICENSE-Datei im Repository
 #
 # DIE SOFTWARE WIRD "AS IS" BEREITGESTELLT, OHNE JEGLICHE GEWÄHRLEISTUNG.
 # NUTZUNG AUF EIGENE GEFAHR.
 
 DOMAIN = "ha_read_only"
-VERSION = "0.3.4"
+VERSION = "0.3.5"
 
 STORAGE_KEY = f"{DOMAIN}.storage"
 STORAGE_VERSION = 1

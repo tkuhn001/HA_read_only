@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.5 – 15. Mai 2026
+- Versionsnummer aus Python-Headern entfernt
+- HACS-Branding (brand/ Ordner)
+
 ## 0.3.4 – 15. Mai 2026
 - Icon, Version 0.3.3, i18n-Fix
 
