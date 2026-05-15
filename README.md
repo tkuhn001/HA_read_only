@@ -1,8 +1,10 @@
 # 🛡️ HA Read-Only API
 
-[![Version](https://img.shields.io/badge/version-b0512.002-blue.svg)](https://github.com/tkuhn001/HA_read_only)
+**Version:** 0.2.0 · **Datum:** 15. Mai 2026 · **Autor:** T. Kuhn
+
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/tkuhn001/HA_read_only)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2023.5%2B-blue.svg)](https://www.home-assistant.io/)
 
 Eine leistungsstarke Home-Assistant-Integration zum Bereitstellen einer sicheren, **schreibgeschützten** HTTP-API für externe Systeme. Mit integriertem Admin-Panel zur Token-Verwaltung, Live-Statistiken und granularen Berechtigungen.
 
@@ -149,6 +151,40 @@ Entwickelt mit Python 3.11+ und dem Home Assistant Integration Framework.
 python -m py_compile custom_components/ha_read_only/*.py
 ```
 
-## 📄 Lizenz
+## 📄 Lizenz & Haftungsausschluss
 
-Dieses Projekt ist unter der **MIT-Lizenz** lizenziert. Siehe [LICENSE](LICENSE) für Details.
+**Copyright (c) 2026 T. Kuhn**
+
+Dieses Projekt ist unter der **MIT-Lizenz** lizenziert. Siehe [LICENSE](LICENSE) für den vollständigen Lizenztext.
+
+### Zusammenfassung der Lizenzbedingungen
+
+Jede Person, die eine Kopie dieser Software und der zugehörigen Dokumentationsdateien (die „Software") erhält, wird hiermit ermächtigt, die Software **uneingeschränkt** zu nutzen, einschließlich des Rechts, Kopien anzufertigen, zu modifizieren, zusammenzuführen, zu veröffentlichen, zu vertreiben, Unterlizenzen zu vergeben und/oder Kopien der Software zu verkaufen, sowie Personen, denen die Software bereitgestellt wird, dies zu gestatten, **vorbehaltlich der folgenden Bedingungen**:
+
+Der obige Urheberrechtshinweis und dieser Genehmigungshinweis müssen in allen Kopien oder wesentlichen Teilen der Software enthalten sein.
+
+### Haftungsausschluss („AS IS")
+
+**DIE SOFTWARE WIRD „WIE SIE IST" („AS IS") BEREITGESTELLT, OHNE JEGLICHE AUSDRÜCKLICHE ODER STILLSCHWEIGENDE GEWÄHRLEISTUNG, EINSCHLIESSLICH, ABER NICHT BESCHRÄNKT AUF DIE GEWÄHRLEISTUNG DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG VON RECHTEN DRITTER.**
+
+IN KEINEM FALL SIND DIE AUTOREN ODER URHEBERRECHTSINHABER FÜR ANSPRÜCHE, SCHÄDEN ODER ANDERE HAFTUNGEN VERANTWORTLICH, SEI ES AUF GRUND EINES VERTRAGES, EINER UNERLAUBTEN HANDLUNG ODER ANDERWEITIG, DIE AUS DER SOFTWARE ODER IN VERBINDUNG MIT DER SOFTWARE ODER DER NUTZUNG ODER DEM SONSTIGEN UMGANG MIT DER SOFTWARE ENTSTEHEN.
+
+### Wichtige Hinweise zur Nutzung
+
+1. **Nutzung auf eigene Gefahr:** Die Verwendung dieser Software erfolgt ausschließlich auf eigene Gefahr des Nutzers. Der Autor (T. Kuhn) übernimmt keine Verantwortung für Schäden, die durch die Nutzung dieser Software entstehen können, einschließlich, aber nicht beschränkt auf Datenverlust, Systemausfälle, Sicherheitslücken oder Kompatibilitätsprobleme.
+
+2. **Keine Garantie für Fehlerfreiheit:** Obwohl größte Sorgfalt bei der Entwicklung angewendet wurde, kann nicht garantiert werden, dass die Software frei von Fehlern, Sicherheitslücken oder Kompatibilitätsproblemen ist. Der Nutzer ist selbst dafür verantwortlich, die Software vor dem Einsatz in einer Produktivumgebung gründlich zu testen.
+
+3. **Kompatibilität:** Diese Software wurde für Home Assistant entwickelt, jedoch kann keine Kompatibilität mit allen Home-Assistant-Versionen, Konfigurationen oder anderen Integrationen garantiert werden. Updates von Home Assistant können die Funktionalität beeinträchtigen.
+
+4. **Sicherheit:** Der Nutzer ist selbst verantwortlich für die sichere Konfiguration und den sicheren Betrieb dieser Software. Dies umfasst, aber ist nicht beschränkt auf, den Schutz von API-Tokens, die Absicherung des Netzwerks und die regelmäßige Aktualisierung der Software.
+
+5. **Kein Support-Anspruch:** Die Bereitstellung dieser Software erfolgt ohne jegliche Verpflichtung zur Bereitstellung von Support, Updates, Fehlerbehebungen oder Erweiterungen. Der Autor kann nach eigenem Ermessen Updates bereitstellen, ist jedoch nicht dazu verpflichtet.
+
+6. **Weitergabe:** Bei der Weitergabe der Software oder von darauf basierenden Werken muss der Urheberrechtshinweis und die Lizenzbedingungen erhalten bleiben.
+
+7. **Haftungsausschluss für Drittschäden:** Der Autor haftet nicht für direkte, indirekte, zufällige, besondere oder Folgeschäden, die aus der Nutzung oder Unfähigkeit zur Nutzung dieser Software resultieren, selbst wenn auf die Möglichkeit solcher Schäden hingewiesen wurde.
+
+---
+
+*Copyright © 2026 T. Kuhn – Veröffentlicht unter der MIT-Lizenz*

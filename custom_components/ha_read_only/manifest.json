@@ -1,12 +1,13 @@
 {
   "domain": "ha_read_only",
   "name": "HA Read-Only API",
+  "version": "0.2.0",
   "documentation": "https://github.com/tkuhn001/HA_read_only",
   "issue_tracker": "https://github.com/tkuhn001/HA_read_only/issues",
-  "version": "0.3.1",
   "requirements": [],
   "dependencies": ["frontend"],
   "homeassistant": ">=2023.5.0",
   "config_flow": true,
-  "codeowners": ["@tkuhn001"]
+  "codeowners": ["@tkuhn001"],
+  "license": "MIT"
 }
