@@ -3,6 +3,7 @@
 **Version:** 0.3.1 · **Datum:** 15. Mai 2026 · **Autor:** T. Kuhn
 
 [![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](https://github.com/tkuhn001/HA_read_only)
+[![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2023.5%2B-blue.svg)](https://www.home-assistant.io/)
 
@@ -32,7 +33,7 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
 
 ## 🖥️ Admin Dashboard
 
-Die Integration fügt einen neuen Eintrag **"HA Read-Only"** zu deiner Home Assistant Seitenleiste hinzu. Das Dashboard ist in vier Bereiche unterteilt:
+Die Integration fügt einen neuen Eintrag **"HA Read-Only"** zu deiner Home Assistant Seitenleiste hinzu. Das Dashboard ist in fünf Bereiche unterteilt:
 
 ### 1. Tokens
 Verwalte deine API-Zugänge. Erstelle neue Tokens, bearbeite bestehende Berechtigungen oder generiere Tokens neu, falls sie kompromittiert wurden.
@@ -54,6 +55,15 @@ Konfiguriere das globale Verhalten der API:
 
 ### 4. Anleitung
 Eine interaktive Hilfe direkt in Home Assistant mit Code-Beispielen für `cURL`, `JavaScript (fetch)` und `Python`.
+
+### 5. Lizenz
+Vollständiger MIT-Lizenztext, Haftungsausschluss und wichtige Nutzungshinweise.
+
+---
+
+## 🌍 Übersetzungen
+
+Das Config-Flow-Interface ist auf **Deutsch** und **Englisch** verfügbar. Die Sprache wird automatisch anhand deiner Home-Assistant-Einstellung gewählt.
 
 ---
 

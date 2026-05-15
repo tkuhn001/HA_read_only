@@ -1,0 +1,22 @@
+{
+  "config": {
+    "flow_title": "HA Read-Only API",
+    "step": {
+      "user": {
+        "title": "Set up HA Read-Only API",
+        "description": "Click 'Submit' to initialize the HA Read-Only API integration. All token management is handled via the dashboard in the sidebar."
+      }
+    },
+    "abort": {
+      "already_configured": "This integration is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "description": "Token management is handled via the dashboard in the sidebar."
+      }
+    }
+  }
+}
