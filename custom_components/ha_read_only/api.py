@@ -567,6 +567,12 @@ class HelpView(HomeAssistantView):
     requires_auth = False
 
     async def get(self, request: web.Request) -> web.Response:
+        hass = request.app["hass"]
+        ip = _get_client_ip(request)
+        token = request.headers.get(HEADER_TOKEN_NAME)
+        token_data = _find_token_data(hass, token) if token else None
+        token_name = token_data.get("name", "") if token_data else ""
+        await _track_usage(hass, token, "GET /help", 200, token_name=token_name, ip=ip)
         return web.json_response(API_HELP)
 
 
