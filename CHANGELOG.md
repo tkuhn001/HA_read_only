@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3 – 15. Mai 2026
+- Integration-Icon (icon.png) hinzugefügt
+- JSON-Syntaxfehler in translations behoben
+
 ## 0.3.2 – 15. Mai 2026
 - HACS-Kompatibilität (hacs.json, translations)
 - CHANGELOG.md hinzugefügt
