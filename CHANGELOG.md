@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.4 – 15. Mai 2026
+- Icon, Version 0.3.3, i18n-Fix
+
 ## 0.3.3 – 15. Mai 2026
 - Integration-Icon (icon.png) hinzugefügt
 - JSON-Syntaxfehler in translations behoben
