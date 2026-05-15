@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "HA Read-Only API einrichten",
-        "description": "Klicke auf „Absenden", um die HA Read-Only API-Integration zu initialisieren. Die gesamte Token-Verwaltung erfolgt über das Dashboard in der Seitenleiste."
+        "description": "Klicke auf \"Absenden\", um die HA Read-Only API-Integration zu initialisieren. Die gesamte Token-Verwaltung erfolgt über das Dashboard in der Seitenleiste."
       }
     },
     "abort": {
