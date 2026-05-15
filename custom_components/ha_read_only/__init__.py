@@ -17,7 +17,13 @@ class ReadOnlyDataHandler:
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
         self.store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
-        self.data: dict = {"tokens": [], "stats": {}, "config": {}}
+        self.data: dict = {
+            "tokens": [],
+            "stats": {},
+            "config": {},
+            "usage_log": [],
+            "rate_limit": {},
+        }
 
     async def async_load(self) -> None:
         """Load data from storage."""
@@ -25,7 +31,13 @@ class ReadOnlyDataHandler:
         if stored:
             self.data = stored
         else:
-            self.data = {"tokens": [], "stats": {}, "config": {}}
+            self.data = {
+                "tokens": [],
+                "stats": {},
+                "config": {},
+                "usage_log": [],
+                "rate_limit": {},
+            }
 
     async def async_save(self) -> None:
         """Save data to storage."""

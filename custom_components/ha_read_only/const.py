@@ -1,5 +1,5 @@
 DOMAIN = "ha_read_only"
-VERSION = "0.2.0"
+VERSION = "0.3.1"
 
 STORAGE_KEY = f"{DOMAIN}.storage"
 STORAGE_VERSION = 1
@@ -23,8 +23,12 @@ RATE_LIMIT_WINDOW = 60
 RATE_LIMIT_MAX_PER_IP = 100
 RATE_LIMIT_MAX_PER_TOKEN = 500
 
+USAGE_LOG_MAX = 50
+
 # Dynamic config keys (stored in hass.data)
 CONF_RATE_LIMIT_WINDOW = "rate_limit_window"
 CONF_RATE_LIMIT_MAX_PER_IP = "rate_limit_max_per_ip"
 CONF_RATE_LIMIT_MAX_PER_TOKEN = "rate_limit_max_per_token"
-CONF_LOG_LEVEL = "log_level"
+CONF_WEBHOOK_URL = "webhook_url"
+CONF_WEBHOOK_ON_API = "webhook_on_api_request"
+CONF_WEBHOOK_ON_TOKEN = "webhook_on_token_created"

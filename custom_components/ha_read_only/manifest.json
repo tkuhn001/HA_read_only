@@ -3,7 +3,7 @@
   "name": "HA Read-Only API",
   "documentation": "https://github.com/tkuhn001/HA_read_only",
   "issue_tracker": "https://github.com/tkuhn001/HA_read_only/issues",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "requirements": [],
   "dependencies": ["frontend"],
   "homeassistant": ">=2023.5.0",

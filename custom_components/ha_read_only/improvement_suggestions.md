@@ -2,7 +2,7 @@
 
 ## Aktueller Stand
 
-Das Plugin funktioniert grundsätzlich gut: Token-Verwaltung per Sidebar-Dashboard, drei öffentliche API-Endpunkte, Rate-Limiting, Usage-Tracking. Die Basis steht – aber für ein **Community-taugliches Plugin** fehlen einige wichtige Dinge.
+Das Plugin funktioniert gut: Token-Verwaltung per Sidebar-Dashboard, öffentliche Read-Only-API (`/states`, `/entities`, `/help`), Rate-Limiting, Usage-Log mit Chart, Areas/IP-Whitelist/Ablaufdatum pro Token, Webhooks. **Priorität 3 ist umgesetzt.** Für ein **Community-Release** fehlen vor allem Sicherheit (Priorität 1), HACS/i18n (Priorität 2) und Tests.
 
 ---
 
@@ -71,45 +71,37 @@ Community-Plugins leben von guten Screenshots. Mindestens:
 
 ---
 
-## 🟡 Priorität 3: Fehlende Features
+## 🟡 Priorität 3: Fehlende Features ✅ (umgesetzt v0.3.0)
 
-### 3.1 Token-Ablaufdatum
-Tokens laufen aktuell nie ab. Für sicherheitsbewusste Nutzer wäre ein optionales Ablaufdatum wichtig.
+### 3.1 Token-Ablaufdatum ✅
+- [x] Optionales `expires_at` (Unix-Timestamp) im Token-Objekt und Dashboard
+- [x] Abgelaufene Tokens → `401 Token expired`
 
-```python
-# Im Token-Objekt:
-"expires_at": 1699999999.0  # Unix-Timestamp oder None
-```
+### 3.2 Area-basiertes Filtering ✅
+- [x] Areas über Entity Registry, Auswahl im Dashboard
+- [x] Whitelist-Logik: Domain / Muster / Area / einzelne Entität
 
-### 3.2 Area-basiertes Filtering
-Die README erwähnt "Areas" als Feature, aber es ist nicht implementiert. HA kennt Areas über die Entity Registry:
-```python
-from homeassistant.helpers.area_registry import async_get as async_get_area_registry
-```
+### 3.3 IP-Whitelist pro Token ✅
+- [x] `allowed_ips` mit Einzel-IP und CIDR (z.B. `10.0.0.0/24`)
+- [x] Falsche IP → `403 IP not allowed`
 
-### 3.3 IP-Whitelist pro Token
-Bestimmte Tokens nur von bestimmten IPs aus erlauben:
-```json
-{
-  "allowed_ips": ["192.168.1.100", "10.0.0.0/24"]
-}
-```
+### 3.4 Webhook-Benachrichtigung ✅
+- [x] Globale Webhook-URL in Einstellungen
+- [x] Optional bei API-Anfragen (200) und Token-Erstellung
 
-### 3.4 Webhook-Benachrichtigung
-Optional: Bei Token-Nutzung oder -Erstellung einen Webhook auslösen (für Monitoring).
+### 3.5 Entity-Suche im Dashboard ✅
+- [x] Suchfilter für Domains und Areas
+- [x] Entitäten-Suche mit Auswahl und Chips
 
-### 3.5 Entity-Suche im Dashboard
-Bei Systemen mit 500+ Entitäten braucht das Domain-Grid einen Suchfilter:
-- Textfeld zum Filtern der Domain-Liste
-- Eventuell auch einzelne Entitäten auswählbar (mit Suchfeld)
+### 3.6 Token-Nutzungslog im Dashboard ✅
+- [x] Letzte 50 Anfragen (Zeit, IP, Endpunkt, Status)
+- [x] SVG-Balkendiagramm (Anfragen pro Stunde, 24h)
 
-### 3.6 Token-Nutzungslog im Dashboard
-Aktuell zeigt "Nutzung" nur Gesamtzahlen. Besser wäre:
-- Letzte 50 Anfragen mit Timestamp, IP, Endpoint, Status
-- Grafische Darstellung (z.B. Anfragen pro Stunde, einfacher SVG-Chart)
+### 3.7 Persistenter Rate-Limit-Cache ✅
+- [x] Rate-Limits in `handler.data["rate_limit"]` persistiert (überlebt Neustart)
 
-### 3.7 Persistenter Rate-Limit-Cache
-`_RATE_LIMIT_CACHE` ist aktuell ein Dict im Speicher – geht bei Neustart verloren. Für die meisten Fälle OK, aber erwähnenswert.
+### 3.8 API-Hilfe-Endpunkt ✅
+- [x] `GET /api/ha_read_only/help` – Kurzübersicht aller Endpunkte (ohne Token)
 
 ---
 
@@ -122,19 +114,13 @@ Aktuell gibt es **keine Tests**. Für ein Community-Plugin sind mindestens nöti
 - Integration-Tests für die API-Endpunkte
 - Pytest + `pytest-homeassistant-custom-component`
 
-### 4.2 Type Hints vervollständigen
-Einige Funktionen haben unvollständige Type Hints. Für die Community:
-```python
-async def get(self, request: web.Request) -> web.Response:
-```
+### 4.2 Type Hints vervollständigen 🟡 (teilweise)
+- [x] API-Views in `api.py` mit `web.Request` / `web.Response`
+- [ ] Restliche Module (`config_flow.py`, `__init__.py`) vervollständigen
 
-### 4.3 Tote Konstanten aufräumen
-In `const.py` sind Konstanten definiert, die nirgends verwendet werden:
-- `CONF_ALLOWED_AREAS`, `CONF_ALLOWED_ENTITIES`, `CONF_BLOCKED_ENTITIES`
-- `CONF_PROVIDE_ENTITIES_LIST`, `CONF_RETURN_ONLY_IDS`
-- `CONF_LOG_LEVEL`
-
-Entweder implementieren oder entfernen.
+### 4.3 Tote Konstanten aufräumen 🟡 (teilweise)
+- [x] `CONF_ALLOWED_AREAS`, `CONF_ALLOWED_ENTITIES` – Features nutzen diese Konzepte (Keys: `areas`, `allowed_entities`)
+- [ ] Noch ungenutzt: `CONF_BLOCKED_ENTITIES`, `CONF_PROVIDE_ENTITIES_LIST`, `CONF_RETURN_ONLY_IDS` – entfernen oder implementieren
 
 ### 4.4 Services implementieren oder entfernen
 `services.yaml` existiert, aber die Services (`regenerate_token`, `list_tokens`, etc.) sind im aktuellen Code nicht registriert. Das verwirrt Nutzer.
@@ -184,11 +170,12 @@ Aktuell "springt" die Oberfläche wenn Daten geladen werden. Skeleton-Loader ode
 | 5 | Übersetzung (i18n) | 2h | 🟠 Community |
 | 6 | Tote Konstanten/Services aufräumen | 30min | 🔵 Sauberkeit |
 | 7 | `panel/` Ordner entfernen | 5min | 🔵 Sauberkeit |
-| 8 | Token-Ablaufdatum | 1-2h | 🟡 Feature |
-| 9 | Area-Filter | 2h | 🟡 Feature |
+| 8 | Token-Ablaufdatum | 1-2h | ✅ erledigt |
+| 9 | Area-Filter | 2h | ✅ erledigt |
 | 10 | Toast statt alert() | 1h | 🟢 UX |
 | 11 | Responsive Design | 2h | 🟢 UX |
-| 12 | Entity-Suche im Modal | 1h | 🟡 Feature |
+| 12 | Entity-Suche im Modal | 1h | ✅ erledigt |
+| 13 | `/help`-Endpunkt | 15min | ✅ erledigt |
 
 ---
 

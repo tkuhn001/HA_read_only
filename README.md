@@ -16,8 +16,12 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
 - **📊 Live-Statistiken** – Behalte den Überblick über API-Aufrufe, Fehlerraten und den letzten Zugriff pro Token.
 - **🛡️ Granulare Berechtigungen**:
   - Whitelisting von Domains (`light`, `sensor`, …)
+  - **Areas** – nur Entitäten in ausgewählten HA-Bereichen
+  - Einzelne Entitäten explizit erlauben
   - Glob-Muster/Wildcards (`light.kueche_*`, `sensor.*_temp`)
-  - Dedizierte Block-Liste (Blacklist) mit höchster Priorität.
+  - Dedizierte Block-Liste (Blacklist) mit höchster Priorität
+  - **IP-Whitelist** pro Token (inkl. CIDR, z. B. `10.0.0.0/24`)
+  - **Token-Ablaufdatum** optional
 - **⏱️ Globales Rate-Limiting** – Schütze dein System durch konfigurierbare Limits pro IP und Token.
 - **📑 Integrierte Anleitung** – Schnelleinstieg und API-Beispiele direkt im Dashboard.
 - **🔌 Read-Only by Design** – Keine riskanten POST/PUT-Endpoints für Zustandsänderungen.
@@ -35,6 +39,8 @@ Verwalte deine API-Zugänge. Erstelle neue Tokens, bearbeite bestehende Berechti
 ### 2. Nutzung (Statistics)
 Echtzeit-Metriken über deine API:
 - Gesamtzahl der Anfragen & Fehler.
+- **Anfragen-Chart** (letzte 24 Stunden).
+- **Request-Log** – die letzten 50 Anfragen mit Zeit, IP, Endpunkt und Status.
 - Detaillierte Tabelle pro Token: Anfragen-Count, Fehlerrate, Letzter genutzter Endpunkt und Zeitstempel.
 
 ### 3. Einstellungen
@@ -42,6 +48,7 @@ Konfiguriere das globale Verhalten der API:
 - **Max. Anfragen pro IP:** Schützt vor Brute-Force oder fehlerhaften Clients.
 - **Max. Anfragen pro Token:** Kontrolliert die Last einzelner Integrationen.
 - **Zeitfenster:** Definiere den Zeitraum (in Sekunden) für das Rate-Limiting.
+- **Webhook (optional):** Benachrichtigung bei API-Anfragen oder Token-Erstellung.
 
 ### 4. Anleitung
 Eine interaktive Hilfe direkt in Home Assistant mit Code-Beispielen für `cURL`, `JavaScript (fetch)` und `Python`.
@@ -83,6 +90,7 @@ Alle Anfragen müssen den folgenden HTTP-Header enthalten:
 
 | Methode | Endpunkt | Beschreibung |
 |:--- |:--- |:--- |
+| `GET` | `/api/ha_read_only/help` | Kurzübersicht aller Endpunkte (kein Token nötig). |
 | `GET` | `/api/ha_read_only/states` | Gibt alle erlaubten Zustände zurück. |
 | `GET` | `/api/ha_read_only/states/<entity_id>` | Gibt den Zustand einer spezifischen Entität zurück. |
 | `GET` | `/api/ha_read_only/entities` | Listet alle erlaubten Entity-IDs auf. |
@@ -107,11 +115,14 @@ curl -H "X-HA-READONLY-TOKEN: abc123..." \
 Die Sichtbarkeit einer Entität wird nach folgendem Flow geprüft:
 
 1. **Block-Liste (Blacklist):** Wenn die Entity-ID auf ein Muster in der Block-Liste passt → **Verweigert**.
-2. **Whitelist-Check:**
-   - Wenn **keine** Domains und **keine** Muster definiert sind → **Erlaubt** (da kein Filter aktiv).
-   - Wenn die Domain der Entität erlaubt ist → **Erlaubt**.
-   - Wenn die Entity-ID auf ein erlaubtes Muster passt → **Erlaubt**.
+2. **Whitelist-Check** (mindestens einer muss zutreffen, sofern Filter gesetzt):
+   - Wenn **keine** Domains, **keine** Muster, **keine** Areas und **keine** einzelnen Entitäten definiert sind → **Erlaubt**.
+   - Domain, Glob-Muster, HA-Area oder explizite Entity-ID passt → **Erlaubt**.
 3. **Default:** Wenn nichts zutrifft → **Verweigert**.
+
+**Token-Ebene (vor Entitätsfilter):**
+- Abgelaufene Tokens werden abgewiesen (`401 Token expired`).
+- IP-Whitelist: Nur konfigurierte IPs/CIDR-Bereiche dürfen den Token nutzen (`403`).
 
 ### Muster-Beispiele
 - `light.*`: Alle Lichter.
