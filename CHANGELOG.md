@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 – 15. Mai 2026
+- HACS-Kompatibilität (hacs.json, translations)
+- CHANGELOG.md hinzugefügt
+- Lizenz-Header und Copyright-Footer
+
 ## 0.3.1 – 15. Mai 2026
 - MIT-Lizenz und Haftungsausschluss hinzugefügt
 - Copyright-Footer im Admin-Panel
