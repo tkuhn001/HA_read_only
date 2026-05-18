@@ -67,7 +67,7 @@ async def _register_sidebar_link(hass: HomeAssistant) -> None:
             sidebar_title="HA Read-Only",
             sidebar_icon="mdi:shield-lock",
             frontend_url_path="ha_readonly_app",
-            require_admin=False,
+            require_admin=True,
             config={"url": "/api/ha_read_only/admin"},
         )
         _LOGGER.info("Sidebar iframe panel registered")

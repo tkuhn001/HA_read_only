@@ -418,6 +418,51 @@ class AdminPanelView(HomeAssistantView):
 class AdminApiOptionsView(HomeAssistantView):
     url = f"{API_PREFIX}/admin/api/options"
     name = f"{DOMAIN}:admin_api_options"
+    requires_auth = True
+
+
+class AdminApiEntitiesView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/entities"
+    name = f"{DOMAIN}:admin_api_entities"
+    requires_auth = True
+
+
+class AdminApiTokensView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/tokens"
+    name = f"{DOMAIN}:admin_api_tokens"
+    requires_auth = True
+
+
+class AdminApiTokenView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/tokens/{{token_id}}"
+    name = f"{DOMAIN}:admin_api_token"
+    requires_auth = True
+
+
+class AdminApiTokenRegenerateView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/tokens/{{token_id}}/regenerate"
+    name = f"{DOMAIN}:admin_api_token_regenerate"
+    requires_auth = True
+
+
+class AdminApiStatsView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/stats"
+    name = f"{DOMAIN}:admin_api_stats"
+    requires_auth = True
+
+
+class AdminApiConfigView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/config"
+    name = f"{DOMAIN}:admin_api_config"
+    requires_auth = True
+
+    async def get(self, request: web.Request) -> web.Response:
+        return web.Response(text=ADMIN_HTML, content_type="text/html")
+
+
+class AdminApiOptionsView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/options"
+    name = f"{DOMAIN}:admin_api_options"
     requires_auth = False
 
     async def get(self, request: web.Request) -> web.Response:
