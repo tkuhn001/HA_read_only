@@ -422,13 +422,17 @@ class AdminApiOptionsView(HomeAssistantView):
 
     async def get(self, request: web.Request) -> web.Response:
         hass = request.app["hass"]
-        domains = sorted({s.domain for s in hass.states.async_all()})
-        area_reg = ar.async_get(hass)
-        areas = [
-            {"id": area.id, "name": area.name}
-            for area in sorted(area_reg.areas, key=lambda a: a.name)
-        ]
-        return web.json_response({"domains": domains, "areas": areas})
+        try:
+            domains = sorted({s.domain for s in hass.states.async_all()})
+            area_reg = ar.async_get(hass)
+            areas = [
+                {"id": area.id, "name": area.name or area.id}
+                for area in sorted(area_reg.areas.values(), key=lambda a: a.name or "")
+            ]
+            return web.json_response({"domains": domains, "areas": areas})
+        except Exception as err:
+            _LOGGER.error("Failed to load admin options: %s", err, exc_info=True)
+            return web.json_response({"domains": [], "areas": [], "error": str(err)})
 
 
 class AdminApiEntitiesView(HomeAssistantView):

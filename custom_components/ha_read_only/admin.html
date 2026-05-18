@@ -6,6 +6,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t);padding:2rem;min-height:100vh;
 background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transparent),radial-gradient(circle at bottom left,rgba(255,64,129,.08),transparent)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,.2);border-radius:4px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
 .container{max-width:1100px;margin:0 auto}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.5rem;flex-wrap:wrap;gap:1rem}
 .logo{display:flex;align-items:center;gap:1rem}
@@ -45,29 +49,71 @@ th{text-align:left;padding:.8rem;color:var(--td);font-size:.75rem;text-transform
 td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:1rem}
 .modal.active{display:flex}
-.modal-body{background:#1e293b;width:100%;max-width:640px;padding:2rem;border-radius:20px;border:1px solid var(--bdr);max-height:90vh;overflow-y:auto}
-.modal-body h2{margin-bottom:1.5rem;font-size:1.3rem}
-.fg{margin-bottom:1.2rem}
-.fg label{display:block;font-size:.85rem;color:var(--td);margin-bottom:.4rem;font-weight:500}
-.fg input,.fg textarea,.fg select{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--bdr);padding:.7rem;border-radius:8px;color:#fff;font-size:.95rem}
-.fg input:focus,.fg textarea:focus{outline:none;border-color:var(--p)}
-.fg textarea{resize:vertical;min-height:70px;font-family:monospace;font-size:.85rem}
-.fg small{display:block;margin-top:.3rem;color:var(--td);font-size:.75rem}
-.domain-grid{display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--bdr);max-height:220px;overflow-y:auto}
-.domain-grid label{display:flex;align-items:center;gap:.4rem;cursor:pointer;padding:.45rem .9rem;border-radius:100px;border:1px solid var(--bdr);transition:.2s;font-size:.85rem;user-select:none}
-.domain-grid label:hover{border-color:var(--p);background:rgba(3,169,244,.05)}
-.domain-grid label.checked{background:rgba(3,169,244,.15);border-color:var(--p);color:var(--p)}
+.modal-body{background:#1e293b;width:100%;max-width:860px;padding:2.5rem;border-radius:20px;border:1px solid var(--bdr);max-height:90vh;overflow-y:auto;animation:modalSlideIn .25s ease-out}
+@keyframes modalSlideIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-body h2{margin-bottom:1.8rem;font-size:1.5rem;display:flex;align-items:center;gap:.6rem}
+.modal-body h2 i{color:var(--p)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.fg{margin-bottom:1.4rem}
+.fg label{display:block;font-size:.85rem;color:var(--td);margin-bottom:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.fg label i{margin-right:.4rem;color:var(--p);font-size:.95rem}
+.fg input,.fg textarea,.fg select{width:100%;background:rgba(0,0,0,.35);border:1px solid var(--bdr);padding:.8rem;border-radius:10px;color:#fff;font-size:.95rem;transition:border-color .2s}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(3,169,244,.15)}
+.fg textarea{resize:vertical;min-height:80px;font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.5}
+.fg small{display:block;margin-top:.4rem;color:var(--td);font-size:.75rem;font-style:italic}
+.section-title{font-size:.95rem;font-weight:700;color:var(--t);margin:1.8rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:.5rem}
+.section-title i{color:var(--p);font-size:1.1rem}
+.domain-grid{display:flex;flex-wrap:wrap;gap:.5rem;padding:1rem;background:rgba(0,0,0,.25);border-radius:12px;border:1px solid var(--bdr);max-height:200px;overflow-y:auto;transition:border-color .2s}
+.domain-grid:hover{border-color:rgba(3,169,244,.3)}
+.domain-grid label{display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.5rem .9rem;border-radius:100px;border:1px solid var(--bdr);transition:all .2s;font-size:.85rem;user-select:none;background:rgba(255,255,255,.02)}
+.domain-grid label:hover{border-color:var(--p);background:rgba(3,169,244,.08);transform:translateY(-1px)}
+.domain-grid label.checked{background:rgba(3,169,244,.15);border-color:var(--p);color:var(--p);box-shadow:0 2px 8px rgba(3,169,244,.2)}
 .domain-grid input[type=checkbox]{display:none}
-.domain-grid .dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:.2s;flex-shrink:0}
-.domain-grid label.checked .dot{background:var(--p);box-shadow:0 0 6px rgba(3,169,244,.5)}
+.domain-grid .dot{width:10px;height:10px;border-radius:50%;background:var(--bdr);transition:all .2s;flex-shrink:0}
+.domain-grid label.checked .dot{background:var(--p);box-shadow:0 0 8px rgba(3,169,244,.5)}
 .search-input{margin-bottom:.6rem}
-.entity-picker{border:1px solid var(--bdr);border-radius:10px;background:rgba(0,0,0,.2);max-height:160px;overflow-y:auto;padding:.5rem}
-.entity-picker label{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-family:monospace}
-.entity-picker label:hover{background:rgba(255,255,255,.05)}
-.entity-picker input{accent-color:var(--p)}
-.entity-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
-.entity-chips span{font-size:.75rem;background:rgba(3,169,244,.15);color:var(--p);padding:.2rem .5rem;border-radius:100px;display:inline-flex;align-items:center;gap:.3rem}
-.entity-chips span button{background:none;border:none;color:var(--err);cursor:pointer;padding:0;font-size:.9rem;line-height:1}
+.entity-picker{border:1px solid var(--bdr);border-radius:12px;background:rgba(0,0,0,.25);max-height:180px;overflow-y:auto;padding:.6rem;transition:border-color .2s}
+.entity-picker:hover{border-color:rgba(3,169,244,.3)}
+.entity-picker label{display:flex;align-items:center;gap:.6rem;padding:.5rem .6rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-family:'JetBrains Mono',monospace;transition:background .15s}
+.entity-picker label:hover{background:rgba(255,255,255,.06)}
+.entity-picker input{accent-color:var(--p);width:16px;height:16px}
+.entity-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.entity-chips span{font-size:.78rem;background:rgba(3,169,244,.15);color:var(--p);padding:.3rem .6rem;border-radius:100px;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s}
+.entity-chips span:hover{background:rgba(3,169,244,.25)}
+.entity-chips span button{background:none;border:none;color:var(--err);cursor:pointer;padding:0;font-size:1rem;line-height:1;opacity:.7;transition:opacity .15s}
+.entity-chips span button:hover{opacity:1}
+.datepicker-wrap{position:relative}
+.datepicker-wrap input{cursor:pointer;padding-right:2.5rem}
+.datepicker-wrap .cal-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--td);cursor:pointer;font-size:1.1rem;transition:color .15s;z-index:10}
+.datepicker-wrap .cal-icon:hover{color:var(--p)}
+.datepicker-popup{position:fixed;z-index:2000;background:#1e293b;border:1px solid var(--bdr);border-radius:14px;padding:1.2rem;min-width:300px;box-shadow:0 12px 40px rgba(0,0,0,.5);display:none;animation:fadeIn .15s ease-out}
+.datepicker-popup.active{display:block}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.cal-header span{font-weight:700;font-size:.95rem}
+.cal-header button{background:rgba(255,255,255,.06);border:1px solid var(--bdr);color:var(--t);width:30px;height:30px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cal-header button:hover{background:rgba(3,169,244,.15);border-color:var(--p);color:var(--p)}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:.4rem}
+.cal-weekdays span{text-align:center;font-size:.7rem;color:var(--td);font-weight:600;padding:.3rem 0;text-transform:uppercase}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{text-align:center;padding:.45rem;border-radius:8px;cursor:pointer;font-size:.85rem;transition:all .15s;color:var(--t)}
+.cal-day:hover:not(.empty):not(.other-month){background:rgba(3,169,244,.15)}
+.cal-day.today{border:1px solid var(--p);font-weight:700}
+.cal-day.selected{background:var(--p);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(3,169,244,.3)}
+.cal-day.other-month{color:rgba(148,163,184,.3)}
+.cal-day.empty{cursor:default}
+.cal-time{display:flex;gap:.5rem;margin-top:.8rem;align-items:center;justify-content:center}
+.cal-time input{background:rgba(0,0,0,.35);border:1px solid var(--bdr);color:var(--t);padding:.5rem;border-radius:8px;width:55px;text-align:center;font-size:.95rem}
+.cal-time input:focus{outline:none;border-color:var(--p)}
+.cal-time span{color:var(--td);font-size:.85rem}
+.cal-actions{display:flex;gap:.5rem;margin-top:.8rem}
+.cal-actions button{flex:1;padding:.55rem .5rem;border-radius:8px;border:1px solid var(--bdr);background:rgba(255,255,255,.04);color:var(--t);cursor:pointer;font-size:.82rem;transition:all .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:.35rem}
+.cal-actions button:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.cal-actions button.cal-del{border-color:rgba(239,68,68,.3);color:var(--err)}
+.cal-actions button.cal-del:hover{background:rgba(239,68,68,.15);border-color:var(--err)}
+.cal-actions button.cal-today{border-color:rgba(16,185,129,.3);color:var(--ok)}
+.cal-actions button.cal-today:hover{background:rgba(16,185,129,.15);border-color:var(--ok)}
+.cal-actions button.cal-ok{background:var(--p);border-color:var(--p);color:#fff}
+.cal-actions button.cal-ok:hover{background:#0288d1}
 .chart-wrap{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:1.5rem;margin-bottom:1.5rem}
 .chart-wrap h3{font-size:.9rem;color:var(--td);margin-bottom:1rem}
 .chart-container{position:relative;width:100%;height:200px}
@@ -254,19 +300,34 @@ Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.5 &middot; 15. Mai 202
 </div>
 <div class="modal" id="modal-edit">
 <div class="modal-body">
-<h2 id="modal-title">Token erstellen</h2>
-<div class="fg"><label>Name</label><input id="tok-name" placeholder="z.B. Wand-Tablet"></div>
-<div class="fg"><label>Ablaufdatum (optional)</label><input type="datetime-local" id="tok-expires"><small>Leer = Token läuft nie ab</small></div>
-<div class="fg"><label>IP-Whitelist (eine pro Zeile)</label><textarea id="tok-ips" placeholder="192.168.1.100&#10;10.0.0.0/24"></textarea><small>Leer = alle IPs. CIDR möglich.</small></div>
-<div class="fg"><label>Erlaubte Domains</label><input type="text" class="search-input" id="domain-search" placeholder="Domains filtern..." oninput="filterDomains()"><div id="domain-grid" class="domain-grid"><p style="color:var(--td)">Lade...</p></div><small>Keine Auswahl = kein Domain-Filter (andere Filter können trotzdem greifen).</small></div>
-<div class="fg"><label>Erlaubte Bereiche (Areas)</label><input type="text" class="search-input" id="area-search" placeholder="Bereiche filtern..." oninput="filterAreas()"><div id="area-grid" class="domain-grid"><p style="color:var(--td)">Lade...</p></div></div>
-<div class="fg"><label>Einzelne Entitäten</label><input type="text" class="search-input" id="entity-search" placeholder="z.B. sensor.temperatur" oninput="debounceEntitySearch()"><div id="entity-picker" class="entity-picker"><p style="color:var(--td);padding:.5rem">Suchbegriff eingeben</p></div><div id="entity-chips" class="entity-chips"></div></div>
-<div class="fg"><label>Erlaubte Muster (eins pro Zeile)</label><textarea id="tok-patterns" placeholder="sensor.*_temperatur"></textarea></div>
-<div class="fg"><label>Blockierte Muster (eins pro Zeile)</label><textarea id="tok-blocked" placeholder="*geheim*"></textarea></div>
-<div class="fg"><label class="switch"><input type="checkbox" id="tok-attrs" checked> Attribute einschließen</label></div>
-<div style="display:flex;gap:1rem;margin-top:2rem">
-<button class="btn btn-p" style="flex:1" onclick="saveToken()"><i class="mdi mdi-content-save"></i> Speichern</button>
-<button class="btn btn-o" style="flex:1" onclick="closeM('modal-edit')">Abbrechen</button>
+<h2 id="modal-title"><i class="mdi mdi-key-plus"></i> Token erstellen</h2>
+<div class="form-row">
+<div class="fg"><label><i class="mdi mdi-format-title"></i> Name</label><input id="tok-name" placeholder="z.B. Wand-Tablet Küche"></div>
+<div class="fg"><label><i class="mdi mdi-clock-outline"></i> Ablaufdatum (optional)</label><div class="datepicker-wrap"><input type="text" id="tok-expires" placeholder="z.B. 18.05.2026 14:30" oninput="parseExpiresInput()"><i class="mdi mdi-calendar cal-icon" onclick="toggleCal(event)"></i></div><small>Leer = nie ab. Format: TT.MM.JJJJ HH:MM oder Kalender nutzen</small></div>
+</div>
+<div class="fg"><label><i class="mdi mdi-ip-network"></i> IP-Whitelist (eine pro Zeile)</label><textarea id="tok-ips" placeholder="192.168.1.100&#10;10.0.0.0/24"></textarea><small>Leer = alle IPs erlaubt. CIDR-Notation möglich (z.B. 192.168.1.0/24)</small></div>
+
+<div class="section-title"><i class="mdi mdi-folder-multiple"></i> Zugriff filtern</div>
+
+<div class="fg"><label><i class="mdi mdi-domain"></i> Erlaubte Domains</label><input type="text" class="search-input" id="domain-search" placeholder="Domains filtern..." oninput="filterDomains()"><div id="domain-grid" class="domain-grid"><p style="color:var(--td);padding:1rem;text-align:center">Lade Domains...</p></div><small>Keine Auswahl = alle Domains erlaubt (andere Filter können trotzdem greifen)</small></div>
+
+<div class="form-row">
+<div class="fg"><label><i class="mdi mdi-map-marker-radius"></i> Erlaubte Bereiche (Areas)</label><input type="text" class="search-input" id="area-search" placeholder="Bereiche filtern..." oninput="filterAreas()"><div id="area-grid" class="domain-grid"><p style="color:var(--td);padding:1rem;text-align:center">Lade Bereiche...</p></div></div>
+<div class="fg"><label><i class="mdi mdi-target"></i> Einzelne Entitäten</label><input type="text" class="search-input" id="entity-search" placeholder="z.B. sensor.temperatur" oninput="debounceEntitySearch()"><div id="entity-picker" class="entity-picker"><p style="color:var(--td);padding:.8rem;text-align:center">Mind. 2 Zeichen eingeben...</p></div><div id="entity-chips" class="entity-chips"></div></div>
+</div>
+
+<div class="section-title"><i class="mdi mdi-filter-variant"></i> Muster-Filter (optional)</div>
+
+<div class="form-row">
+<div class="fg"><label><i class="mdi mdi-check-all"></i> Erlaubte Muster</label><textarea id="tok-patterns" placeholder="sensor.*_temperatur&#10;light.wohnzimmer_*"></textarea><small>Glob-Muster, eins pro Zeile</small></div>
+<div class="fg"><label><i class="mdi mdi-close-circle"></i> Blockierte Muster</label><textarea id="tok-blocked" placeholder="*geheim*&#10;*passwort*"></textarea><small>Blockierte Muster haben immer Vorrang!</small></div>
+</div>
+
+<div class="fg"><label class="switch" style="display:flex;align-items:center;gap:.8rem;padding:1rem;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--bdr);cursor:pointer"><input type="checkbox" id="tok-attrs" checked style="width:40px;height:22px;accent-color:var(--p)"><div><div style="font-weight:600;font-size:.9rem">Attribute einschließen</div><div style="color:var(--td);font-size:.75rem;margin-top:.2rem">Wenn deaktiviert, werden nur entity_id und state zurückgegeben</div></div></label></div>
+
+<div style="display:flex;gap:1rem;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--bdr)">
+<button class="btn btn-p" style="flex:1;padding:.85rem" onclick="saveToken()"><i class="mdi mdi-content-save"></i> Speichern</button>
+<button class="btn btn-o" style="flex:1;padding:.85rem" onclick="closeM('modal-edit')"><i class="mdi mdi-close"></i> Abbrechen</button>
 </div></div></div>
 <div class="modal" id="modal-ok">
 <div class="modal-body" style="max-width:500px;text-align:center">
@@ -277,9 +338,11 @@ Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.5 &middot; 15. Mai 202
 <button class="btn btn-p" style="width:100%;margin-top:1rem" onclick="closeM('modal-ok')">Fertig</button>
 </div></div>
 <script>
-let tokens=[],curId=null,allDomains=[],allAreas=[],selectedEntities=[],entityTimer=null;
+let tokens=[],curId=null,allDomains=[],allAreas=[],selectedEntities=[],entityTimer=null,calYear=null,calMonth=null,calSelectedDate=null,calHour=12,calMinute=0;
 const B='/api/ha_read_only';
-async function api(p,m='GET',b=null){const o={method:m,headers:{'Content-Type':'application/json'}};if(b)o.body=JSON.stringify(b);return(await fetch(B+p,o)).json();}
+const MONATE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const TAGE=['Mo','Di','Mi','Do','Fr','Sa','So'];
+async function api(p,m='GET',b=null){const o={method:m,headers:{'Content-Type':'application/json'}};if(b)o.body=JSON.stringify(b);const r=await fetch(B+p,o);if(!r.ok)throw new Error(`API ${r.status}: ${r.statusText}`);return r.json();}
 function tab(t){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('p-'+t).classList.add('active');document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.querySelector('[data-tab="'+t+'"]').classList.add('active');if(t==='tokens')loadTokens();if(t==='usage')loadStats();if(t==='settings')loadCfg();}
 function tsToLocal(ts){if(!ts)return'';const d=new Date(ts*1000),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
 function isExpired(t){return t.expires_at&&Date.now()/1000>t.expires_at;}
@@ -291,30 +354,65 @@ function renderChart(hourly){const svg=document.getElementById('usage-chart');if
 async function loadStats(){const s=await api('/admin/api/stats');document.getElementById('stats-cards').innerHTML='<div class="stat-box"><div class="label">Anfragen gesamt</div><div class="value">'+s.total_requests+'</div></div><div class="stat-box err"><div class="label">Fehler</div><div class="value">'+s.total_errors+'</div></div><div class="stat-box"><div class="label">Aktive Tokens</div><div class="value">'+s.tokens.length+'</div></div>';renderChart(s.hourly||[]);document.getElementById('usage-log-tbody').innerHTML=(s.usage_log||[]).map(e=>'<tr><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+(e.status<400?'status-ok':'status-err')+'">'+e.status+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';document.getElementById('stats-tbody').innerHTML=s.tokens.map(t=>'<tr><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Daten</td></tr>';}
 async function loadCfg(){const c=await api('/admin/api/config');if(c.rate_limit_max_per_ip)document.getElementById('cfg-ip').value=c.rate_limit_max_per_ip;if(c.rate_limit_max_per_token)document.getElementById('cfg-tok').value=c.rate_limit_max_per_token;if(c.rate_limit_window)document.getElementById('cfg-win').value=c.rate_limit_window;document.getElementById('cfg-webhook').value=c.webhook_url||'';document.getElementById('cfg-webhook-api').checked=!!c.webhook_on_api_request;document.getElementById('cfg-webhook-token').checked=!!c.webhook_on_token_created;}
 async function saveCfg(){await api('/admin/api/config','PUT',{rate_limit_max_per_ip:parseInt(document.getElementById('cfg-ip').value),rate_limit_max_per_token:parseInt(document.getElementById('cfg-tok').value),rate_limit_window:parseInt(document.getElementById('cfg-win').value),webhook_url:document.getElementById('cfg-webhook').value.trim(),webhook_on_api_request:document.getElementById('cfg-webhook-api').checked,webhook_on_token_created:document.getElementById('cfg-webhook-token').checked});alert('Einstellungen gespeichert!');}
-function gridHtml(items,sel,gridId){const q=(gridId==='domain-grid'?document.getElementById('domain-search'):document.getElementById('area-search')).value.toLowerCase();return items.filter(x=>!q||(x.name||x).toLowerCase().includes(q)||(x.id&&x.id.toLowerCase().includes(q))).map(x=>{const id=x.id||x,name=x.name||x,ch=sel.includes(id)?'checked':'',cls=ch?'checked':'';return '<label class="'+cls+'" onclick="toggleGrid(this)"><span class="dot"></span><input type="checkbox" value="'+id+'" '+ch+'> '+esc(name)+'</label>';}).join('')||'<p style="color:var(--td)">Keine Treffer</p>';}
+function gridHtml(items,sel,gridId){const searchId=gridId==='domain-grid'?'domain-search':gridId==='area-grid'?'area-search':'entity-search';const q=document.getElementById(searchId)?.value.toLowerCase()||'';return items.filter(x=>{const name=x.name||x;const id=x.id||x;return !q||name.toLowerCase().includes(q)||id.toLowerCase().includes(q);}).map(x=>{const id=x.id||x,name=x.name||x,ch=sel.includes(id)?'checked':'',cls=ch?'checked':'';return '<label class="'+cls+'" onclick="toggleGrid(this)"><span class="dot"></span><input type="checkbox" value="'+id+'" '+ch+'> '+esc(name)+'</label>';}).join('')||'<p style="color:var(--td);padding:1rem;text-align:center;width:100%">Keine Treffer</p>';}
 function toggleGrid(el){setTimeout(()=>{const cb=el.querySelector('input');if(cb.checked)el.classList.add('checked');else el.classList.remove('checked');},10);}
 function filterDomains(){document.getElementById('domain-grid').innerHTML=gridHtml(allDomains.map(d=>({id:d,name:d})),getSel('#domain-grid'),'domain-grid');}
 function filterAreas(){document.getElementById('area-grid').innerHTML=gridHtml(allAreas,getSel('#area-grid'),'area-grid');}
 function getSel(sel){return Array.from(document.querySelectorAll(sel+' input:checked')).map(i=>i.value);}
-async function loadOptions(){const o=await api('/admin/api/options');allDomains=o.domains||[];allAreas=o.areas||[];}
-async function loadDomains(sel){document.getElementById('domain-grid').innerHTML=gridHtml(allDomains.map(d=>({id:d,name:d})),sel,'domain-grid');}
-async function loadAreas(sel){document.getElementById('area-grid').innerHTML=gridHtml(allAreas,sel,'area-grid');}
+async function loadOptions(){const o=await api('/admin/api/options');if(o.error)throw new Error(o.error);allDomains=o.domains||[];allAreas=o.areas||[];}
+async function loadDomains(sel){document.getElementById('domain-grid').innerHTML=gridHtml(allDomains.map(d=>({id:d,name:d})),sel||[],'domain-grid');}
+async function loadAreas(sel){document.getElementById('area-grid').innerHTML=gridHtml(allAreas,sel||[],'area-grid');}
 function renderEntityChips(){document.getElementById('entity-chips').innerHTML=selectedEntities.map(e=>'<span>'+esc(e)+'<button type="button" onclick="removeEntity(\''+e.replace(/'/g,"\\'")+'\')">&times;</button></span>').join('');}
 function removeEntity(id){selectedEntities=selectedEntities.filter(x=>x!==id);renderEntityChips();}
 function debounceEntitySearch(){clearTimeout(entityTimer);entityTimer=setTimeout(searchEntities,300);}
 async function searchEntities(){const q=document.getElementById('entity-search').value.trim();const box=document.getElementById('entity-picker');if(q.length<2){box.innerHTML='<p style="color:var(--td);padding:.5rem">Mind. 2 Zeichen eingeben</p>';return;}const list=await api('/admin/api/entities?q='+encodeURIComponent(q));box.innerHTML=list.map(e=>'<label><input type="checkbox" '+(selectedEntities.includes(e)?'checked':'')+' onchange="toggleEntity(\''+e.replace(/'/g,"\\'")+'\',this.checked)"> '+esc(e)+'</label>').join('')||'<p style="color:var(--td)">Keine Treffer</p>';}
 function toggleEntity(id,on){if(on&&!selectedEntities.includes(id))selectedEntities.push(id);if(!on)selectedEntities=selectedEntities.filter(x=>x!==id);renderEntityChips();}
-async function resetTokenForm(t){document.getElementById('tok-name').value=t?t.name||'':'';document.getElementById('tok-expires').value=t?tsToLocal(t.expires_at):'';document.getElementById('tok-ips').value=t&&t.allowed_ips?t.allowed_ips.join('\n'):'';document.getElementById('tok-patterns').value=t?t.patterns||'':'';document.getElementById('tok-blocked').value=t?t.blocked_patterns||'':'';document.getElementById('tok-attrs').checked=t?t.include_attributes!==false:true;document.getElementById('domain-search').value='';document.getElementById('area-search').value='';document.getElementById('entity-search').value='';selectedEntities=t&&t.allowed_entities?[...t.allowed_entities]:[];renderEntityChips();document.getElementById('entity-picker').innerHTML='<p style="color:var(--td);padding:.5rem">Suchbegriff eingeben</p>';await loadOptions();await loadDomains(t?t.domains||[]:[]);await loadAreas(t?t.areas||[]:[]);}
-async function openCreate(){curId=null;document.getElementById('modal-title').textContent='Token erstellen';await resetTokenForm(null);openM('modal-edit');}
-async function editToken(id){curId=id;const t=tokens.find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').textContent='Token bearbeiten';await resetTokenForm(t);openM('modal-edit');}
-async function saveToken(){const exp=document.getElementById('tok-expires').value;const data={name:document.getElementById('tok-name').value||'Unbenannt',domains:getSel('#domain-grid'),areas:getSel('#area-grid'),allowed_entities:selectedEntities,allowed_ips:document.getElementById('tok-ips').value,patterns:document.getElementById('tok-patterns').value,blocked_patterns:document.getElementById('tok-blocked').value,include_attributes:document.getElementById('tok-attrs').checked,expires_at:exp||null};if(curId){await api('/admin/api/tokens/'+curId,'PUT',data);closeM('modal-edit');loadTokens();}else{const r=await api('/admin/api/tokens','POST',data);document.getElementById('new-token').value=r.token;closeM('modal-edit');openM('modal-ok');loadTokens();}}
+async function resetTokenForm(t){document.getElementById('tok-name').value=t?t.name||'':'';if(t&&t.expires_at){const d=new Date(t.expires_at*1000);calYear=d.getFullYear();calMonth=d.getMonth();calSelectedDate=new Date(calYear,calMonth,d.getDate());calHour=d.getHours();calMinute=d.getMinutes();const v=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+' '+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');document.getElementById('tok-expires').value=v;document.getElementById('tok-expires').dataset.iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');}else{document.getElementById('tok-expires').value='';document.getElementById('tok-expires').dataset.iso='';calSelectedDate=null;calHour=12;calMinute=0;}document.getElementById('tok-ips').value=t&&t.allowed_ips?t.allowed_ips.join('\n'):'';document.getElementById('tok-patterns').value=t?t.patterns||'':'';document.getElementById('tok-blocked').value=t?t.blocked_patterns||'':'';document.getElementById('tok-attrs').checked=t?t.include_attributes!==false:true;document.getElementById('domain-search').value='';document.getElementById('area-search').value='';document.getElementById('entity-search').value='';selectedEntities=t&&t.allowed_entities?[...t.allowed_entities]:[];renderEntityChips();document.getElementById('entity-picker').innerHTML='<p style="color:var(--td);padding:.8rem;text-align:center">Mind. 2 Zeichen eingeben...</p>';try{await loadOptions();await loadDomains(t?t.domains||[]:[]);await loadAreas(t?t.areas||[]:[]);}catch(e){console.error('loadOptions failed:',e);const msg=e.message||'Unbekannter Fehler';document.getElementById('domain-grid').innerHTML='<p style="color:var(--err);padding:1rem;text-align:center"><i class="mdi mdi-alert"></i> '+esc(msg)+'</p>';document.getElementById('area-grid').innerHTML='<p style="color:var(--err);padding:1rem;text-align:center"><i class="mdi mdi-alert"></i> '+esc(msg)+'</p>';}}
+async function openCreate(){curId=null;document.getElementById('modal-title').innerHTML='<i class="mdi mdi-key-plus"></i> Token erstellen';await resetTokenForm(null);openM('modal-edit');}
+async function editToken(id){curId=id;const t=tokens.find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').innerHTML='<i class="mdi mdi-key-edit"></i> Token bearbeiten';await resetTokenForm(t);openM('modal-edit');}
+async function saveToken(){const exp=document.getElementById('tok-expires').dataset.iso||null;const data={name:document.getElementById('tok-name').value||'Unbenannt',domains:getSel('#domain-grid'),areas:getSel('#area-grid'),allowed_entities:selectedEntities,allowed_ips:document.getElementById('tok-ips').value,patterns:document.getElementById('tok-patterns').value,blocked_patterns:document.getElementById('tok-blocked').value,include_attributes:document.getElementById('tok-attrs').checked,expires_at:exp};if(curId){await api('/admin/api/tokens/'+curId,'PUT',data);closeM('modal-edit');loadTokens();}else{const r=await api('/admin/api/tokens','POST',data);document.getElementById('new-token').value=r.token;closeM('modal-edit');openM('modal-ok');loadTokens();}}
 async function delToken(id){if(confirm('Token löschen?')){await api('/admin/api/tokens/'+id,'DELETE');loadTokens();}}
 async function regenToken(id){if(confirm('Token neu generieren?')){const r=await api('/admin/api/tokens/'+id+'/regenerate','POST');document.getElementById('new-token').value=r.token;openM('modal-ok');loadTokens();}}
 function copyTok(){const i=document.getElementById('new-token');navigator.clipboard.writeText(i.value).then(()=>{const b=i.nextElementSibling;b.innerHTML='<i class="mdi mdi-check"></i>';setTimeout(()=>{b.innerHTML='<i class="mdi mdi-content-copy"></i>';},1500);});}
 function openM(id){document.getElementById(id).classList.add('active');}
-function closeM(id){document.getElementById(id).classList.remove('active');}
+function closeM(id){document.getElementById(id).classList.remove('active');closeCal();}
+function toggleCal(e){if(e)e.stopPropagation();console.log('toggleCal called');const p=document.getElementById('tok-cal');const inp=document.getElementById('tok-expires');console.log('popup:',p,'input:',inp);if(!p||!inp){console.error('Elements not found');return;}const r=inp.getBoundingClientRect();console.log('rect:',r);p.style.top=(r.bottom+6)+'px';p.style.left=r.left+'px';p.classList.toggle('active');console.log('active:',p.classList.contains('active'));if(p.classList.contains('active'))renderCal();}
+function closeCal(){document.getElementById('tok-cal').classList.remove('active');}
+function parseExpiresInput(){const v=document.getElementById('tok-expires').value.trim();if(!v){document.getElementById('tok-expires').dataset.iso='';return;}
+const de=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{1,2})$/);
+if(de){const d=new Date(de[3],de[2]-1,de[1],de[4],de[5]);document.getElementById('tok-expires').dataset.iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+else{const iso=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2})$/);if(iso){document.getElementById('tok-expires').dataset.iso=iso[0];}else{document.getElementById('tok-expires').dataset.iso='';}}}
+function renderCal(){const now=new Date();if(calYear===null){calYear=now.getFullYear();calMonth=now.getMonth();}
+const today=now.getDate(),thisMonth=now.getMonth(),thisYear=now.getFullYear();
+const firstDay=new Date(calYear,calMonth,1);let startDay=firstDay.getDay()-1;if(startDay<0)startDay=6;
+const daysInMonth=new Date(calYear,calMonth+1,0).getDate();const daysInPrev=new Date(calYear,calMonth,0).getDate();
+let html='<div class="cal-header"><button onclick="event.stopPropagation();calNav(-1)"><i class="mdi mdi-chevron-left"></i></button><span>'+MONATE[calMonth]+' '+calYear+'</span><button onclick="event.stopPropagation();calNav(1)"><i class="mdi mdi-chevron-right"></i></button></div>';
+html+='<div class="cal-weekdays">'+TAGE.map(d=>'<span>'+d+'</span>').join('')+'</div><div class="cal-days">';
+for(let i=startDay-1;i>=0;i--){html+='<div class="cal-day other-month" onclick="event.stopPropagation();calPrevMonth('+daysInPrev+')">'+(daysInPrev-i)+'</div>';}
+for(let d=1;d<=daysInMonth;d++){const isToday=d===today&&calMonth===thisMonth&&calYear===thisYear;
+const sel=calSelectedDate&&d===calSelectedDate.getDate()&&calMonth===calSelectedDate.getMonth()&&calYear===calSelectedDate.getFullYear();
+const cls='cal-day'+(isToday?' today':'')+(sel?' selected':'');
+html+='<div class="'+cls+'" onclick="event.stopPropagation();calPick('+d+')">'+d+'</div>';}
+const totalCells=startDay+daysInMonth;const remaining=(7-totalCells%7)%7;
+for(let d=1;d<=remaining;d++){html+='<div class="cal-day other-month">'+d+'</div>';}
+html+='</div>';
+html+='<div class="cal-time"><input type="number" id="cal-h" value="'+String(calHour).padStart(2,'0')+'" min="0" max="23" onchange="calSetTime()" onclick="event.stopPropagation()"><span>:</span><input type="number" id="cal-m" value="'+String(calMinute).padStart(2,'0')+'" min="0" max="59" onchange="calSetTime()" onclick="event.stopPropagation()"></div>';
+html+='<div class="cal-actions"><button class="cal-del" onclick="event.stopPropagation();calClear()"><i class="mdi mdi-delete"></i> Löschen</button><button class="cal-today" onclick="event.stopPropagation();calToday()"><i class="mdi mdi-calendar-today"></i> Heute</button><button class="cal-ok" onclick="event.stopPropagation();calOk()"><i class="mdi mdi-check"></i> OK</button></div>';
+document.getElementById('tok-cal').innerHTML=html;}
+function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calPrevMonth(daysInPrev){calNav(-1);calPick(daysInPrev);}
+function calPick(d){calSelectedDate=new Date(calYear,calMonth,d);renderCal();}
+function calSetTime(){const h=parseInt(document.getElementById('cal-h').value)||0;const m=parseInt(document.getElementById('cal-m').value)||0;calHour=Math.min(23,Math.max(0,h));calMinute=Math.min(59,Math.max(0,m));}
+function calClear(){calSelectedDate=null;document.getElementById('tok-expires').value='';closeCal();}
+function calToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();calSelectedDate=new Date(calYear,calMonth,n.getDate());calHour=n.getHours();calMinute=n.getMinutes();calOk();}
+function calOk(){if(!calSelectedDate){calClear();return;}
+const d=calSelectedDate;const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');
+document.getElementById('tok-expires').value=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+' '+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');
+document.getElementById('tok-expires').dataset.iso=iso;closeCal();}
 loadTokens();
+document.addEventListener('click',function(e){const cal=document.getElementById('tok-cal');if(!cal||!cal.classList.contains('active'))return;const wrap=document.querySelector('.datepicker-wrap');if(wrap&&wrap.contains(e.target))return;if(cal.contains(e.target))return;closeCal();});
 </script>
+<div id="tok-cal" class="datepicker-popup"></div>
 <div style="text-align:center;padding:2rem 1rem 1rem;color:var(--td);font-size:.75rem;border-top:1px solid var(--bdr);margin-top:2rem">
 &copy; 2026 T. Kuhn &middot; HA Read-Only API v0.3.5 &middot; MIT-Lizenz &middot; <a href="https://github.com/tkuhn001/HA_read_only" target="_blank" style="color:var(--p);text-decoration:none">GitHub</a>
 </div>
