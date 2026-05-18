@@ -2,21 +2,23 @@
 <title>HA Read-Only Dashboard</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7/css/materialdesignicons.min.css">
 <style>
-:root{--p:#03a9f4;--a:#ff4081;--bg:#0f172a;--card:rgba(30,41,59,.7);--bdr:rgba(255,255,255,.1);--t:#f8fafc;--td:#94a3b8;--ok:#10b981;--err:#ef4444;--r:12px}
+:root{--p:#03a9f4;--a:#ff4081;--bg:#0f172a;--card:rgba(30,41,59,.7);--bdr:rgba(255,255,255,.1);--t:#f8fafc;--td:#94a3b8;--ok:#10b981;--err:#ef4444;--r:12px;--input-bg:rgba(0,0,0,.35);--nav-bg:rgba(0,0,0,.3);--scroll-track:rgba(0,0,0,.2);--scroll-thumb:rgba(255,255,255,.15)}
+@media(prefers-color-scheme:light){:root{--bg:#f1f5f9;--card:rgba(255,255,255,.8);--bdr:rgba(0,0,0,.1);--t:#0f172a;--td:#475569;--input-bg:rgba(0,0,0,.05);--nav-bg:rgba(255,255,255,.6);--scroll-track:rgba(0,0,0,.05);--scroll-thumb:rgba(0,0,0,.2)}}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t);padding:2rem;min-height:100vh;
 background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transparent),radial-gradient(circle at bottom left,rgba(255,64,129,.08),transparent)}
 ::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:rgba(0,0,0,.2);border-radius:4px}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+::-webkit-scrollbar-track{background:var(--scroll-track);border-radius:4px}
+::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
+@media(prefers-color-scheme:light){::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.3)}}
 .container{max-width:1100px;margin:0 auto}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.5rem;flex-wrap:wrap;gap:1rem}
 .logo{display:flex;align-items:center;gap:1rem}
 .logo i{font-size:2.5rem;color:var(--p);text-shadow:0 0 20px rgba(3,169,244,.5)}
 .logo h1{font-size:1.5rem;font-weight:700}
 .logo p{color:var(--td);font-size:.8rem}
-.nav{display:flex;gap:.5rem;background:rgba(0,0,0,.3);padding:.4rem;border-radius:12px;margin-bottom:2.5rem;width:fit-content;flex-wrap:wrap}
+.nav{display:flex;gap:.5rem;background:var(--nav-bg);padding:.4rem;border-radius:12px;margin-bottom:2.5rem;width:fit-content;flex-wrap:wrap}
 .nav-item{cursor:pointer;padding:.6rem 1.2rem;border-radius:8px;color:var(--td);transition:.3s;display:flex;align-items:center;gap:.4rem;font-size:.9rem}
 .nav-item.active{background:var(--p);color:#fff;box-shadow:0 4px 12px rgba(3,169,244,.3)}
 .nav-item:hover:not(.active){color:var(--t);background:rgba(255,255,255,.05)}
@@ -50,6 +52,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:1rem}
 .modal.active{display:flex}
 .modal-body{background:#1e293b;width:100%;max-width:860px;padding:2.5rem;border-radius:20px;border:1px solid var(--bdr);max-height:90vh;overflow-y:auto;animation:modalSlideIn .25s ease-out}
+@media(prefers-color-scheme:light){.modal-body{background:#ffffff}}
 @keyframes modalSlideIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-body h2{margin-bottom:1.8rem;font-size:1.5rem;display:flex;align-items:center;gap:.6rem}
 .modal-body h2 i{color:var(--p)}
@@ -57,13 +60,14 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .fg{margin-bottom:1.4rem}
 .fg label{display:block;font-size:.85rem;color:var(--td);margin-bottom:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .fg label i{margin-right:.4rem;color:var(--p);font-size:.95rem}
-.fg input,.fg textarea,.fg select{width:100%;background:rgba(0,0,0,.35);border:1px solid var(--bdr);padding:.8rem;border-radius:10px;color:#fff;font-size:.95rem;transition:border-color .2s}
+.fg input,.fg textarea,.fg select{width:100%;background:var(--input-bg);border:1px solid var(--bdr);padding:.8rem;border-radius:10px;color:var(--t);font-size:.95rem;transition:border-color .2s}
 .fg input:focus,.fg textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(3,169,244,.15)}
 .fg textarea{resize:vertical;min-height:80px;font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.5}
 .fg small{display:block;margin-top:.4rem;color:var(--td);font-size:.75rem;font-style:italic}
 .section-title{font-size:.95rem;font-weight:700;color:var(--t);margin:1.8rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:.5rem}
 .section-title i{color:var(--p);font-size:1.1rem}
-.domain-grid{display:flex;flex-wrap:wrap;gap:.5rem;padding:1rem;background:rgba(0,0,0,.25);border-radius:12px;border:1px solid var(--bdr);max-height:200px;overflow-y:auto;transition:border-color .2s}
+.domain-grid{display:flex;flex-wrap:wrap;gap:.5rem;padding:1rem;background:rgba(0,0,0,.2);border-radius:12px;border:1px solid var(--bdr);max-height:200px;overflow-y:auto;transition:border-color .2s}
+@media(prefers-color-scheme:light){.domain-grid{background:rgba(0,0,0,.03)}}
 .domain-grid:hover{border-color:rgba(3,169,244,.3)}
 .domain-grid label{display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.5rem .9rem;border-radius:100px;border:1px solid var(--bdr);transition:all .2s;font-size:.85rem;user-select:none;background:rgba(255,255,255,.02)}
 .domain-grid label:hover{border-color:var(--p);background:rgba(3,169,244,.08);transform:translateY(-1px)}
@@ -72,7 +76,8 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .domain-grid .dot{width:10px;height:10px;border-radius:50%;background:var(--bdr);transition:all .2s;flex-shrink:0}
 .domain-grid label.checked .dot{background:var(--p);box-shadow:0 0 8px rgba(3,169,244,.5)}
 .search-input{margin-bottom:.6rem}
-.entity-picker{border:1px solid var(--bdr);border-radius:12px;background:rgba(0,0,0,.25);max-height:180px;overflow-y:auto;padding:.6rem;transition:border-color .2s}
+.entity-picker{border:1px solid var(--bdr);border-radius:12px;background:rgba(0,0,0,.2);max-height:180px;overflow-y:auto;padding:.6rem;transition:border-color .2s}
+@media(prefers-color-scheme:light){.entity-picker{background:rgba(0,0,0,.03)}}
 .entity-picker:hover{border-color:rgba(3,169,244,.3)}
 .entity-picker label{display:flex;align-items:center;gap:.6rem;padding:.5rem .6rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-family:'JetBrains Mono',monospace;transition:background .15s}
 .entity-picker label:hover{background:rgba(255,255,255,.06)}
@@ -102,7 +107,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .cal-day.other-month{color:rgba(148,163,184,.3)}
 .cal-day.empty{cursor:default}
 .cal-time{display:flex;gap:.5rem;margin-top:.8rem;align-items:center;justify-content:center}
-.cal-time input{background:rgba(0,0,0,.35);border:1px solid var(--bdr);color:var(--t);padding:.5rem;border-radius:8px;width:55px;text-align:center;font-size:.95rem}
+.cal-time input{background:var(--input-bg);border:1px solid var(--bdr);color:var(--t);padding:.5rem;border-radius:8px;width:55px;text-align:center;font-size:.95rem}
 .cal-time input:focus{outline:none;border-color:var(--p)}
 .cal-time span{color:var(--td);font-size:.85rem}
 .cal-actions{display:flex;gap:.5rem;margin-top:.8rem}
@@ -127,6 +132,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .token-display button{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:var(--p);border:none;color:#fff;padding:.4rem .7rem;border-radius:6px;cursor:pointer}
 .empty{text-align:center;color:var(--td);padding:3rem 1rem}
 .empty i{font-size:3rem;display:block;margin-bottom:1rem;opacity:.3}
+@media(prefers-color-scheme:light){.chart-tooltip{background:rgba(255,255,255,.95);color:var(--t);border-color:var(--bdr)}.cal-header button,.cal-actions button{background:rgba(0,0,0,.05);color:var(--t)}.cal-header button:hover,.cal-actions button:hover{background:rgba(3,169,244,.1)}.cal-day:hover:not(.empty):not(.other-month){background:rgba(3,169,244,.1)}.domain-grid label,.entity-picker label{background:transparent}.domain-grid label:hover{background:rgba(3,169,244,.05)}.domain-grid label.checked{background:rgba(3,169,244,.1)}.btn-o{background:transparent}.btn-o:hover{background:rgba(0,0,0,.05)}.nav-item:hover:not(.active){background:rgba(0,0,0,.05)}.badge{background:rgba(0,0,0,.08);color:var(--td)}.stat-box{background:var(--card)}.card:hover{border-color:rgba(3,169,244,.2)}}
 </style></head><body>
 <div class="container">
 <div class="header">
@@ -148,20 +154,22 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 <div class="card"><h3 style="margin-bottom:1rem;font-size:1rem">Pro Token</h3><table><thead><tr><th>Token</th><th>Anfragen</th><th>Fehler</th><th>Letzter Endpunkt</th><th>Letzter Zugriff</th></tr></thead><tbody id="stats-tbody"></tbody></table></div>
 </div>
 <div id="p-settings" class="panel">
-<div class="card" style="max-width:500px"><h3 style="margin-bottom:1.5rem">Globale Rate-Limits</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-bottom:1.5rem;align-items:start">
+<div class="card"><h3 style="margin-bottom:1.5rem">Globale Rate-Limits</h3>
 <div class="fg"><label>Max. Anfragen pro IP (pro Zeitfenster)</label><input type="number" id="cfg-ip" value="100"></div>
 <div class="fg"><label>Max. Anfragen pro Token (pro Zeitfenster)</label><input type="number" id="cfg-tok" value="500"></div>
 <div class="fg"><label>Zeitfenster (Sekunden)</label><input type="number" id="cfg-win" value="60"></div>
 </div>
-<div class="card" style="max-width:500px"><h3 style="margin-bottom:1.5rem">Webhook (optional)</h3>
+<div class="card"><h3 style="margin-bottom:1.5rem">Webhook (optional)</h3>
 <div class="fg"><label>Webhook-URL</label><input type="url" id="cfg-webhook" placeholder="https://example.com/hook"></div>
 <div class="fg"><label class="switch"><input type="checkbox" id="cfg-webhook-api"> Bei API-Anfragen benachrichtigen</label></div>
 <div class="fg"><label class="switch"><input type="checkbox" id="cfg-webhook-token"> Bei Token-Erstellung benachrichtigen</label></div>
 </div>
+</div>
 <button class="btn btn-p" onclick="saveCfg()"><i class="mdi mdi-content-save"></i> Speichern</button>
 </div>
 <div id="p-guide" class="panel">
-<div class="card" style="max-width:800px;margin:0 auto">
+<div class="card">
 <div style="text-align:center;margin-bottom:2.5rem"><i class="mdi mdi-book-open-page-variant" style="font-size:3rem;color:var(--p);display:block;margin-bottom:.5rem"></i><h2>Anleitung</h2><p style="color:var(--td);margin-top:.5rem">So nutzt du die HA Read-Only API</p></div>
 
 <div style="margin-bottom:2.5rem">
@@ -250,7 +258,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 </div>
 </div>
 <div id="p-license" class="panel">
-<div class="card" style="max-width:800px;margin:0 auto">
+<div class="card">
 <div style="text-align:center;margin-bottom:2.5rem"><i class="mdi mdi-scale-balance" style="font-size:3rem;color:var(--p);display:block;margin-bottom:.5rem"></i><h2>Lizenz &amp; Haftungsausschluss</h2><p style="color:var(--td);margin-top:.5rem">Wichtige rechtliche Informationen</p></div>
 
 <div style="margin-bottom:2.5rem">
