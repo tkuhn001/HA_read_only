@@ -25,7 +25,7 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
   - Dedizierte Block-Liste (Blacklist) mit höchster Priorität
   - **IP-Whitelist** pro Token (inkl. CIDR, z. B. `10.0.0.0/24`)
   - **Token-Ablaufdatum** mit integriertem Kalender-Picker
-- **⏱️ Globales Rate-Limiting** – Schütze dein System durch konfigurierbare Limits pro IP und Token.
+- **⏱️ Globales Rate-Limiting** – Schütze dein System durch konfigurierbare Limits pro IP und Zugang.
 - **📑 Integrierte Anleitung** – Schnelleinstieg und API-Beispiele direkt im Dashboard.
 - **🔌 Read-Only by Design** – Keine riskanten POST/PUT-Endpoints für Zustandsänderungen.
 - **🎨 Light/Dark Mode** – Passt sich automatisch an dein System-Theme an.
@@ -38,8 +38,8 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
 
 Die Integration fügt einen neuen Eintrag **"HA Read-Only"** zu deiner Home Assistant Seitenleiste hinzu. Das Dashboard ist in fünf Bereiche unterteilt:
 
-### 1. Tokens
-Verwalte deine API-Zugänge. Erstelle neue Tokens, bearbeite bestehende Berechtigungen oder generiere Tokens neu, falls sie kompromittiert wurden.
+### 1. Zugänge
+Verwalte deine API-Zugänge. Erstelle neue Zugänge, bearbeite bestehende Berechtigungen oder generiere Tokens neu, falls sie kompromittiert wurden.
 - **Hinweis:** Neue Tokens werden aus Sicherheitsgründen nur einmalig angezeigt.
 
 ### 2. Nutzung (Statistics)
@@ -135,9 +135,9 @@ Die Sichtbarkeit einer Entität wird nach folgendem Flow geprüft:
    - Domain, Glob-Muster, HA-Area oder explizite Entity-ID passt → **Erlaubt**.
 3. **Default:** Wenn nichts zutrifft → **Verweigert**.
 
-**Token-Ebene (vor Entitätsfilter):**
-- Abgelaufene Tokens werden abgewiesen (`401 Token expired`).
-- IP-Whitelist: Nur konfigurierte IPs/CIDR-Bereiche dürfen den Token nutzen (`403`).
+**Zugang-Ebene (vor Entitätsfilter):**
+- Abgelaufene Zugänge werden abgewiesen (`401 Token expired`).
+- IP-Whitelist: Nur konfigurierte IPs/CIDR-Bereiche dürfen den Zugang nutzen (`403`).
 
 ### Muster-Beispiele
 - `light.*`: Alle Lichter.
@@ -151,7 +151,7 @@ Die Sichtbarkeit einer Entität wird nach folgendem Flow geprüft:
 - **Admin-API geschützt:** Alle Verwaltungs-Endpunkte (`/admin/api/*`) erfordern eine gültige Home-Assistant-Authentifizierung. Nur eingeloggte Admins können Tokens verwalten.
 - **Keine Standard-Auth:** Die öffentliche API nutzt ausschließlich den Custom-Token. Halte diesen geheim.
 - **Reverse Proxy:** Bei Zugriff von außerhalb des Netzwerks wird dringend die Nutzung eines Reverse-Proxys (Nginx, Cloudflare Tunnel) empfohlen.
-- **Regenerierung:** Nutze die "Neu generieren" Funktion im Dashboard regelmäßig für kritische Tokens.
+- **Token-Regenerierung:** Nutze die "Token neu generieren" Funktion im Dashboard regelmäßig für kritische Zugänge.
 - **IP-Whitelist:** Beschränke Tokens bei Bedarf auf bestimmte IPs oder CIDR-Bereiche (z. B. `192.168.178.0/24`).
 
 ---
