@@ -116,10 +116,11 @@ Der Ordner `panel/` mit `panel.js` wird nicht mehr verwendet (wir nutzen jetzt d
 
 ## 🟢 Priorität 5: UX-Verbesserungen
 
-### 5.1 Toast-Benachrichtigungen statt `alert()`
-`alert()` blockiert den UI-Thread und ist nicht kopierbar. Besser:
-- Eigene Toast-Komponente (animierte Meldung am oberen Rand)
-- Bereits beim "Einstellungen gespeichert" verwendet
+### 5.1 Toast-Benachrichtigungen statt `alert()` ✅ (umgesetzt v0.3.6)
+- [x] Toast-Komponente mit Animation (Slide-in/Slide-out) implementiert
+- [x] Drei Typen: success (grün), error (rot), info (blau)
+- [x] Auto-Close nach 3 Sekunden, Klick zum sofortigen Schließen
+- [x] `alert()` durch Toasts ersetzt
 
 ### 5.2 Responsive Design
 Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App) fehlt Responsive-Optimierung:
@@ -127,19 +128,18 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 - Stacked Layout für Token-Cards
 - Touch-freundliche Buttons
 
-### 5.3 Dark/Light Mode
-HA unterstützt beide Themes. Das Dashboard ist hardcoded dunkel. Besser:
-```css
-@media (prefers-color-scheme: light) {
-  :root { --bg: #f8fafc; --card: white; --t: #1e293b; }
-}
-```
+### 5.3 Dark/Light Mode ✅ (umgesetzt v0.3.6)
+- [x] CSS-Variablen für Light Theme hinzugefügt
+- [x] `prefers-color-scheme: light` Media Query implementiert
+- [x] Alle UI-Komponenten (Modal, Inputs, Kalender, Navigation) angepasst
 
 ### 5.4 Ladeanimationen
 Aktuell "springt" die Oberfläche wenn Daten geladen werden. Skeleton-Loader oder Spinner wären professioneller.
 
-### 5.5 Bestätigungsdialoge verschönern
-`confirm()` durch eigene modale Dialoge ersetzen (wie beim Token-Erfolg).
+### 5.5 Bestätigungsdialoge verschönern ✅ (umgesetzt v0.3.6)
+- [x] Eigener modaler Confirm-Dialog mit Titel, Nachricht und kontextuellen Buttons
+- [x] `confirm()` durch async/await-basierten Dialog ersetzt
+- [x] Individuelle Button-Texte je nach Kontext (Löschen, Neu generieren, etc.)
 
 ### 5.6 HTML als statische Datei servieren
 Aktuell ist das Admin-Dashboard als Python-String in `api.py` eingebettet. Bei jeder Änderung muss HA komplett neu gestartet werden.

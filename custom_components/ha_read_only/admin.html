@@ -51,8 +51,11 @@ th{text-align:left;padding:.8rem;color:var(--td);font-size:.75rem;text-transform
 td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:1rem}
 .modal.active{display:flex}
-.modal-body{background:#1e293b;width:100%;max-width:860px;padding:2.5rem;border-radius:20px;border:1px solid var(--bdr);max-height:90vh;overflow-y:auto;animation:modalSlideIn .25s ease-out}
+.modal-body{background:#1e293b;width:100%;max-width:860px;padding:2.5rem;border-radius:20px;border:1px solid var(--bdr);max-height:90vh;overflow-y:auto;animation:modalSlideIn .25s ease-out;position:relative}
 @media(prefers-color-scheme:light){.modal-body{background:#ffffff}}
+.modal-close{position:absolute;top:1.2rem;right:1.2rem;background:rgba(255,255,255,.06);border:1px solid var(--bdr);color:var(--td);width:34px;height:34px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .15s;z-index:10}
+.modal-close:hover{background:rgba(255,255,255,.12);color:var(--t);border-color:rgba(255,255,255,.2)}
+@media(prefers-color-scheme:light){.modal-close{background:rgba(0,0,0,.05)}.modal-close:hover{background:rgba(0,0,0,.1)}}
 @keyframes modalSlideIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .modal-body h2{margin-bottom:1.8rem;font-size:1.5rem;display:flex;align-items:center;gap:.6rem}
 .modal-body h2 i{color:var(--p)}
@@ -128,11 +131,36 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .switch{display:flex;align-items:center;gap:.8rem;cursor:pointer}
 .switch input{width:40px;height:22px;accent-color:var(--p)}
 .token-display{position:relative;margin:1rem 0}
-.token-display input{padding-right:3.5rem;font-family:monospace;font-size:.9rem}
-.token-display button{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:var(--p);border:none;color:#fff;padding:.4rem .7rem;border-radius:6px;cursor:pointer}
+.token-display input{width:100%;padding:.8rem 3rem .8rem .8rem;font-family:monospace;font-size:.85rem;background:rgba(0,0,0,.35);border:1px solid var(--bdr);border-radius:10px;color:var(--p);overflow-x:auto;white-space:nowrap}
+.token-display button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--p);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.token-display button:hover{background:#0288d1}
 .empty{text-align:center;color:var(--td);padding:3rem 1rem}
 .empty i{font-size:3rem;display:block;margin-bottom:1rem;opacity:.3}
 @media(prefers-color-scheme:light){.chart-tooltip{background:rgba(255,255,255,.95);color:var(--t);border-color:var(--bdr)}.cal-header button,.cal-actions button{background:rgba(0,0,0,.05);color:var(--t)}.cal-header button:hover,.cal-actions button:hover{background:rgba(3,169,244,.1)}.cal-day:hover:not(.empty):not(.other-month){background:rgba(3,169,244,.1)}.domain-grid label,.entity-picker label{background:transparent}.domain-grid label:hover{background:rgba(3,169,244,.05)}.domain-grid label.checked{background:rgba(3,169,244,.1)}.btn-o{background:transparent}.btn-o:hover{background:rgba(0,0,0,.05)}.nav-item:hover:not(.active){background:rgba(0,0,0,.05)}.badge{background:rgba(0,0,0,.08);color:var(--td)}.stat-box{background:var(--card)}.card:hover{border-color:rgba(3,169,244,.2)}}
+.toast-container{position:fixed;top:1.5rem;right:1.5rem;z-index:3000;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{pointer-events:auto;background:#1e293b;border:1px solid var(--bdr);border-radius:12px;padding:1rem 1.2rem;min-width:280px;max-width:400px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:.8rem;animation:toastIn .3s ease-out;cursor:pointer}
+.toast.out{animation:toastOut .25s ease-in forwards}
+.toast-success{border-left:3px solid var(--ok)}.toast-success i{color:var(--ok)}
+.toast-error{border-left:3px solid var(--err)}.toast-error i{color:var(--err)}
+.toast-info{border-left:3px solid var(--p)}.toast-info i{color:var(--p)}
+.toast i{font-size:1.2rem;flex-shrink:0}
+.toast span{font-size:.88rem;color:var(--t);flex:1}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
+@media(prefers-color-scheme:light){.toast{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.12)}}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:2500}
+.confirm-overlay.active{display:flex}
+.confirm-box{background:#1e293b;border:1px solid var(--bdr);border-radius:16px;padding:2rem;max-width:400px;width:90%;text-align:center;animation:modalSlideIn .25s ease-out}
+.confirm-box i{font-size:2.5rem;color:var(--err);display:block;margin-bottom:1rem}
+.confirm-box h3{font-size:1.1rem;margin-bottom:.5rem}
+.confirm-box p{color:var(--td);font-size:.9rem;margin-bottom:1.5rem}
+.confirm-box .confirm-actions{display:flex;gap:.8rem}
+.confirm-box .confirm-actions button{flex:1;padding:.7rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;font-size:.9rem;transition:all .15s}
+.confirm-box .btn-cancel{background:rgba(255,255,255,.08);color:var(--t)}
+.confirm-box .btn-cancel:hover{background:rgba(255,255,255,.15)}
+.confirm-box .btn-confirm{background:var(--err);color:#fff}
+.confirm-box .btn-confirm:hover{background:#dc2626}
+@media(prefers-color-scheme:light){.confirm-box{background:#fff}.confirm-box .btn-cancel{background:rgba(0,0,0,.06)}.confirm-box .btn-cancel:hover{background:rgba(0,0,0,.1)}}
 </style></head><body>
 <div class="container">
 <div class="header">
@@ -308,6 +336,7 @@ Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.5 &middot; 15. Mai 202
 </div>
 <div class="modal" id="modal-edit">
 <div class="modal-body">
+<button class="modal-close" onclick="closeM('modal-edit')"><i class="mdi mdi-close"></i></button>
 <h2 id="modal-title"><i class="mdi mdi-key-plus"></i> Token erstellen</h2>
 <div class="form-row">
 <div class="fg"><label><i class="mdi mdi-format-title"></i> Name</label><input id="tok-name" placeholder="z.B. Wand-Tablet Küche"></div>
@@ -335,12 +364,12 @@ Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.5 &middot; 15. Mai 202
 
 <div style="display:flex;gap:1rem;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--bdr)">
 <button class="btn btn-p" style="flex:1;padding:.85rem" onclick="saveToken()"><i class="mdi mdi-content-save"></i> Speichern</button>
-<button class="btn btn-o" style="flex:1;padding:.85rem" onclick="closeM('modal-edit')"><i class="mdi mdi-close"></i> Abbrechen</button>
+<button class="btn btn-o" style="flex:1;padding:.85rem;border-color:rgba(255,152,0,.4);color:#ff9800" onclick="closeM('modal-edit')"><i class="mdi mdi-close"></i> Abbrechen</button>
 </div></div></div>
 <div class="modal" id="modal-ok">
 <div class="modal-body" style="max-width:500px;text-align:center">
 <i class="mdi mdi-check-circle" style="font-size:3rem;color:var(--ok);display:block;margin-bottom:1rem"></i>
-<h2 style="color:var(--ok)">Token erstellt!</h2>
+<div style="text-align:center"><h2 style="color:var(--ok);justify-content:center">Token erstellt!</h2></div>
 <p style="color:var(--td);margin:1rem 0">Kopiere diesen Token jetzt. Er wird nicht erneut angezeigt.</p>
 <div class="token-display"><input id="new-token" readonly><button onclick="copyTok()"><i class="mdi mdi-content-copy"></i></button></div>
 <button class="btn btn-p" style="width:100%;margin-top:1rem" onclick="closeM('modal-ok')">Fertig</button>
@@ -363,7 +392,7 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function renderChart(hourly){const svg=document.getElementById('usage-chart');if(!hourly||!hourly.length){svg.innerHTML='';return;}const now=new Date(),W=800,H=200,pad={t:10,r:20,b:30,l:38},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b,max=Math.max(...hourly,1),barW=cw/24,steps=4,stepVal=Math.ceil(max/steps);let g='<g transform="translate('+pad.l+','+pad.t+')">';for(let i=0;i<=steps;i++){const y=ch-(i/steps)*ch;g+='<line x1="0" y1="'+y+'" x2="'+cw+'" y2="'+y+'" stroke="rgba(255,255,255,.06)"/>';g+='<text x="-5" y="'+(y+3)+'" fill="var(--td)" font-size="8" text-anchor="end">'+Math.round(stepVal*i)+'</text>';}for(let i=0;i<24;i++){const x=i*barW,bh=Math.max(0,Math.round(hourly[i]/max*ch)),y=ch-bh;const hr=(now.getHours()-23+i+24)%24;g+='<rect x="'+(x+1)+'" y="'+y+'" width="'+(barW-2)+'" height="'+bh+'" fill="rgba(3,169,244,.7)" rx="2" data-i="'+i+'"/>';if(i%4===0)g+='<text x="'+(x+barW/2)+'" y="'+(ch+14)+'" fill="var(--td)" font-size="8" text-anchor="middle">'+String(hr).padStart(2,'0')+':00</text>';}g+='</g>';svg.innerHTML=g;svg.onmousemove=function(e){const rect=svg.getBoundingClientRect(),mx=(e.clientX-rect.left)/rect.width*W-pad.l,barIdx=Math.floor(mx/barW);const tip=document.getElementById('chart-tooltip');if(barIdx>=0&&barIdx<24&&hourly[barIdx]>0){tip.style.display='block';tip.textContent=hourly[barIdx]+' Anfragen um '+String((now.getHours()-23+barIdx+24)%24).padStart(2,'0')+':00';tip.style.left=(e.clientX-rect.left+12)+'px';tip.style.top=(e.clientY-rect.top-30)+'px';}else{tip.style.display='none';}};svg.onmouseleave=function(){document.getElementById('chart-tooltip').style.display='none';};}
 async function loadStats(){const s=await api('/admin/api/stats');document.getElementById('stats-cards').innerHTML='<div class="stat-box"><div class="label">Anfragen gesamt</div><div class="value">'+s.total_requests+'</div></div><div class="stat-box err"><div class="label">Fehler</div><div class="value">'+s.total_errors+'</div></div><div class="stat-box"><div class="label">Aktive Tokens</div><div class="value">'+s.tokens.length+'</div></div>';renderChart(s.hourly||[]);document.getElementById('usage-log-tbody').innerHTML=(s.usage_log||[]).map(e=>'<tr><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+(e.status<400?'status-ok':'status-err')+'">'+e.status+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';document.getElementById('stats-tbody').innerHTML=s.tokens.map(t=>'<tr><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Daten</td></tr>';}
 async function loadCfg(){const c=await api('/admin/api/config');if(c.rate_limit_max_per_ip)document.getElementById('cfg-ip').value=c.rate_limit_max_per_ip;if(c.rate_limit_max_per_token)document.getElementById('cfg-tok').value=c.rate_limit_max_per_token;if(c.rate_limit_window)document.getElementById('cfg-win').value=c.rate_limit_window;document.getElementById('cfg-webhook').value=c.webhook_url||'';document.getElementById('cfg-webhook-api').checked=!!c.webhook_on_api_request;document.getElementById('cfg-webhook-token').checked=!!c.webhook_on_token_created;}
-async function saveCfg(){await api('/admin/api/config','PUT',{rate_limit_max_per_ip:parseInt(document.getElementById('cfg-ip').value),rate_limit_max_per_token:parseInt(document.getElementById('cfg-tok').value),rate_limit_window:parseInt(document.getElementById('cfg-win').value),webhook_url:document.getElementById('cfg-webhook').value.trim(),webhook_on_api_request:document.getElementById('cfg-webhook-api').checked,webhook_on_token_created:document.getElementById('cfg-webhook-token').checked});alert('Einstellungen gespeichert!');}
+async function saveCfg(){await api('/admin/api/config','PUT',{rate_limit_max_per_ip:parseInt(document.getElementById('cfg-ip').value),rate_limit_max_per_token:parseInt(document.getElementById('cfg-tok').value),rate_limit_window:parseInt(document.getElementById('cfg-win').value),webhook_url:document.getElementById('cfg-webhook').value.trim(),webhook_on_api_request:document.getElementById('cfg-webhook-api').checked,webhook_on_token_created:document.getElementById('cfg-webhook-token').checked});toast('Einstellungen gespeichert!','success');}
 function gridHtml(items,sel,gridId){const searchId=gridId==='domain-grid'?'domain-search':gridId==='area-grid'?'area-search':'entity-search';const q=document.getElementById(searchId)?.value.toLowerCase()||'';return items.filter(x=>{const name=x.name||x;const id=x.id||x;return !q||name.toLowerCase().includes(q)||id.toLowerCase().includes(q);}).map(x=>{const id=x.id||x,name=x.name||x,ch=sel.includes(id)?'checked':'',cls=ch?'checked':'';return '<label class="'+cls+'" onclick="toggleGrid(this)"><span class="dot"></span><input type="checkbox" value="'+id+'" '+ch+'> '+esc(name)+'</label>';}).join('')||'<p style="color:var(--td);padding:1rem;text-align:center;width:100%">Keine Treffer</p>';}
 function toggleGrid(el){setTimeout(()=>{const cb=el.querySelector('input');if(cb.checked)el.classList.add('checked');else el.classList.remove('checked');},10);}
 function filterDomains(){document.getElementById('domain-grid').innerHTML=gridHtml(allDomains.map(d=>({id:d,name:d})),getSel('#domain-grid'),'domain-grid');}
@@ -380,12 +409,18 @@ function toggleEntity(id,on){if(on&&!selectedEntities.includes(id))selectedEntit
 async function resetTokenForm(t){document.getElementById('tok-name').value=t?t.name||'':'';if(t&&t.expires_at){const d=new Date(t.expires_at*1000);calYear=d.getFullYear();calMonth=d.getMonth();calSelectedDate=new Date(calYear,calMonth,d.getDate());calHour=d.getHours();calMinute=d.getMinutes();const v=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+' '+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');document.getElementById('tok-expires').value=v;document.getElementById('tok-expires').dataset.iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');}else{document.getElementById('tok-expires').value='';document.getElementById('tok-expires').dataset.iso='';calSelectedDate=null;calHour=12;calMinute=0;}document.getElementById('tok-ips').value=t&&t.allowed_ips?t.allowed_ips.join('\n'):'';document.getElementById('tok-patterns').value=t?t.patterns||'':'';document.getElementById('tok-blocked').value=t?t.blocked_patterns||'':'';document.getElementById('tok-attrs').checked=t?t.include_attributes!==false:true;document.getElementById('domain-search').value='';document.getElementById('area-search').value='';document.getElementById('entity-search').value='';selectedEntities=t&&t.allowed_entities?[...t.allowed_entities]:[];renderEntityChips();document.getElementById('entity-picker').innerHTML='<p style="color:var(--td);padding:.8rem;text-align:center">Mind. 2 Zeichen eingeben...</p>';try{await loadOptions();await loadDomains(t?t.domains||[]:[]);await loadAreas(t?t.areas||[]:[]);}catch(e){console.error('loadOptions failed:',e);const msg=e.message||'Unbekannter Fehler';document.getElementById('domain-grid').innerHTML='<p style="color:var(--err);padding:1rem;text-align:center"><i class="mdi mdi-alert"></i> '+esc(msg)+'</p>';document.getElementById('area-grid').innerHTML='<p style="color:var(--err);padding:1rem;text-align:center"><i class="mdi mdi-alert"></i> '+esc(msg)+'</p>';}}
 async function openCreate(){curId=null;document.getElementById('modal-title').innerHTML='<i class="mdi mdi-key-plus"></i> Token erstellen';await resetTokenForm(null);openM('modal-edit');}
 async function editToken(id){curId=id;const t=tokens.find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').innerHTML='<i class="mdi mdi-key-edit"></i> Token bearbeiten';await resetTokenForm(t);openM('modal-edit');}
-async function saveToken(){const exp=document.getElementById('tok-expires').dataset.iso||null;const data={name:document.getElementById('tok-name').value||'Unbenannt',domains:getSel('#domain-grid'),areas:getSel('#area-grid'),allowed_entities:selectedEntities,allowed_ips:document.getElementById('tok-ips').value,patterns:document.getElementById('tok-patterns').value,blocked_patterns:document.getElementById('tok-blocked').value,include_attributes:document.getElementById('tok-attrs').checked,expires_at:exp};if(curId){await api('/admin/api/tokens/'+curId,'PUT',data);closeM('modal-edit');loadTokens();}else{const r=await api('/admin/api/tokens','POST',data);document.getElementById('new-token').value=r.token;closeM('modal-edit');openM('modal-ok');loadTokens();}}
-async function delToken(id){if(confirm('Token löschen?')){await api('/admin/api/tokens/'+id,'DELETE');loadTokens();}}
-async function regenToken(id){if(confirm('Token neu generieren?')){const r=await api('/admin/api/tokens/'+id+'/regenerate','POST');document.getElementById('new-token').value=r.token;openM('modal-ok');loadTokens();}}
-function copyTok(){const i=document.getElementById('new-token');navigator.clipboard.writeText(i.value).then(()=>{const b=i.nextElementSibling;b.innerHTML='<i class="mdi mdi-check"></i>';setTimeout(()=>{b.innerHTML='<i class="mdi mdi-content-copy"></i>';},1500);});}
-function openM(id){document.getElementById(id).classList.add('active');}
+async function saveToken(){const exp=document.getElementById('tok-expires').dataset.iso||null;const data={name:document.getElementById('tok-name').value||'Unbenannt',domains:getSel('#domain-grid'),areas:getSel('#area-grid'),allowed_entities:selectedEntities,allowed_ips:document.getElementById('tok-ips').value,patterns:document.getElementById('tok-patterns').value,blocked_patterns:document.getElementById('tok-blocked').value,include_attributes:document.getElementById('tok-attrs').checked,expires_at:exp};if(curId){await api('/admin/api/tokens/'+curId,'PUT',data);toast('Token bearbeitet','success');closeM('modal-edit');loadTokens();}else{const r=await api('/admin/api/tokens','POST',data);document.getElementById('new-token').value=r.token;toast('Token erstellt','success');closeM('modal-edit');openM('modal-ok');loadTokens();}}
+async function delToken(id){if(await confirmDlg('Token löschen','Möchtest du diesen Token wirklich unwiderruflich löschen?','Löschen')){await api('/admin/api/tokens/'+id,'DELETE');toast('Token gelöscht','success');loadTokens();}}
+async function regenToken(id){if(await confirmDlg('Token neu generieren','Das alte Token wird sofort ungültig. Alle Geräte müssen mit dem neuen Token neu verbunden werden.','Neu generieren')){const r=await api('/admin/api/tokens/'+id+'/regenerate','POST');document.getElementById('new-token').value=r.token;toast('Token neu generiert','success');openM('modal-ok');loadTokens();}}
+async function copyTok(){const i=document.getElementById('new-token');try{await navigator.clipboard.writeText(i.value);const b=i.nextElementSibling;b.innerHTML='<i class="mdi mdi-check"></i>';setTimeout(()=>{b.innerHTML='<i class="mdi mdi-content-copy"></i>';},1500);}catch(e){i.select();document.execCommand('copy');}}
+function openM(id){const el=document.getElementById(id);el.classList.add('active');const body=el.querySelector('.modal-body');if(body)body.scrollTop=0;}
 function closeM(id){document.getElementById(id).classList.remove('active');closeCal();}
+function toast(msg,type='info',duration=3000){const c=document.getElementById('toast-container');const icons={success:'check-circle',error:'alert-circle',info:'information'};const t=document.createElement('div');t.className='toast toast-'+type;t.innerHTML='<i class="mdi mdi-'+icons[type]+'"></i><span>'+msg+'</span>';t.onclick=()=>dismissToast(t);c.appendChild(t);setTimeout(()=>dismissToast(t),duration);}
+function dismissToast(t){if(!t.parentNode)return;t.classList.add('out');setTimeout(()=>t.remove(),250);}
+let confirmResolve=null;
+function confirmDlg(title,msg,btnText='Bestätigen'){return new Promise(r=>{confirmResolve=r;document.getElementById('confirm-title').textContent=title;document.getElementById('confirm-message').textContent=msg;document.getElementById('confirm-btn').textContent=btnText;document.getElementById('confirm-overlay').classList.add('active');});}
+function confirmOk(){document.getElementById('confirm-overlay').classList.remove('active');if(confirmResolve){confirmResolve(true);confirmResolve=null;}}
+function confirmCancel(){document.getElementById('confirm-overlay').classList.remove('active');if(confirmResolve){confirmResolve(false);confirmResolve=null;}}
 function toggleCal(e){if(e)e.stopPropagation();console.log('toggleCal called');const p=document.getElementById('tok-cal');const inp=document.getElementById('tok-expires');console.log('popup:',p,'input:',inp);if(!p||!inp){console.error('Elements not found');return;}const r=inp.getBoundingClientRect();console.log('rect:',r);p.style.top=(r.bottom+6)+'px';p.style.left=r.left+'px';p.classList.toggle('active');console.log('active:',p.classList.contains('active'));if(p.classList.contains('active'))renderCal();}
 function closeCal(){document.getElementById('tok-cal').classList.remove('active');}
 function parseExpiresInput(){const v=document.getElementById('tok-expires').value.trim();if(!v){document.getElementById('tok-expires').dataset.iso='';return;}
@@ -423,6 +458,18 @@ loadTokens();
 document.addEventListener('click',function(e){const cal=document.getElementById('tok-cal');if(!cal||!cal.classList.contains('active'))return;const wrap=document.querySelector('.datepicker-wrap');if(wrap&&wrap.contains(e.target))return;if(cal.contains(e.target))return;closeCal();});
 </script>
 <div id="tok-cal" class="datepicker-popup"></div>
+<div id="toast-container" class="toast-container"></div>
+<div class="confirm-overlay" id="confirm-overlay">
+<div class="confirm-box">
+<i class="mdi mdi-alert-circle"></i>
+<h3 id="confirm-title">Bestätigung</h3>
+<p id="confirm-message"></p>
+<div class="confirm-actions">
+<button class="btn-cancel" onclick="confirmCancel()">Abbrechen</button>
+<button class="btn-confirm" id="confirm-btn" onclick="confirmOk()">Bestätigen</button>
+</div>
+</div>
+</div>
 <div style="text-align:center;padding:2rem 1rem 1rem;color:var(--td);font-size:.75rem;border-top:1px solid var(--bdr);margin-top:2rem">
 &copy; 2026 T. Kuhn &middot; HA Read-Only API v0.3.5 &middot; MIT-Lizenz &middot; <a href="https://github.com/tkuhn001/HA_read_only" target="_blank" style="color:var(--p);text-decoration:none">GitHub</a>
 </div>
