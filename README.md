@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-0.3.5-blue.svg)](https://github.com/tkuhn001/HA_read_only)
 [![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2023.5%2B-blue.svg)](https://www.home-assistant.io/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
 
 Eine leistungsstarke Home-Assistant-Integration zum Bereitstellen einer sicheren, **schreibgeschützten** HTTP-API für externe Systeme. Mit integriertem Admin-Panel zur Token-Verwaltung, Live-Statistiken und granularen Berechtigungen.
 
@@ -15,7 +15,7 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
 
 ## ✨ Highlights
 
-- **🚀 Modernes Admin-Panel** – Professionelle Management-Oberfläche direkt in der HA-Seitenleiste (Glassmorphism Design).
+- **🚀 Modernes Admin-Panel** – Professionelle Management-Oberfläche direkt in der HA-Seitenleiste (Glassmorphism Design, Light/Dark Mode).
 - **📊 Live-Statistiken** – Behalte den Überblick über API-Aufrufe, Fehlerraten und den letzten Zugriff pro Token.
 - **🛡️ Granulare Berechtigungen**:
   - Whitelisting von Domains (`light`, `sensor`, …)
@@ -23,11 +23,14 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
   - Einzelne Entitäten explizit erlauben
   - Glob-Muster/Wildcards (`light.kueche_*`, `sensor.*_temp`)
   - Dedizierte Block-Liste (Blacklist) mit höchster Priorität
-  - **IP-Whitelist** pro Token (inkl. CIDR, z. B. `10.0.0.0/24`)
-  - **Token-Ablaufdatum** optional
+  - **IP-Whitelist** pro Token (inkl. CIDR, z. B. `10.0.0.0/24`)
+  - **Token-Ablaufdatum** mit integriertem Kalender-Picker
 - **⏱️ Globales Rate-Limiting** – Schütze dein System durch konfigurierbare Limits pro IP und Token.
 - **📑 Integrierte Anleitung** – Schnelleinstieg und API-Beispiele direkt im Dashboard.
 - **🔌 Read-Only by Design** – Keine riskanten POST/PUT-Endpoints für Zustandsänderungen.
+- **🎨 Light/Dark Mode** – Passt sich automatisch an dein System-Theme an.
+- **💬 Toast-Benachrichtigungen** – Elegante Feedback-Meldungen statt blockierender Pop-ups.
+- **🔒 HA-Auth für Admin-API** – Alle Verwaltungs-Endpunkte sind durch Home Assistant Authentication geschützt.
 
 ---
 
@@ -145,10 +148,11 @@ Die Sichtbarkeit einer Entität wird nach folgendem Flow geprüft:
 
 ## 🔒 Sicherheitshinweise
 
-- **Keine Standard-Auth:** Die API nutzt ausschließlich den Custom-Token. Halte diesen geheim.
-- **Admin-Schutz:** Das Dashboard in der Seitenleiste ist durch die Home Assistant Benutzerverwaltung geschützt (nur Admins).
+- **Admin-API geschützt:** Alle Verwaltungs-Endpunkte (`/admin/api/*`) erfordern eine gültige Home-Assistant-Authentifizierung. Nur eingeloggte Admins können Tokens verwalten.
+- **Keine Standard-Auth:** Die öffentliche API nutzt ausschließlich den Custom-Token. Halte diesen geheim.
 - **Reverse Proxy:** Bei Zugriff von außerhalb des Netzwerks wird dringend die Nutzung eines Reverse-Proxys (Nginx, Cloudflare Tunnel) empfohlen.
 - **Regenerierung:** Nutze die "Neu generieren" Funktion im Dashboard regelmäßig für kritische Tokens.
+- **IP-Whitelist:** Beschränke Tokens bei Bedarf auf bestimmte IPs oder CIDR-Bereiche (z. B. `192.168.178.0/24`).
 
 ---
 
