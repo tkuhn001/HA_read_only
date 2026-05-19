@@ -34,6 +34,8 @@ from .const import (
     RATE_LIMIT_MAX_PER_IP,
     RATE_LIMIT_MAX_PER_TOKEN,
     RATE_LIMIT_WINDOW,
+    STATS_LOG_MAX,
+    STATS_RETENTION_DAYS,
     USAGE_LOG_MAX,
     VERSION,
 )
@@ -163,6 +165,15 @@ async def _track_usage(
             "last_endpoint": None,
         },
     )
+    token_data = _find_token_data(hass, token)
+    token_max = None
+    if token_data:
+        token_max = token_data.get("stats_max_requests")
+    config = handler.data.get("config", {})
+    global_max = config.get("stats_log_max") if config.get("stats_log_max_enabled") else None
+    effective_max = token_max if token_max is not None else global_max
+    if effective_max is not None and entry["total"] >= effective_max:
+        return
     entry["total"] += 1
     entry["by_endpoint"][endpoint] = entry["by_endpoint"].get(endpoint, 0) + 1
     if status >= 400:
@@ -178,6 +189,7 @@ async def _track_usage(
         "endpoint": endpoint,
         "status": status,
         "token_name": token_name or (key[:8] + "..." if key != "no_token" else "—"),
+        "token_key": key,
     }
     usage_log = handler.data.setdefault("usage_log", [])
     usage_log.insert(0, log_entry)
@@ -535,9 +547,13 @@ class AdminApiStatsView(HomeAssistantView):
         handler = _get_handler(request.app["hass"])
         stats = handler.data.get("stats", {})
         usage_log = handler.data.get("usage_log", [])
+        filter_token = request.query.get("token")
+        if filter_token:
+            usage_log = [e for e in usage_log if e.get("token_key") == filter_token]
         total_requests = sum(s["total"] for s in stats.values())
         total_errors = sum(s["errors"] for s in stats.values())
-        tokens_stats = [{**v, "token_key": k[:8] + "..."} for k, v in stats.items()]
+        tokens_stats = [{**v, "token_key": k} for k, v in stats.items()]
+        pie_data = [{"name": v.get("token_name", k[:8]+"..."), "value": v["total"]} for k, v in stats.items() if v["total"] > 0]
         return web.json_response(
             {
                 "total_requests": total_requests,
@@ -545,6 +561,7 @@ class AdminApiStatsView(HomeAssistantView):
                 "tokens": tokens_stats,
                 "usage_log": usage_log,
                 "hourly": _compute_hourly_chart(usage_log),
+                "pie": pie_data,
             }
         )
 
@@ -556,7 +573,12 @@ class AdminApiConfigView(HomeAssistantView):
 
     async def get(self, request: web.Request) -> web.Response:
         handler = _get_handler(request.app["hass"])
-        return web.json_response(handler.data.get("config", {}))
+        cfg = handler.data.get("config", {})
+        cfg.setdefault("stats_log_max", STATS_LOG_MAX)
+        cfg.setdefault("stats_log_max_enabled", True)
+        cfg.setdefault("stats_retention_days", STATS_RETENTION_DAYS)
+        cfg.setdefault("stats_retention_enabled", True)
+        return web.json_response(cfg)
 
     async def put(self, request: web.Request) -> web.Response:
         data = await request.json()

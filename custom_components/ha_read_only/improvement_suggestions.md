@@ -144,10 +144,17 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 - [x] `confirm()` durch async/await-basierten Dialog ersetzt
 - [x] Individuelle Button-Texte je nach Kontext (Löschen, Neu generieren, etc.)
 
-### 5.6 HTML als statische Datei servieren
-Aktuell ist das Admin-Dashboard als Python-String in `api.py` eingebettet. Bei jeder Änderung muss HA komplett neu gestartet werden.
+### 5.6 HTML als statische Datei servieren ✅ (umgesetzt v0.3.6)
+- [x] `admin.html` als separate Datei ausgelagert
+- [x] Via `hass.http.register_static_path` serviert
+- [x] Kein HA-Neustart mehr bei HTML-Änderungen nötig
 
-**Lösung:** `admin.html` als separate Datei auslagern und via `hass.http.register_static_path` servieren. Dann lädt der Browser bei jedem Aufruf die neueste Version – kein Neustart nötig.
+### 5.7 Statistik-Speicherung & Limits ✅ (umgesetzt v0.3.7)
+- [x] Globale Limits: Max. Log-Einträge + Aufbewahrungsdauer (an/aus)
+- [x] Pro Token: Individuelles Max-Anfragen-Limit
+- [x] Statistikseite: Token-Filter-Dropdown + Pie Chart (Verteilung nach Zugang)
+- [x] Automatische Bereinigung beim Speichern
+- [x] Einstellungen-Seite: Übersicht aller Token-Limits
 
 ---
 

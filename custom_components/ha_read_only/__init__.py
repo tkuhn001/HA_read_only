@@ -7,6 +7,7 @@
 
 import logging
 import secrets
+import time
 import voluptuous as vol
 import os
 
@@ -48,7 +49,29 @@ class ReadOnlyDataHandler:
 
     async def async_save(self) -> None:
         """Save data to storage."""
+        await self._cleanup_stats()
         await self.store.async_save(self.data)
+
+    async def _cleanup_stats(self) -> None:
+        """Apply retention and limit rules to usage_log and stats."""
+        config = self.data.get("config", {})
+        now = time.time()
+
+        retention_enabled = config.get("stats_retention_enabled", True)
+        retention_days = config.get("stats_retention_days", 30)
+        log_max_enabled = config.get("stats_log_max_enabled", True)
+        log_max = config.get("stats_log_max", 500)
+
+        usage_log = self.data.get("usage_log", [])
+
+        if retention_enabled and retention_days > 0:
+            cutoff = now - (retention_days * 86400)
+            usage_log = [e for e in usage_log if e.get("timestamp", 0) >= cutoff]
+
+        if log_max_enabled and log_max > 0:
+            usage_log = usage_log[:log_max]
+
+        self.data["usage_log"] = usage_log
 
 try:
     from .api import async_setup_api

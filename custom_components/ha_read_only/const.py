@@ -6,7 +6,7 @@
 # NUTZUNG AUF EIGENE GEFAHR.
 
 DOMAIN = "ha_read_only"
-VERSION = "0.3.5"
+VERSION = "0.3.7"
 
 STORAGE_KEY = f"{DOMAIN}.storage"
 STORAGE_VERSION = 1
@@ -31,6 +31,8 @@ RATE_LIMIT_MAX_PER_IP = 100
 RATE_LIMIT_MAX_PER_TOKEN = 500
 
 USAGE_LOG_MAX = 50
+STATS_LOG_MAX = 500
+STATS_RETENTION_DAYS = 30
 
 # Dynamic config keys (stored in hass.data)
 CONF_RATE_LIMIT_WINDOW = "rate_limit_window"
@@ -39,3 +41,8 @@ CONF_RATE_LIMIT_MAX_PER_TOKEN = "rate_limit_max_per_token"
 CONF_WEBHOOK_URL = "webhook_url"
 CONF_WEBHOOK_ON_API = "webhook_on_api_request"
 CONF_WEBHOOK_ON_TOKEN = "webhook_on_token_created"
+CONF_STATS_LOG_MAX = "stats_log_max"
+CONF_STATS_LOG_MAX_ENABLED = "stats_log_max_enabled"
+CONF_STATS_RETENTION_DAYS = "stats_retention_days"
+CONF_STATS_RETENTION_ENABLED = "stats_retention_enabled"
+CONF_STATS_MAX_REQUESTS = "stats_max_requests"
