@@ -133,8 +133,11 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 - [x] `prefers-color-scheme: light` Media Query implementiert
 - [x] Alle UI-Komponenten (Modal, Inputs, Kalender, Navigation) angepasst
 
-### 5.4 Ladeanimationen
-Aktuell "springt" die Oberfläche wenn Daten geladen werden. Skeleton-Loader oder Spinner wären professioneller.
+### 5.4 Ladeanimationen ✅ (umgesetzt v0.3.7)
+- [x] Spinner mit Lade-Text für Token-Liste, Nutzungsstatistiken und Entity-Suche
+- [x] CSS Skeleton-Loader Animation
+- [x] Loading-States für Domain/Area-Picker im Modal
+- [x] Fehlerbehandlung mit visuellem Feedback bei Lade-Fehlern
 
 ### 5.5 Bestätigungsdialoge verschönern ✅ (umgesetzt v0.3.6)
 - [x] Eigener modaler Confirm-Dialog mit Titel, Nachricht und kontextuellen Buttons
