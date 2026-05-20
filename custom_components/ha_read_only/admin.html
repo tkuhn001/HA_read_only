@@ -23,6 +23,7 @@ background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transpa
 .nav-item.active{background:var(--p);color:#fff;box-shadow:0 4px 12px rgba(3,169,244,.3)}
 .nav-item:hover:not(.active){color:var(--t);background:rgba(255,255,255,.05)}
 .panel{display:none;animation:fadeIn .3s ease-out}.panel.active{display:block}
+#p-tokens.active{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .btn{padding:.55rem 1rem;border-radius:8px;border:1px solid var(--bdr);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.45rem;transition:all .2s;font-size:.85rem;background:transparent;color:var(--t)}
 .btn:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.04)}
@@ -36,7 +37,7 @@ background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transpa
 .btn-d:hover{border-color:var(--err);background:rgba(239,68,68,.1)}
 .btn-s{padding:.35rem .7rem;font-size:.78rem;border-radius:6px}
 .btn i{font-size:1em}
-.card{background:var(--card);padding:1.5rem;border-radius:var(--r);border:1px solid var(--bdr);backdrop-filter:blur(10px);margin-bottom:1rem;transition:border-color .3s;display:flex;flex-direction:column}
+.card{background:var(--card);padding:.5rem;border-radius:var(--r);border:1px solid var(--bdr);backdrop-filter:blur(10px);margin-bottom:1rem;transition:border-color .3s;display:flex;flex-direction:column}
 .card>*:last-child{margin-bottom:0}
 .card h3{font-size:1.1rem;font-weight:700;margin:0 0 1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:.5rem}
 .card h3 i{font-size:1.2rem}
@@ -49,12 +50,12 @@ background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transpa
 .badge.warn{background:rgba(239,68,68,.15);color:var(--err)}
 .token-token-badge{font-family:monospace;font-size:.85rem;padding:.2rem .6rem;border-radius:6px;background:rgba(3,169,244,.12);color:var(--p);letter-spacing:.5px;font-weight:600}
 .token-color-indicator{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.2)}
-.card.token-card{border:1px solid transparent;border-left:8px solid var(--card-accent-color,transparent);position:relative;overflow:hidden}
+.card.token-card{border:1px solid transparent;position:relative;overflow:hidden;background-image:linear-gradient(to right,var(--card-accent-color,transparent) 0%,transparent 30px);background-repeat:no-repeat;padding-left:calc(1.5rem + 5px)}
 .card.token-card::after{content:'';position:absolute;inset:0;border:1px solid var(--card-accent-color,transparent);opacity:.5;pointer-events:none;border-left:none}
-.card.token-card::before{content:'';position:absolute;top:-40px;left:-40px;width:100px;height:100px;background:var(--card-accent-color,transparent);border-radius:50%;opacity:.15;pointer-events:none}
-.token-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem}
-.token-card-header h3{font-size:2rem;margin:0;display:flex;align-items:center;gap:.5rem}
-.token-card-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.5rem;margin-bottom:.6rem}
+.card.token-card::before{content:'';position:absolute;bottom:-40px;right:-40px;width:100px;height:100px;background:var(--card-accent-color,transparent);border-radius:50%;opacity:.15;pointer-events:none}
+.token-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;gap:1rem}
+.token-card-header h3{font-size:1.5rem;margin:0;display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.token-card-stats{display:grid;grid-template-columns:1fr 1fr;gap:.3rem .6rem;margin-bottom:.6rem}
 .token-stat{display:flex;flex-direction:column;gap:.1rem}
 .token-stat .label{font-size:.65rem;color:var(--td);text-transform:uppercase;letter-spacing:.5px}
 .token-stat .value{font-size:.85rem;font-weight:600;color:var(--t)}
@@ -153,7 +154,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .chart-container{position:relative;width:100%;height:200px}
 .chart-svg{width:100%;height:100%;display:block}
 .chart-tooltip{position:absolute;background:rgba(0,0,0,.9);color:#fff;padding:.45rem .75rem;border-radius:6px;font-size:.78rem;pointer-events:none;white-space:nowrap;z-index:100;border:1px solid var(--bdr);display:none}
-.status-ok{color:var(--ok)}.status-err{color:var(--err)}
+.status-ok{color:var(--ok)}.status-err{color:var(--err)}.status-warn{color:#ff9800}
 .switch{display:flex;align-items:center;gap:.8rem;cursor:pointer}
 .switch input{width:40px;height:22px;accent-color:var(--p)}
 .toggle{position:relative;display:inline-flex;align-items:center;gap:.6rem;cursor:pointer;font-size:.9rem;user-select:none}
@@ -212,6 +213,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .token-limits-table th{text-align:left;padding:.7rem .5rem;color:var(--td);font-size:.75rem;text-transform:uppercase;border-bottom:1px solid var(--bdr)}
 .token-limits-table td{padding:.7rem .5rem;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04)}
 .token-limits-table tr:hover{background:rgba(255,255,255,.03)}
+.row-accent td:first-child{background-image:linear-gradient(to right,var(--row-accent),transparent);background-size:24px 100%;background-repeat:no-repeat;background-position:left center}
 .sort-th{cursor:pointer;user-select:none;transition:color .15s}.sort-th:hover{color:var(--p)}
 .sort-arrow{font-size:.7rem;opacity:.4;margin-left:2px}.sort-th.active .sort-arrow{opacity:1;color:var(--p)}
 @media(prefers-color-scheme:light){.skeleton{background:linear-gradient(90deg,rgba(0,0,0,.04) 25%,rgba(0,0,0,.08) 50%,rgba(0,0,0,.04) 75%);background-size:200% 100%}}
@@ -514,6 +516,7 @@ Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.9 &middot; 20. Mai 202
 let tokens=[],curId=null,allDomains=[],allAreas=[],selectedEntities=[],entityTimer=null,calYear=null,calMonth=null,calSelectedDate=null,calHour=12,calMinute=0;
 let allLogEntries=[],logSortCol='timestamp',logSortAsc=false,logDisplayCount=20;
 let allInvalidEntries=[],invalidLogDisplayCount=20;
+let colorMap={};
 const B='/api/ha_read_only';
 const MONATE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const TAGE=['Mo','Di','Mi','Do','Fr','Sa','So'];
@@ -530,6 +533,7 @@ async function loadTokens(){
   c.innerHTML='';
   try{
     tokens=await api('/admin/api/tokens');
+    colorMap={};tokens.forEach(t=>{if(t.id&&t.color)colorMap[t.id]=t.color;});
     loadEl.style.display='none';
     if(!tokens.length){c.innerHTML='<div class="empty"><i class="mdi mdi-key-plus"></i><p>Noch keine Zugänge.</p></div>';return;}
     const globalMax=Math.max(1,...tokens.map(t=>Math.max(...(t.daily_usage||[]))));
@@ -546,7 +550,7 @@ async function loadTokens(){
       const statusBadge=isExpired(t)?'<span class="badge warn">Abgelaufen</span>':'<span class="badge" style="background:rgba(16,185,129,.15);color:var(--ok)">Aktiv</span>';
       const usageBars=renderUsageBars(t.daily_usage||[],globalMax);
       const expiresStr=t.expires_at?'<span class="badge">Gültig bis '+new Date(t.expires_at*1000).toLocaleDateString('de-DE')+'</span>':'';
-      return '<div class="card token-card" style="'+colorStyle+'"><div class="token-card-header"><h3><span style="-webkit-text-stroke:1px '+color+'">'+esc(t.name)+'</span> <span class="token-token-badge">'+esc(t.token_masked)+'</span></h3>'+statusBadge+'</div><div class="token-card-badges"><span class="badge">'+(t.domains&&t.domains.length?t.domains.length+' Domains':'Alle Domains')+'</span>'+(t.areas&&t.areas.length?'<span class="badge">'+t.areas.length+' Areas</span>':'')+(t.allowed_ips&&t.allowed_ips.length?'<span class="badge">IP-Filter</span>':'')+(t.include_attributes===false?'<span class="badge">Ohne Attribute</span>':'')+expiresStr+(t.patterns?'<span class="badge">Patterns</span>':'')+'</div><div class="token-card-stats"><div class="token-stat"><span class="label">API Calls</span><span class="value">'+total+'</span></div><div class="token-stat"><span class="label">Erfolgsrate</span><span class="value '+(successRate==='-'?'':successRate>=90?'ok':'err')+'">'+successRate+(successRate==='-'?'':'%')+'</span></div><div class="token-stat"><span class="label">Letzter Zugriff</span><span class="value">'+lastAccess+'</span></div><div class="token-stat"><span class="label">Token-Alter</span><span class="value">'+ageDays+' Tage</span></div>'+(rlStr?'<div class="token-stat"><span class="label">Rate-Limit</span><span class="value">'+rlStr+'</span></div>':'')+(regenCount>0?'<div class="token-stat"><span class="label">Regeneriert</span><span class="value">'+regenCount+'x</span></div>':'')+'</div>'+usageBars+'<div class="token-card-actions"><button class="btn btn-o btn-s" onclick="editToken(\''+t.id+'\')"><i class="mdi mdi-pencil"></i> Bearbeiten</button><button class="btn btn-w btn-s" onclick="regenToken(\''+t.id+'\')"><i class="mdi mdi-refresh"></i> Neuen Token generieren</button><button class="btn btn-d btn-s" onclick="delToken(\''+t.id+'\')"><i class="mdi mdi-delete"></i> Löschen</button></div></div>';
+      return '<div class="card token-card" style="'+colorStyle+'"><div class="token-card-header"><div><h3><span style="-webkit-text-stroke:1px '+color+'">'+esc(t.name)+'</span> <span class="token-token-badge">'+esc(t.token_masked)+'</span></h3>'+statusBadge+'</div><div class="token-card-stats"><div class="token-stat"><span class="label">API Calls</span><span class="value">'+total+'</span></div><div class="token-stat"><span class="label">Erfolgsrate</span><span class="value '+(successRate==='-'?'':successRate>=90?'ok':'err')+'">'+successRate+(successRate==='-'?'':'%')+'</span></div><div class="token-stat"><span class="label">Letzter Zugriff</span><span class="value">'+lastAccess+'</span></div><div class="token-stat"><span class="label">Token-Alter</span><span class="value">'+ageDays+' Tage</span></div>'+(rlStr?'<div class="token-stat"><span class="label">Rate-Limit</span><span class="value">'+rlStr+'</span></div>':'')+(regenCount>0?'<div class="token-stat"><span class="label">Regeneriert</span><span class="value">'+regenCount+'x</span></div>':'')+'</div></div><div class="token-card-badges"><span class="badge">'+(t.domains&&t.domains.length?t.domains.length+' Domains':'Alle Domains')+'</span>'+(t.areas&&t.areas.length?'<span class="badge">'+t.areas.length+' Areas</span>':'')+(t.allowed_ips&&t.allowed_ips.length?'<span class="badge">IP-Filter</span>':'')+(t.include_attributes===false?'<span class="badge">Ohne Attribute</span>':'')+expiresStr+(t.patterns?'<span class="badge">Patterns</span>':'')+'</div>'+usageBars+'<div class="token-card-actions"><button class="btn btn-o btn-s" onclick="editToken(\''+t.id+'\')"><i class="mdi mdi-pencil"></i> Bearbeiten</button><button class="btn btn-w btn-s" onclick="regenToken(\''+t.id+'\')"><i class="mdi mdi-refresh"></i> Neuen Token generieren</button><button class="btn btn-d btn-s" onclick="delToken(\''+t.id+'\')"><i class="mdi mdi-delete"></i> Löschen</button></div></div>';
     }).join('');
     loadTokenLimits(tokens);
   }catch(e){loadEl.innerHTML='<span style="color:var(--err)"><i class="mdi mdi-alert"></i> Fehler beim Laden: '+esc(e.message)+'</span>';}
@@ -588,8 +592,9 @@ async function loadStats(){
     allLogEntries=s.usage_log||[];
     logSortCol='timestamp';logSortAsc=false;
     logDisplayCount=getLogDisplayCount();
+    (s.tokens||[]).forEach(t=>{if(t.token_key&&t.color)colorMap[t.token_key]=t.color;});
     renderLogTable();
-    const statsHtml=s.tokens.map(t=>'<tr><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>').join('');
+    const statsHtml=s.tokens.map(t=>{const c=t.color;const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';return '<tr'+acc+'><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>';}).join('');
     document.getElementById('stats-tbody').innerHTML=statsHtml||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Daten</td></tr>';
   }catch(e){
     console.error('loadStats error:',e);
@@ -625,8 +630,9 @@ async function loadStatsForToken(){
     allLogEntries=s.usage_log||[];
     logSortCol='timestamp';logSortAsc=false;
     logDisplayCount=getLogDisplayCount();
+    (s.tokens||[]).forEach(t=>{if(t.token_key&&t.color)colorMap[t.token_key]=t.color;});
     renderLogTable();
-    const statsHtml=s.tokens.map(t=>'<tr><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>').join('');
+    const statsHtml=s.tokens.map(t=>{const c=t.color;const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';return '<tr'+acc+'><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>';}).join('');
     document.getElementById('stats-tbody').innerHTML=statsHtml||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Daten</td></tr>';
   }catch(e){
     console.error('loadStatsForToken error:',e);
@@ -664,7 +670,7 @@ function renderLogTable(){
   });
   const visible=sorted.slice(0,logDisplayCount);
   const tbody=document.getElementById('usage-log-tbody');
-  tbody.innerHTML=visible.map((e)=>'<tr><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+(e.status<400?'status-ok':'status-err')+'">'+e.status+'</td><td style="width:40px;text-align:center"><button class="btn btn-d btn-s" onclick="deleteLogEntry('+e._origIdx+')" style="padding:.2rem .4rem"><i class="mdi mdi-delete"></i></button></td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';
+  tbody.innerHTML=visible.map((e)=>{const c=colorMap[e.token_id]||'';const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';const sc=e.status<400?'status-ok':e.status===429?'status-warn':'status-err';return '<tr'+acc+'><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+sc+'">'+e.status+'</td><td style="width:40px;text-align:center"><button class="btn btn-d btn-s" onclick="deleteLogEntry('+e._origIdx+')" style="padding:.2rem .4rem"><i class="mdi mdi-delete"></i></button></td></tr>';}).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';
   const btn=document.getElementById('load-more-btn');
   if(btn){btn.style.display=sorted.length>logDisplayCount?'inline-flex':'none';}
 }
@@ -682,7 +688,7 @@ function getInvalidLogDisplayCount(){
 function renderInvalidLogTable(){
   const visible=allInvalidEntries.slice(0,invalidLogDisplayCount);
   const tbody=document.getElementById('invalid-log-tbody');
-  tbody.innerHTML=visible.map(e=>'<tr><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="status-err">'+e.status+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Keine ungültigen Anfragen</td></tr>';
+  tbody.innerHTML=visible.map(e=>{const c=colorMap[e.token_id]||'';const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';return '<tr'+acc+'><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="status-err">'+e.status+'</td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Keine ungültigen Anfragen</td></tr>';
   const card=document.getElementById('invalid-log-card');
   const btn=document.getElementById('load-more-invalid-btn');
   if(card){card.style.display=allInvalidEntries.length>0?'block':'none';}
@@ -700,7 +706,7 @@ async function loadCfg(){const c=await api('/admin/api/config');if(c.rate_limit_
 async function saveCfg(){await api('/admin/api/config','PUT',{rate_limit_max_per_ip:parseInt(document.getElementById('cfg-ip').value),rate_limit_max_per_token:parseInt(document.getElementById('cfg-tok').value),rate_limit_window:parseInt(document.getElementById('cfg-win').value),webhook_url:document.getElementById('cfg-webhook').value.trim(),webhook_on_api_request:document.getElementById('cfg-webhook-api').checked,webhook_on_token_created:document.getElementById('cfg-webhook-token').checked,stats_log_max_enabled:document.getElementById('cfg-stats-max-enabled').checked,stats_log_max:parseInt(document.getElementById('cfg-stats-max').value),stats_retention_enabled:document.getElementById('cfg-stats-retention-enabled').checked,stats_retention_days:parseInt(document.getElementById('cfg-stats-retention').value)});const logRows=parseInt(document.getElementById('cfg-log-rows').value)||20;const invalidLogRows=parseInt(document.getElementById('cfg-invalid-log-rows').value)||20;localStorage.setItem('ha_read_only_cfg',JSON.stringify({log_rows:logRows,invalid_log_rows:invalidLogRows}));toast('Einstellungen gespeichert!','success');}
 async function cleanupStats(){const ok=await confirmDlg('Statistik bereinigen','Einträge ohne gültige Token-ID werden entfernt. Fortfahren?','Bereinigen');if(!ok)return;const r=await api('/admin/api/stats/cleanup','POST');toast(r.removed_log+' Log- und '+r.removed_stats+' Statistik-Einträge entfernt','success');loadStats();}
 async function deleteLogEntry(idx){await api('/admin/api/stats/log/'+idx,'DELETE');loadStats();loadStatsForToken();}
-function loadTokenLimits(tokenList){const tb=document.getElementById('token-limits-tbody');if(!tokenList||!tokenList.length){tb.innerHTML='<tr><td colspan="3" style="color:var(--td);text-align:center">Keine Zugänge</td></tr>';return;}const unitLabels={minutes:'Min.',hours:'Std.',days:'Tage'};tb.innerHTML=tokenList.map(t=>{const rl=t.rate_limit_max_requests;const rw=t.rate_limit_window_value;const ru=t.rate_limit_window_unit;const sd=t.stats_retention_days;let val='';if(rl!==undefined&&rl!==null){val=rl;if(rw&&ru){val+=' / '+rw+' '+unitLabels[ru];}else{val+=' (global)';}}else{val='<span style="color:var(--td)">Global</span>';}const ret=sd!==undefined&&sd!==null?sd+' Tage':'<span style="color:var(--td)">Global</span>';return '<tr style="cursor:pointer" onclick="openTokenStats(\''+t.id+'\')"><td>'+esc(t.name||t.token_name||t.token_key)+'</td><td>'+val+'</td><td>'+ret+'</td></tr>';}).join('');}
+function loadTokenLimits(tokenList){const tb=document.getElementById('token-limits-tbody');if(!tokenList||!tokenList.length){tb.innerHTML='<tr><td colspan="3" style="color:var(--td);text-align:center">Keine Zugänge</td></tr>';return;}const unitLabels={minutes:'Min.',hours:'Std.',days:'Tage'};tb.innerHTML=tokenList.map(t=>{const rl=t.rate_limit_max_requests;const rw=t.rate_limit_window_value;const ru=t.rate_limit_window_unit;const sd=t.stats_retention_days;let val='';if(rl!==undefined&&rl!==null){val=rl;if(rw&&ru){val+=' / '+rw+' '+unitLabels[ru];}else{val+=' (global)';}}else{val='<span style="color:var(--td)">Global</span>';}const ret=sd!==undefined&&sd!==null?sd+' Tage':'<span style="color:var(--td)">Global</span>';const c=t.color;const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';return '<tr'+acc+' style="cursor:pointer" onclick="openTokenStats(\''+t.id+'\')"><td>'+esc(t.name||t.token_name||t.token_key)+'</td><td>'+val+'</td><td>'+ret+'</td></tr>';}).join('');}
 let statsCurId=null;
 async function openTokenStats(id){statsCurId=id;const t=tokens.find(x=>x.id===id);if(!t)return;document.getElementById('stats-tok-name').value=t.name||'';const hasLimit=t.rate_limit_max_requests!==undefined&&t.rate_limit_max_requests!==null;document.getElementById('stats-tok-limit-enabled').checked=hasLimit;document.getElementById('stats-tok-max').value=hasLimit?t.rate_limit_max_requests:'';document.getElementById('stats-tok-max').disabled=!hasLimit;document.getElementById('stats-tok-window').value=hasLimit?(t.rate_limit_window_value||''):'';document.getElementById('stats-tok-window').disabled=!hasLimit;document.getElementById('stats-tok-unit').value=t.rate_limit_window_unit||'hours';document.getElementById('stats-tok-unit').disabled=!hasLimit;const hasRet=t.stats_retention_days!==undefined&&t.stats_retention_days!==null;document.getElementById('stats-tok-retention-enabled').checked=hasRet;document.getElementById('stats-tok-retention').value=hasRet?t.stats_retention_days:'';document.getElementById('stats-tok-retention').disabled=!hasRet;openM('modal-stats');}
 document.getElementById('stats-tok-limit-enabled').addEventListener('change',function(){document.getElementById('stats-tok-max').disabled=!this.checked;if(!this.checked)document.getElementById('stats-tok-max').value='';document.getElementById('stats-tok-window').disabled=!this.checked;if(!this.checked)document.getElementById('stats-tok-window').value='';document.getElementById('stats-tok-unit').disabled=!this.checked;});

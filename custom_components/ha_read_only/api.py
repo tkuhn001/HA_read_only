@@ -23,6 +23,8 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.http import HomeAssistantView
 
+import hashlib
+
 from .const import (
     API_PREFIX,
     CONF_TOKEN,
@@ -271,6 +273,14 @@ def _mask_token(token: str) -> str:
     return token[:8] + "..." if len(token) > 8 else token
 
 
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _verify_token(plain_token: str, hashed_token: str) -> bool:
+    return hashlib.sha256(plain_token.encode("utf-8")).hexdigest() == hashed_token
+
+
 def _get_client_ip(request: web.Request) -> str:
     fwd = request.headers.get("X-Forwarded-For", "")
     if fwd:
@@ -282,7 +292,10 @@ def _get_client_ip(request: web.Request) -> str:
 def _find_token_data(hass: HomeAssistant, token: str | None) -> dict | None:
     if not token:
         return None
+    token_hash = _hash_token(token)
     for t in _get_handler(hass).data.get("tokens", []):
+        if t.get("token_hash") == token_hash:
+            return t
         if t.get(CONF_TOKEN) == token:
             return t
     return None
@@ -560,9 +573,10 @@ class AdminApiTokensView(HomeAssistantView):
                     rate_limit_str = f"{rl_max}/{rl_window} {unit_labels.get(rl_unit, '')}"
                 else:
                     rate_limit_str = f"{rl_max} (einmalig)"
+            token_value = t.get(CONF_TOKEN, "") or t.get("token_hash", "")
             result.append({
                 **t,
-                "token_masked": _mask_token(t.get(CONF_TOKEN, "")),
+                "token_masked": _mask_token(token_value),
                 "stats_total": token_stats.get("total", 0),
                 "stats_errors": token_stats.get("errors", 0),
                 "stats_last_access": token_stats.get("last_access"),
@@ -577,7 +591,7 @@ class AdminApiTokensView(HomeAssistantView):
         token = secrets.token_urlsafe(32)
         new_token = {
             "id": secrets.token_hex(4),
-            CONF_TOKEN: token,
+            "token_hash": _hash_token(token),
             "created_at": time.time(),
             "regeneration_count": 0,
             **_token_fields_from_request(data),
@@ -628,7 +642,7 @@ class AdminApiTokenRegenerateView(HomeAssistantView):
         new_token = secrets.token_urlsafe(32)
         for t in handler.data.get("tokens", []):
             if t["id"] == token_id:
-                t[CONF_TOKEN] = new_token
+                t["token_hash"] = _hash_token(new_token)
                 t["regeneration_count"] = t.get("regeneration_count", 0) + 1
                 break
         await handler.async_save()
