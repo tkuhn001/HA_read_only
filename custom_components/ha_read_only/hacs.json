@@ -1,4 +1,7 @@
 {
   "name": "HA Read-Only API",
-  "render_readme": true
+  "render_readme": true,
+  "homeassistant": "2024.1.0",
+  "content_type": "integration",
+  "zip_release": false
 }

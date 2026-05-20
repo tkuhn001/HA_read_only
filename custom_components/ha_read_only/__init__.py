@@ -7,6 +7,7 @@
 
 import logging
 import secrets
+import time
 import voluptuous as vol
 import os
 
@@ -48,7 +49,41 @@ class ReadOnlyDataHandler:
 
     async def async_save(self) -> None:
         """Save data to storage."""
+        await self._cleanup_stats()
         await self.store.async_save(self.data)
+
+    async def _cleanup_stats(self) -> None:
+        """Apply retention and limit rules to usage_log and stats."""
+        config = self.data.get("config", {})
+        now = time.time()
+
+        retention_enabled = config.get("stats_retention_enabled", True)
+        retention_days = config.get("stats_retention_days", 30)
+        log_max_enabled = config.get("stats_log_max_enabled", True)
+        log_max = config.get("stats_log_max", 500)
+
+        usage_log = self.data.get("usage_log", [])
+        token_map = {t["id"]: t for t in self.data.get("tokens", [])}
+
+        cleaned = []
+        for e in usage_log:
+            tid = e.get("token_id")
+            token_data = token_map.get(tid) if tid else None
+            eff_retention = None
+            if token_data and token_data.get("stats_retention_days"):
+                eff_retention = token_data["stats_retention_days"]
+            elif retention_enabled:
+                eff_retention = retention_days
+            if eff_retention is not None:
+                cutoff = now - (eff_retention * 86400)
+                if e.get("timestamp", 0) < cutoff:
+                    continue
+            cleaned.append(e)
+
+        if log_max_enabled and log_max > 0:
+            cleaned = cleaned[:log_max]
+
+        self.data["usage_log"] = cleaned
 
 try:
     from .api import async_setup_api
@@ -67,7 +102,7 @@ async def _register_sidebar_link(hass: HomeAssistant) -> None:
             sidebar_title="HA Read-Only",
             sidebar_icon="mdi:shield-lock",
             frontend_url_path="ha_readonly_app",
-            require_admin=False,
+            require_admin=True,
             config={"url": "/api/ha_read_only/admin"},
         )
         _LOGGER.info("Sidebar iframe panel registered")

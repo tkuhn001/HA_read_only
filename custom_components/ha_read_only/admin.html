@@ -2,38 +2,53 @@
 <title>HA Read-Only Dashboard</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7/css/materialdesignicons.min.css">
 <style>
-:root{--p:#03a9f4;--a:#ff4081;--bg:#0f172a;--card:rgba(30,41,59,.7);--bdr:rgba(255,255,255,.1);--t:#f8fafc;--td:#94a3b8;--ok:#10b981;--err:#ef4444;--r:12px}
+:root{--p:#03a9f4;--a:#ff4081;--bg:#0f172a;--card:rgba(30,41,59,.7);--bdr:rgba(255,255,255,.1);--t:#f8fafc;--td:#94a3b8;--ok:#10b981;--err:#ef4444;--r:12px;--input-bg:rgba(0,0,0,.35);--nav-bg:rgba(0,0,0,.3);--scroll-track:rgba(0,0,0,.2);--scroll-thumb:rgba(255,255,255,.15)}
+@media(prefers-color-scheme:light){:root{--bg:#f1f5f9;--card:rgba(255,255,255,.8);--bdr:rgba(0,0,0,.1);--t:#0f172a;--td:#475569;--input-bg:rgba(0,0,0,.05);--nav-bg:rgba(255,255,255,.6);--scroll-track:rgba(0,0,0,.05);--scroll-thumb:rgba(0,0,0,.2)}}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t);padding:2rem;min-height:100vh;
 background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transparent),radial-gradient(circle at bottom left,rgba(255,64,129,.08),transparent)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--scroll-track);border-radius:4px}
+::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
+@media(prefers-color-scheme:light){::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.3)}}
 .container{max-width:1100px;margin:0 auto}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2.5rem;flex-wrap:wrap;gap:1rem}
 .logo{display:flex;align-items:center;gap:1rem}
 .logo i{font-size:2.5rem;color:var(--p);text-shadow:0 0 20px rgba(3,169,244,.5)}
 .logo h1{font-size:1.5rem;font-weight:700}
 .logo p{color:var(--td);font-size:.8rem}
-.nav{display:flex;gap:.5rem;background:rgba(0,0,0,.3);padding:.4rem;border-radius:12px;margin-bottom:2.5rem;width:fit-content;flex-wrap:wrap}
+.nav{display:flex;gap:.5rem;background:var(--nav-bg);padding:.4rem;border-radius:12px;margin-bottom:2.5rem;width:fit-content;flex-wrap:wrap}
 .nav-item{cursor:pointer;padding:.6rem 1.2rem;border-radius:8px;color:var(--td);transition:.3s;display:flex;align-items:center;gap:.4rem;font-size:.9rem}
 .nav-item.active{background:var(--p);color:#fff;box-shadow:0 4px 12px rgba(3,169,244,.3)}
 .nav-item:hover:not(.active){color:var(--t);background:rgba(255,255,255,.05)}
 .panel{display:none;animation:fadeIn .3s ease-out}.panel.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.btn{padding:.7rem 1.3rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.5rem;transition:.2s;font-size:.9rem}
-.btn-p{background:var(--p);color:#fff;box-shadow:0 4px 15px rgba(3,169,244,.3)}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(3,169,244,.4)}
-.btn-o{background:transparent;border:1px solid var(--bdr);color:var(--t)}
-.btn-o:hover{border-color:var(--p);background:rgba(255,255,255,.03)}
-.btn-d{background:rgba(239,68,68,.1);color:var(--err);border:none}
-.btn-d:hover{background:rgba(239,68,68,.2)}
-.btn-s{padding:.4rem .8rem;font-size:.8rem;border-radius:6px}
-.card{background:var(--card);padding:1.5rem;border-radius:var(--r);border:1px solid var(--bdr);backdrop-filter:blur(10px);margin-bottom:1rem;transition:border-color .3s}
+.btn{padding:.55rem 1rem;border-radius:8px;border:1px solid var(--bdr);cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:.45rem;transition:all .2s;font-size:.85rem;background:transparent;color:var(--t)}
+.btn:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.04)}
+.btn-p{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 2px 8px rgba(3,169,244,.25)}
+.btn-p:hover{background:#0288d1;border-color:#0288d1;box-shadow:0 4px 12px rgba(3,169,244,.35)}
+.btn-o{border-color:var(--bdr)}
+.btn-o:hover{border-color:var(--p);color:var(--p);background:rgba(3,169,244,.06)}
+.btn-w{border-color:rgba(255,152,0,.35);color:#ff9800}
+.btn-w:hover{border-color:#ff9800;background:rgba(255,152,0,.1)}
+.btn-d{border-color:rgba(239,68,68,.3);color:var(--err)}
+.btn-d:hover{border-color:var(--err);background:rgba(239,68,68,.1)}
+.btn-s{padding:.35rem .7rem;font-size:.78rem;border-radius:6px}
+.btn i{font-size:1em}
+.card{background:var(--card);padding:1.5rem;border-radius:var(--r);border:1px solid var(--bdr);backdrop-filter:blur(10px);margin-bottom:1rem;transition:border-color .3s;display:flex;flex-direction:column}
+.card>*:last-child{margin-bottom:0}
+.card h3{font-size:1.1rem;font-weight:700;margin:0 0 1.2rem;padding-bottom:.6rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:.5rem}
+.card h3 i{font-size:1.2rem}
 .card:hover{border-color:rgba(3,169,244,.3)}
 .token-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;gap:.5rem}
-.token-header h3{font-size:1.05rem}
+.token-header h3{font-size:1.8rem}
 .token-meta{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
 .token-meta code{color:var(--p);font-size:.8rem;background:rgba(3,169,244,.1);padding:.2rem .5rem;border-radius:4px}
 .badge{font-size:.75rem;padding:.2rem .6rem;border-radius:100px;background:rgba(255,255,255,.08);color:var(--td)}
 .badge.warn{background:rgba(239,68,68,.15);color:var(--err)}
+.token-color-indicator{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.2)}
+.card.token-card{border-left:4px solid transparent}
 .token-actions{display:flex;gap:.5rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--bdr);flex-wrap:wrap}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:2rem}
 .stat-box{background:var(--card);border:1px solid var(--bdr);padding:1.5rem;border-radius:var(--r);text-align:center;backdrop-filter:blur(10px)}
@@ -45,77 +60,203 @@ th{text-align:left;padding:.8rem;color:var(--td);font-size:.75rem;text-transform
 td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;justify-content:center;align-items:center;z-index:1000;padding:1rem}
 .modal.active{display:flex}
-.modal-body{background:#1e293b;width:100%;max-width:640px;padding:2rem;border-radius:20px;border:1px solid var(--bdr);max-height:90vh;overflow-y:auto}
-.modal-body h2{margin-bottom:1.5rem;font-size:1.3rem}
-.fg{margin-bottom:1.2rem}
-.fg label{display:block;font-size:.85rem;color:var(--td);margin-bottom:.4rem;font-weight:500}
-.fg input,.fg textarea,.fg select{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--bdr);padding:.7rem;border-radius:8px;color:#fff;font-size:.95rem}
-.fg input:focus,.fg textarea:focus{outline:none;border-color:var(--p)}
-.fg textarea{resize:vertical;min-height:70px;font-family:monospace;font-size:.85rem}
-.fg small{display:block;margin-top:.3rem;color:var(--td);font-size:.75rem}
-.domain-grid{display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--bdr);max-height:220px;overflow-y:auto}
-.domain-grid label{display:flex;align-items:center;gap:.4rem;cursor:pointer;padding:.45rem .9rem;border-radius:100px;border:1px solid var(--bdr);transition:.2s;font-size:.85rem;user-select:none}
-.domain-grid label:hover{border-color:var(--p);background:rgba(3,169,244,.05)}
-.domain-grid label.checked{background:rgba(3,169,244,.15);border-color:var(--p);color:var(--p)}
+.modal-body{background:#1e293b;width:100%;max-width:860px;padding:2.5rem;border-radius:20px;border:1px solid var(--bdr);max-height:90vh;overflow-y:auto;animation:modalSlideIn .25s ease-out;position:relative}
+@media(prefers-color-scheme:light){.modal-body{background:#ffffff}}
+.modal-close{position:absolute;top:1.2rem;right:1.2rem;background:rgba(255,255,255,.06);border:1px solid var(--bdr);color:var(--td);width:34px;height:34px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .15s;z-index:10}
+.modal-close:hover{background:rgba(255,255,255,.12);color:var(--t);border-color:rgba(255,255,255,.2)}
+@media(prefers-color-scheme:light){.modal-close{background:rgba(0,0,0,.05)}.modal-close:hover{background:rgba(0,0,0,.1)}}
+@keyframes modalSlideIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-body h2{margin-bottom:1.8rem;font-size:1.5rem;display:flex;align-items:center;gap:.6rem;padding-bottom:.8rem;border-bottom:1px solid var(--bdr);text-align:center;justify-content:center}
+.modal-body h2 i{color:var(--p);font-size:1em;flex-shrink:0}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.fg{margin-bottom:1.4rem}
+.fg label{display:block;font-size:.85rem;color:var(--td);margin-bottom:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.fg label i{margin-right:.4rem;color:var(--p);font-size:.95rem}
+.fg input,.fg textarea,.fg select{width:100%;background:var(--input-bg);border:1px solid var(--bdr);padding:.5rem;border-radius:10px;color:var(--t);font-size:.95rem;transition:border-color .2s}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px rgba(3,169,244,.15)}
+.fg textarea{resize:vertical;min-height:80px;font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.5}
+.fg small{display:block;margin-top:.4rem;color:var(--td);font-size:.75rem;font-style:italic}
+.section-title{font-size:1.5rem;font-weight:700;color:var(--t);margin:1.8rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:.5rem}
+.section-title i{color:var(--p);font-size:1.1rem}
+.domain-grid{display:flex;flex-wrap:wrap;gap:.5rem;padding:1rem;background:rgba(0,0,0,.2);border-radius:12px;border:1px solid var(--bdr);max-height:200px;overflow-y:auto;transition:border-color .2s}
+@media(prefers-color-scheme:light){.domain-grid{background:rgba(0,0,0,.03)}}
+.domain-grid:hover{border-color:rgba(3,169,244,.3)}
+.domain-grid label{display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.5rem .9rem;border-radius:100px;border:1px solid var(--bdr);transition:all .2s;font-size:.85rem;user-select:none;background:rgba(255,255,255,.02)}
+.domain-grid label:hover{border-color:var(--p);background:rgba(3,169,244,.08);transform:translateY(-1px)}
+.domain-grid label.checked{background:rgba(3,169,244,.15);border-color:var(--p);color:var(--p);box-shadow:0 2px 8px rgba(3,169,244,.2)}
 .domain-grid input[type=checkbox]{display:none}
-.domain-grid .dot{width:8px;height:8px;border-radius:50%;background:var(--bdr);transition:.2s;flex-shrink:0}
-.domain-grid label.checked .dot{background:var(--p);box-shadow:0 0 6px rgba(3,169,244,.5)}
+.domain-grid .dot{width:10px;height:10px;border-radius:50%;background:var(--bdr);transition:all .2s;flex-shrink:0}
+.domain-grid label.checked .dot{background:var(--p);box-shadow:0 0 8px rgba(3,169,244,.5)}
 .search-input{margin-bottom:.6rem}
-.entity-picker{border:1px solid var(--bdr);border-radius:10px;background:rgba(0,0,0,.2);max-height:160px;overflow-y:auto;padding:.5rem}
-.entity-picker label{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:6px;cursor:pointer;font-size:.82rem;font-family:monospace}
-.entity-picker label:hover{background:rgba(255,255,255,.05)}
-.entity-picker input{accent-color:var(--p)}
-.entity-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
-.entity-chips span{font-size:.75rem;background:rgba(3,169,244,.15);color:var(--p);padding:.2rem .5rem;border-radius:100px;display:inline-flex;align-items:center;gap:.3rem}
-.entity-chips span button{background:none;border:none;color:var(--err);cursor:pointer;padding:0;font-size:.9rem;line-height:1}
+.entity-picker{border:1px solid var(--bdr);border-radius:12px;background:rgba(0,0,0,.2);max-height:180px;overflow-y:auto;padding:.6rem;transition:border-color .2s}
+@media(prefers-color-scheme:light){.entity-picker{background:rgba(0,0,0,.03)}}
+.entity-picker:hover{border-color:rgba(3,169,244,.3)}
+.entity-picker label{display:flex;align-items:center;gap:.6rem;padding:.5rem .6rem;border-radius:8px;cursor:pointer;font-size:.85rem;font-family:'JetBrains Mono',monospace;transition:background .15s}
+.entity-picker label:hover{background:rgba(255,255,255,.06)}
+.entity-picker input{accent-color:var(--p);width:16px;height:16px}
+.entity-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.entity-chips span{font-size:.78rem;background:rgba(3,169,244,.15);color:var(--p);padding:.3rem .6rem;border-radius:100px;display:inline-flex;align-items:center;gap:.3rem;transition:background .15s}
+.entity-chips span:hover{background:rgba(3,169,244,.25)}
+.entity-chips span button{background:none;border:none;color:var(--err);cursor:pointer;padding:0;font-size:1rem;line-height:1;opacity:.7;transition:opacity .15s}
+.entity-chips span button:hover{opacity:1}
+.datepicker-wrap{position:relative}
+.datepicker-wrap input{cursor:pointer;padding-right:2.5rem}
+.datepicker-wrap .cal-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--td);cursor:pointer;font-size:1.1rem;transition:color .15s;z-index:10}
+.datepicker-wrap .cal-icon:hover{color:var(--p)}
+.datepicker-popup{position:fixed;z-index:2000;background:#1e293b;border:1px solid var(--bdr);border-radius:14px;padding:1.2rem;min-width:300px;box-shadow:0 12px 40px rgba(0,0,0,.5);display:none;animation:fadeIn .15s ease-out}
+.datepicker-popup.active{display:block}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.cal-header span{font-weight:700;font-size:.95rem}
+.cal-header button{background:rgba(255,255,255,.06);border:1px solid var(--bdr);color:var(--t);width:30px;height:30px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cal-header button:hover{background:rgba(3,169,244,.15);border-color:var(--p);color:var(--p)}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:.4rem}
+.cal-weekdays span{text-align:center;font-size:.7rem;color:var(--td);font-weight:600;padding:.3rem 0;text-transform:uppercase}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{text-align:center;padding:.45rem;border-radius:8px;cursor:pointer;font-size:.85rem;transition:all .15s;color:var(--t)}
+.cal-day:hover:not(.empty):not(.other-month){background:rgba(3,169,244,.15)}
+.cal-day.today{border:1px solid var(--p);font-weight:700}
+.cal-day.selected{background:var(--p);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(3,169,244,.3)}
+.cal-day.other-month{color:rgba(148,163,184,.3)}
+.cal-day.empty{cursor:default}
+.cal-time{display:flex;gap:.5rem;margin-top:.8rem;align-items:center;justify-content:center}
+.cal-time input{background:var(--input-bg);border:1px solid var(--bdr);color:var(--t);padding:.5rem;border-radius:8px;width:55px;text-align:center;font-size:.95rem}
+.cal-time input:focus{outline:none;border-color:var(--p)}
+.cal-time span{color:var(--td);font-size:.85rem}
+.cal-actions{display:flex;gap:.5rem;margin-top:.8rem}
+.cal-actions button{flex:1;padding:.55rem .5rem;border-radius:8px;border:1px solid var(--bdr);background:rgba(255,255,255,.04);color:var(--t);cursor:pointer;font-size:.82rem;transition:all .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:.35rem}
+.cal-actions button:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.cal-actions button.cal-del{border-color:rgba(239,68,68,.3);color:var(--err)}
+.cal-actions button.cal-del:hover{background:rgba(239,68,68,.15);border-color:var(--err)}
+.cal-actions button.cal-today{border-color:rgba(16,185,129,.3);color:var(--ok)}
+.cal-actions button.cal-today:hover{background:rgba(16,185,129,.15);border-color:var(--ok)}
+.cal-actions button.cal-ok{background:var(--p);border-color:var(--p);color:#fff}
+.cal-actions button.cal-ok:hover{background:#0288d1}
 .chart-wrap{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:1.5rem;margin-bottom:1.5rem}
-.chart-wrap h3{font-size:.9rem;color:var(--td);margin-bottom:1rem}
+.chart-wrap h3{font-size:1.1rem;font-weight:700;margin:0 0 1rem;padding-bottom:.6rem;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:.5rem}
+.chart-wrap h3 i{font-size:1.2rem}
 .chart-container{position:relative;width:100%;height:200px}
 .chart-svg{width:100%;height:100%;display:block}
 .chart-tooltip{position:absolute;background:rgba(0,0,0,.9);color:#fff;padding:.45rem .75rem;border-radius:6px;font-size:.78rem;pointer-events:none;white-space:nowrap;z-index:100;border:1px solid var(--bdr);display:none}
 .status-ok{color:var(--ok)}.status-err{color:var(--err)}
 .switch{display:flex;align-items:center;gap:.8rem;cursor:pointer}
 .switch input{width:40px;height:22px;accent-color:var(--p)}
+.toggle{position:relative;display:inline-flex;align-items:center;gap:.6rem;cursor:pointer;font-size:.9rem;user-select:none}
+.toggle input{position:absolute;left:-9999px;opacity:0;width:0;height:0}
+.toggle-slider{display:block;width:44px;height:24px;background:rgba(255,255,255,.15);border-radius:12px;transition:.3s;flex-shrink:0;position:relative}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--p)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+.toggle input:focus+.toggle-slider{box-shadow:0 0 0 3px rgba(3,169,244,.2)}
+@media(prefers-color-scheme:light){.toggle-slider{background:rgba(0,0,0,.15)}.toggle input:checked+.toggle-slider{background:var(--p)}.btn-w:hover{background:rgba(255,152,0,.08)}.btn-d:hover{background:rgba(239,68,68,.08)}}
 .token-display{position:relative;margin:1rem 0}
-.token-display input{padding-right:3.5rem;font-family:monospace;font-size:.9rem}
-.token-display button{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:var(--p);border:none;color:#fff;padding:.4rem .7rem;border-radius:6px;cursor:pointer}
+.token-display input{width:100%;padding:.8rem 3rem .8rem .8rem;font-family:monospace;font-size:.85rem;background:rgba(0,0,0,.35);border:1px solid var(--bdr);border-radius:10px;color:var(--p);overflow-x:auto;white-space:nowrap}
+.token-display button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--p);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.token-display button:hover{background:#0288d1}
 .empty{text-align:center;color:var(--td);padding:3rem 1rem}
 .empty i{font-size:3rem;display:block;margin-bottom:1rem;opacity:.3}
+@media(prefers-color-scheme:light){.chart-tooltip{background:rgba(255,255,255,.95);color:var(--t);border-color:var(--bdr)}.cal-header button,.cal-actions button{background:rgba(0,0,0,.05);color:var(--t)}.cal-header button:hover,.cal-actions button:hover{background:rgba(3,169,244,.1)}.cal-day:hover:not(.empty):not(.other-month){background:rgba(3,169,244,.1)}.domain-grid label,.entity-picker label{background:transparent}.domain-grid label:hover{background:rgba(3,169,244,.05)}.domain-grid label.checked{background:rgba(3,169,244,.1)}.nav-item:hover:not(.active){background:rgba(0,0,0,.05)}.badge{background:rgba(0,0,0,.08);color:var(--td)}.stat-box{background:var(--card)}.card:hover{border-color:rgba(3,169,244,.2)}.btn:hover{border-color:rgba(0,0,0,.2);background:rgba(0,0,0,.03)}}
+.toast-container{position:fixed;top:1.5rem;right:1.5rem;z-index:3000;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{pointer-events:auto;background:#1e293b;border:1px solid var(--bdr);border-radius:12px;padding:1rem 1.2rem;min-width:280px;max-width:400px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:.8rem;animation:toastIn .3s ease-out;cursor:pointer}
+.toast.out{animation:toastOut .25s ease-in forwards}
+.toast-success{border-left:3px solid var(--ok)}.toast-success i{color:var(--ok)}
+.toast-error{border-left:3px solid var(--err)}.toast-error i{color:var(--err)}
+.toast-info{border-left:3px solid var(--p)}.toast-info i{color:var(--p)}
+.toast i{font-size:1.2rem;flex-shrink:0}
+.toast span{font-size:.88rem;color:var(--t);flex:1}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
+@media(prefers-color-scheme:light){.toast{background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.12)}}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:2500}
+.confirm-overlay.active{display:flex}
+.confirm-box{background:#1e293b;border:1px solid var(--bdr);border-radius:16px;padding:2rem;max-width:400px;width:90%;text-align:center;animation:modalSlideIn .25s ease-out}
+.confirm-box i{font-size:2.5rem;color:var(--err);display:block;margin-bottom:1rem}
+.confirm-box h3{font-size:1.1rem;margin-bottom:.5rem}
+.confirm-box p{color:var(--td);font-size:.9rem;margin-bottom:1.5rem}
+.confirm-box .confirm-actions{display:flex;gap:.8rem}
+.confirm-box .confirm-actions button{flex:1;padding:.7rem;border-radius:10px;border:none;cursor:pointer;font-weight:600;font-size:.9rem;transition:all .15s}
+.confirm-box .btn-cancel{background:rgba(255,255,255,.08);color:var(--t)}
+.confirm-box .btn-cancel:hover{background:rgba(255,255,255,.15)}
+.confirm-box .btn-confirm{background:var(--err);color:#fff}
+.confirm-box .btn-confirm:hover{background:#dc2626}
+@media(prefers-color-scheme:light){.confirm-box{background:#fff}.confirm-box .btn-cancel{background:rgba(0,0,0,.06)}.confirm-box .btn-cancel:hover{background:rgba(0,0,0,.1)}.token-limits-table tr:hover{background:rgba(0,0,0,.03)}.token-limits-table td{border-bottom-color:rgba(0,0,0,.06)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--bdr);border-top-color:var(--p);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--td);font-size:.85rem;display:flex;align-items:center;gap:.5rem;justify-content:center;padding:2rem}
+.pie-wrap{display:flex;justify-content:center;align-items:center;gap:2rem;flex-wrap:wrap}
+.pie-svg{width:200px;height:200px}
+.pie-legend{display:flex;flex-direction:column;gap:.4rem}
+.pie-legend-item{display:flex;align-items:center;gap:.5rem;font-size:.85rem}
+.pie-legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.token-limit-row{display:flex;gap:.8rem;align-items:center}
+.token-limit-row input[type=number]{width:90px}
+.token-limit-row .switch{flex:1}
+.token-limits-table{width:100%;border-collapse:collapse}
+.token-limits-table th{text-align:left;padding:.7rem .5rem;color:var(--td);font-size:.75rem;text-transform:uppercase;border-bottom:1px solid var(--bdr)}
+.token-limits-table td{padding:.7rem .5rem;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04)}
+.token-limits-table tr:hover{background:rgba(255,255,255,.03)}
+.sort-th{cursor:pointer;user-select:none;transition:color .15s}.sort-th:hover{color:var(--p)}
+.sort-arrow{font-size:.7rem;opacity:.4;margin-left:2px}.sort-th.active .sort-arrow{opacity:1;color:var(--p)}
+@media(prefers-color-scheme:light){.skeleton{background:linear-gradient(90deg,rgba(0,0,0,.04) 25%,rgba(0,0,0,.08) 50%,rgba(0,0,0,.04) 75%);background-size:200% 100%}}
 </style></head><body>
 <div class="container">
 <div class="header">
 <div class="logo"><i class="mdi mdi-shield-lock"></i><div><h1>HA Read-Only API</h1><p>Sicherer externer Zugriff</p></div></div>
-<button class="btn btn-p" onclick="openCreate()"><i class="mdi mdi-plus"></i> Neuer Token</button>
+<button class="btn btn-p" onclick="openCreate()"><i class="mdi mdi-plus"></i> Neuer Zugang</button>
 </div>
 <div class="nav">
-<div class="nav-item active" data-tab="tokens" onclick="tab('tokens')"><i class="mdi mdi-key"></i> Tokens</div>
+<div class="nav-item active" data-tab="tokens" onclick="tab('tokens')"><i class="mdi mdi-key"></i> Zugänge</div>
 <div class="nav-item" data-tab="usage" onclick="tab('usage')"><i class="mdi mdi-chart-line"></i> Nutzung</div>
 <div class="nav-item" data-tab="settings" onclick="tab('settings')"><i class="mdi mdi-cog"></i> Einstellungen</div>
 <div class="nav-item" data-tab="guide" onclick="tab('guide')"><i class="mdi mdi-book-open-variant"></i> Anleitung</div>
 <div class="nav-item" data-tab="license" onclick="tab('license')"><i class="mdi mdi-scale-balance"></i> Lizenz</div>
 </div>
-<div id="p-tokens" class="panel active"></div>
+<div id="p-tokens" class="panel active">
+</div>
+<div id="tokens-loading" class="loading-text"><span class="spinner"></span> Tokens werden geladen...</div>
 <div id="p-usage" class="panel">
-<div class="stats-grid" id="stats-cards"></div>
-<div class="chart-wrap"><h3><i class="mdi mdi-chart-bar"></i> Anfragen pro Stunde (letzte 24h)</h3><div class="chart-container"><svg id="usage-chart" class="chart-svg" viewBox="0 0 800 200" preserveAspectRatio="none"></svg><div id="chart-tooltip" class="chart-tooltip"></div></div></div>
-<div class="card"><h3 style="margin-bottom:1rem;font-size:1rem">Letzte Anfragen</h3><table><thead><tr><th>Zeit</th><th>Token</th><th>IP</th><th>Endpunkt</th><th>Status</th></tr></thead><tbody id="usage-log-tbody"></tbody></table></div>
-<div class="card"><h3 style="margin-bottom:1rem;font-size:1rem">Pro Token</h3><table><thead><tr><th>Token</th><th>Anfragen</th><th>Fehler</th><th>Letzter Endpunkt</th><th>Letzter Zugriff</th></tr></thead><tbody id="stats-tbody"></tbody></table></div>
+<div id="stats-loading" class="loading-text"><span class="spinner"></span> Nutzungsstatistiken werden geladen...</div>
+<div class="stats-grid" id="stats-cards" style="display:none"></div>
+<div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap" id="stats-filter-row">
+<label style="font-size:.9rem;font-weight:600;color:var(--td)">Zugang:</label>
+<select id="stats-token-filter" onchange="loadStatsForToken()" style="background:var(--input-bg);border:1px solid var(--bdr);padding:.5rem .8rem;border-radius:8px;color:var(--t);font-size:.9rem"></select>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem" id="chart-row">
+<div class="chart-wrap" id="chart-wrap" style="display:none"><h3><i class="mdi mdi-chart-bar" style="color:var(--p)"></i> Anfragen pro Stunde (letzte 24h)</h3><div class="chart-container"><svg id="usage-chart" class="chart-svg" viewBox="0 0 800 200" preserveAspectRatio="none"></svg><div id="chart-tooltip" class="chart-tooltip"></div></div></div>
+<div class="chart-wrap" id="pie-wrap" style="display:none"><h3><i class="mdi mdi-chart-pie" style="color:var(--a)"></i> Verteilung nach Zugang</h3><div class="pie-wrap"><svg id="pie-chart" class="pie-svg" viewBox="0 0 200 200"></svg><div id="pie-legend" class="pie-legend"></div></div></div>
+</div>
+<div class="card" id="log-card" style="display:none"><h3><i class="mdi mdi-format-list-bulleted" style="color:var(--p)"></i> Letzte Anfragen</h3><table><thead><tr><th class="sort-th" data-col="timestamp" onclick="sortLogTable('timestamp')">Zeit <span class="sort-arrow"></span></th><th class="sort-th" data-col="token_name" onclick="sortLogTable('token_name')">Zugang <span class="sort-arrow"></span></th><th class="sort-th" data-col="ip" onclick="sortLogTable('ip')">IP <span class="sort-arrow"></span></th><th class="sort-th" data-col="endpoint" onclick="sortLogTable('endpoint')">Endpunkt <span class="sort-arrow"></span></th><th class="sort-th" data-col="status" onclick="sortLogTable('status')">Status <span class="sort-arrow"></span></th><th style="width:40px"></th></tr></thead><tbody id="usage-log-tbody"></tbody></table><div style="text-align:center;padding:1rem"><button class="btn btn-o btn-s" id="load-more-btn" onclick="loadMoreLogEntries()" style="display:none"><i class="mdi mdi-chevron-down"></i> Mehr anzeigen</button></div></div>
+<div class="card" id="per-token-card" style="display:none"><h3><i class="mdi mdi-table" style="color:var(--p)"></i> Pro Zugang</h3><table><thead><tr><th>Zugang</th><th>Anfragen</th><th>Fehler</th><th>Letzter Endpunkt</th><th>Letzter Zugriff</th></tr></thead><tbody id="stats-tbody"></tbody></table></div>
 </div>
 <div id="p-settings" class="panel">
-<div class="card" style="max-width:500px"><h3 style="margin-bottom:1.5rem">Globale Rate-Limits</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;margin-bottom:1.5rem;align-items:stretch">
+<div class="card"><h3><i class="mdi mdi-speedometer" style="color:var(--p)"></i> Globale Rate-Limits</h3>
 <div class="fg"><label>Max. Anfragen pro IP (pro Zeitfenster)</label><input type="number" id="cfg-ip" value="100"></div>
-<div class="fg"><label>Max. Anfragen pro Token (pro Zeitfenster)</label><input type="number" id="cfg-tok" value="500"></div>
+<div class="fg"><label>Max. Anfragen pro Zugang (pro Zeitfenster)</label><input type="number" id="cfg-tok" value="500"></div>
 <div class="fg"><label>Zeitfenster (Sekunden)</label><input type="number" id="cfg-win" value="60"></div>
 </div>
-<div class="card" style="max-width:500px"><h3 style="margin-bottom:1.5rem">Webhook (optional)</h3>
+<div class="card"><h3><i class="mdi mdi-webhook" style="color:var(--a)"></i> Webhook (optional)</h3>
 <div class="fg"><label>Webhook-URL</label><input type="url" id="cfg-webhook" placeholder="https://example.com/hook"></div>
-<div class="fg"><label class="switch"><input type="checkbox" id="cfg-webhook-api"> Bei API-Anfragen benachrichtigen</label></div>
-<div class="fg"><label class="switch"><input type="checkbox" id="cfg-webhook-token"> Bei Token-Erstellung benachrichtigen</label></div>
+<div class="fg"><label>Bei API-Anfragen benachrichtigen</label><label class="toggle"><input type="checkbox" id="cfg-webhook-api"><span class="toggle-slider"></span></label></div>
+<div class="fg"><label>Bei Zugang-Erstellung benachrichtigen</label><label class="toggle"><input type="checkbox" id="cfg-webhook-token"><span class="toggle-slider"></span></label></div>
+</div>
+<div class="card"><h3><i class="mdi mdi-database" style="color:var(--ok)"></i> Statistik-Speicherung</h3>
+<div class="fg"><label>Max. Log-Einträge begrenzen</label><label class="toggle"><input type="checkbox" id="cfg-stats-max-enabled" checked><span class="toggle-slider"></span></label></div>
+<div class="fg"><label>Max. Log-Einträge</label><input type="number" id="cfg-stats-max" value="500"></div>
+<div class="fg"><label>Alte Einträge automatisch löschen</label><label class="toggle"><input type="checkbox" id="cfg-stats-retention-enabled" checked><span class="toggle-slider"></span></label></div>
+<div class="fg"><label>Aufbewahrung (Tage)</label><input type="number" id="cfg-stats-retention" value="30"></div>
+<div class="fg"><label>Standard-Zeilen "Letzte Anfragen"</label><input type="number" id="cfg-log-rows" value="20" min="5" max="100"></div>
+<button class="btn btn-d btn-s" onclick="cleanupStats()"><i class="mdi mdi-broom"></i> Statistik bereinigen</button>
+</div>
+</div>
+<div class="card"><h3><i class="mdi mdi-table" style="color:var(--p)"></i> Zugang-Limits (Übersicht)</h3>
+<table class="token-limits-table"><thead><tr><th>Name</th><th>Max. Anfragen</th><th>Aufbewahrung</th></tr></thead><tbody id="token-limits-tbody"><tr><td colspan="3" style="color:var(--td);text-align:center">Lade...</td></tr></tbody></table>
 </div>
 <button class="btn btn-p" onclick="saveCfg()"><i class="mdi mdi-content-save"></i> Speichern</button>
 </div>
 <div id="p-guide" class="panel">
-<div class="card" style="max-width:800px;margin:0 auto">
+<div class="card">
 <div style="text-align:center;margin-bottom:2.5rem"><i class="mdi mdi-book-open-page-variant" style="font-size:3rem;color:var(--p);display:block;margin-bottom:.5rem"></i><h2>Anleitung</h2><p style="color:var(--td);margin-top:.5rem">So nutzt du die HA Read-Only API</p></div>
 
 <div style="margin-bottom:2.5rem">
@@ -124,9 +265,9 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 </div>
 
 <div style="margin-bottom:2.5rem">
-<h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem"><i class="mdi mdi-key-plus" style="color:var(--ok)"></i> 1. Token erstellen</h3>
+<h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem"><i class="mdi mdi-key-plus" style="color:var(--ok)"></i> 1. Zugang erstellen</h3>
 <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:1.2rem;color:var(--td);line-height:1.8">
-<p><strong style="color:var(--t)">a)</strong> Klicke oben auf <span style="background:var(--p);color:#fff;padding:.15rem .5rem;border-radius:4px;font-size:.8rem">+ Neuer Token</span></p>
+<p><strong style="color:var(--t)">a)</strong> Klicke oben auf <span style="background:var(--p);color:#fff;padding:.15rem .5rem;border-radius:4px;font-size:.8rem">+ Neuer Zugang</span></p>
 <p><strong style="color:var(--t)">b)</strong> Vergib einen aussagekräftigen <strong style="color:var(--t)">Namen</strong> (z.B. "Wand-Tablet Küche")</p>
 <p><strong style="color:var(--t)">c)</strong> Wähle <strong style="color:var(--t)">Domains</strong>, <strong style="color:var(--t)">Areas</strong> oder einzelne <strong style="color:var(--t)">Entitäten</strong> aus</p>
 <p><strong style="color:var(--t)">d)</strong> Optional: Ablaufdatum, IP-Whitelist, Whitelist-/Blacklist-Muster</p>
@@ -190,8 +331,25 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 </div>
 </div>
 
+<div style="margin-bottom:2.5rem">
+<h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem"><i class="mdi mdi-tag" style="color:var(--p)"></i> 5. HTTP Status-Codes</h3>
+<div style="background:rgba(0,0,0,.2);border-radius:10px;padding:1.2rem;color:var(--td);line-height:1.8">
+<table style="width:100%;border-collapse:collapse">
+<thead><tr style="border-bottom:1px solid var(--bdr)"><th style="text-align:left;padding:.5rem;color:var(--td);font-size:.75rem">Code</th><th style="text-align:left;padding:.5rem;color:var(--td);font-size:.75rem">Bedeutung</th></tr></thead>
+<tbody>
+<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:.5rem"><code style="color:var(--ok);background:rgba(16,185,129,.1);padding:.15rem .5rem;border-radius:4px">200</code></td><td style="padding:.5rem">Erfolg – Anfrage wurde verarbeitet</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:.5rem"><code style="color:var(--err);background:rgba(239,68,68,.1);padding:.15rem .5rem;border-radius:4px">401</code></td><td style="padding:.5rem">Token fehlt, ist ungültig oder abgelaufen</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:.5rem"><code style="color:var(--err);background:rgba(239,68,68,.1);padding:.15rem .5rem;border-radius:4px">403</code></td><td style="padding:.5rem">Zugriff verweigert (IP nicht erlaubt oder Entität blockiert)</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:.5rem"><code style="color:#f59e0b;background:rgba(245,158,11,.1);padding:.15rem .5rem;border-radius:4px">404</code></td><td style="padding:.5rem">Entität nicht gefunden</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.04)"><td style="padding:.5rem"><code style="color:#f59e0b;background:rgba(245,158,11,.1);padding:.15rem .5rem;border-radius:4px">429</code></td><td style="padding:.5rem">Rate-Limit überschritten – zu viele Anfragen</td></tr>
+<tr><td style="padding:.5rem"><code style="color:var(--err);background:rgba(239,68,68,.1);padding:.15rem .5rem;border-radius:4px">500</code></td><td style="padding:.5rem">Interner Serverfehler</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
 <div style="margin-bottom:1rem">
-<h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem"><i class="mdi mdi-shield-check" style="color:var(--ok)"></i> 5. Sicherheitshinweise</h3>
+<h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem"><i class="mdi mdi-shield-check" style="color:var(--ok)"></i> 6. Sicherheitshinweise</h3>
 <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:1.2rem;color:var(--td);line-height:1.8">
 <p><i class="mdi mdi-lock" style="color:var(--p)"></i> Tokens sind <strong style="color:var(--t)">schreibgeschützt</strong> – niemand kann über diese API Geräte steuern</p>
 <p><i class="mdi mdi-eye-off" style="color:var(--p)"></i> Erstelle <strong style="color:var(--t)">separate Tokens</strong> pro Gerät/Anwendung</p>
@@ -204,14 +362,14 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 </div>
 </div>
 <div id="p-license" class="panel">
-<div class="card" style="max-width:800px;margin:0 auto">
+<div class="card">
 <div style="text-align:center;margin-bottom:2.5rem"><i class="mdi mdi-scale-balance" style="font-size:3rem;color:var(--p);display:block;margin-bottom:.5rem"></i><h2>Lizenz &amp; Haftungsausschluss</h2><p style="color:var(--td);margin-top:.5rem">Wichtige rechtliche Informationen</p></div>
 
 <div style="margin-bottom:2.5rem">
 <h3 style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem"><i class="mdi mdi-certificate" style="color:var(--ok)"></i> MIT-Lizenz</h3>
 <p style="color:var(--td);line-height:1.8;margin-bottom:1rem">
 <strong style="color:var(--t)">Copyright &copy; 2026 T. Kuhn</strong><br>
-Version 0.3.5 &middot; 15. Mai 2026
+Version 0.3.9 &middot; 20. Mai 2026
 </p>
 <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:1.5rem;color:var(--td);line-height:1.8;font-size:.9rem;border-left:3px solid var(--ok)">
 <p style="margin-bottom:.8rem">Jede Person, die eine Kopie dieser Software und der zugehörigen Dokumentationsdateien (die „Software") erhält, wird hiermit ermächtigt, die Software <strong style="color:var(--t)">uneingeschränkt</strong> zu nutzen, einschließlich des Rechts, Kopien anzufertigen, zu modifizieren, zusammenzuführen, zu veröffentlichen, zu verteilen, Unterlizenzen zu vergeben und/oder Kopien der Software zu verkaufen, sowie Personen, denen die Software bereitgestellt wird, dies zu gestatten, <strong style="color:var(--t)">vorbehaltlich der folgenden Bedingungen:</strong></p>
@@ -244,7 +402,7 @@ Version 0.3.5 &middot; 15. Mai 2026
 <div style="margin-bottom:1rem;text-align:center;padding:1.5rem;background:rgba(3,169,244,.08);border-radius:10px;border:1px solid rgba(3,169,244,.2)">
 <p style="color:var(--td);font-size:.85rem;line-height:1.6">
 <strong style="color:var(--t)">Copyright &copy; 2026 T. Kuhn</strong><br>
-Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.5 &middot; 15. Mai 2026<br>
+Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.9 &middot; 20. Mai 2026<br>
 <a href="https://github.com/tkuhn001/HA_read_only" target="_blank" style="color:var(--p);text-decoration:none">github.com/tkuhn001/HA_read_only</a>
 </p>
 </div>
@@ -252,70 +410,296 @@ Veröffentlicht unter der MIT-Lizenz &middot; Version 0.3.5 &middot; 15. Mai 202
 </div>
 </div>
 </div>
+<div class="modal" id="modal-stats">
+<div class="modal-body" style="max-width:500px">
+<button class="modal-close" onclick="closeM('modal-stats')"><i class="mdi mdi-close"></i></button>
+<h2><i class="mdi mdi-database"></i> Statistik-Einstellungen</h2>
+<div class="fg"><label>Zugang</label><input id="stats-tok-name" readonly style="opacity:.7"></div>
+
+<div class="fg">
+<label>Max. Anfragen</label>
+<div style="display:flex;align-items:center;gap:.8rem">
+<label class="toggle" style="flex-shrink:0"><input type="checkbox" id="stats-tok-limit-enabled"><span class="toggle-slider"></span></label>
+<input type="number" id="stats-tok-max" placeholder="z.B. 1000" style="width:120px;flex-shrink:0" disabled>
+<span style="font-size:.8rem;color:var(--td)">Leer = globales Limit</span>
+</div>
+</div>
+
+<div class="fg">
+<label>Aufbewahrung (Tage)</label>
+<div style="display:flex;align-items:center;gap:.8rem">
+<label class="toggle" style="flex-shrink:0"><input type="checkbox" id="stats-tok-retention-enabled"><span class="toggle-slider"></span></label>
+<input type="number" id="stats-tok-retention" placeholder="z.B. 14" style="width:120px;flex-shrink:0" disabled>
+<span style="font-size:.8rem;color:var(--td)">Leer = globale Einstellung</span>
+</div>
+</div>
+
+<div style="display:flex;gap:1rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--bdr)">
+<button class="btn btn-p" style="flex:1;padding:.85rem" onclick="saveTokenStats()"><i class="mdi mdi-content-save"></i> Speichern</button>
+<button class="btn btn-o" style="flex:1;padding:.85rem" onclick="closeM('modal-stats')"><i class="mdi mdi-close"></i> Abbrechen</button>
+</div></div></div>
 <div class="modal" id="modal-edit">
 <div class="modal-body">
-<h2 id="modal-title">Token erstellen</h2>
-<div class="fg"><label>Name</label><input id="tok-name" placeholder="z.B. Wand-Tablet"></div>
-<div class="fg"><label>Ablaufdatum (optional)</label><input type="datetime-local" id="tok-expires"><small>Leer = Token läuft nie ab</small></div>
-<div class="fg"><label>IP-Whitelist (eine pro Zeile)</label><textarea id="tok-ips" placeholder="192.168.1.100&#10;10.0.0.0/24"></textarea><small>Leer = alle IPs. CIDR möglich.</small></div>
-<div class="fg"><label>Erlaubte Domains</label><input type="text" class="search-input" id="domain-search" placeholder="Domains filtern..." oninput="filterDomains()"><div id="domain-grid" class="domain-grid"><p style="color:var(--td)">Lade...</p></div><small>Keine Auswahl = kein Domain-Filter (andere Filter können trotzdem greifen).</small></div>
-<div class="fg"><label>Erlaubte Bereiche (Areas)</label><input type="text" class="search-input" id="area-search" placeholder="Bereiche filtern..." oninput="filterAreas()"><div id="area-grid" class="domain-grid"><p style="color:var(--td)">Lade...</p></div></div>
-<div class="fg"><label>Einzelne Entitäten</label><input type="text" class="search-input" id="entity-search" placeholder="z.B. sensor.temperatur" oninput="debounceEntitySearch()"><div id="entity-picker" class="entity-picker"><p style="color:var(--td);padding:.5rem">Suchbegriff eingeben</p></div><div id="entity-chips" class="entity-chips"></div></div>
-<div class="fg"><label>Erlaubte Muster (eins pro Zeile)</label><textarea id="tok-patterns" placeholder="sensor.*_temperatur"></textarea></div>
-<div class="fg"><label>Blockierte Muster (eins pro Zeile)</label><textarea id="tok-blocked" placeholder="*geheim*"></textarea></div>
-<div class="fg"><label class="switch"><input type="checkbox" id="tok-attrs" checked> Attribute einschließen</label></div>
-<div style="display:flex;gap:1rem;margin-top:2rem">
-<button class="btn btn-p" style="flex:1" onclick="saveToken()"><i class="mdi mdi-content-save"></i> Speichern</button>
-<button class="btn btn-o" style="flex:1" onclick="closeM('modal-edit')">Abbrechen</button>
+<button class="modal-close" onclick="closeM('modal-edit')"><i class="mdi mdi-close"></i></button>
+<h2 id="modal-title"><i class="mdi mdi-key-plus"></i> Zugang erstellen</h2>
+<div class="form-row">
+<div class="fg"><label><i class="mdi mdi-format-title"></i> Name</label><input id="tok-name" placeholder="z.B. Wand-Tablet Küche"></div>
+<div class="fg"><label><i class="mdi mdi-palette"></i> Farbe (optional)</label><div style="display:flex;align-items:center;gap:.8rem"><input type="color" id="tok-color" value="#03a9f4" style="width:50px;height:40px;border:1px solid var(--bdr);border-radius:10px;cursor:pointer;background:transparent;padding:2px" oninput="syncColorPicker()"><input type="text" id="tok-color-text" value="#03a9f4" placeholder="#03a9f4" style="flex:1" oninput="syncColorText()"><button class="btn btn-s btn-o" onclick="clearColor()" style="flex-shrink:0"><i class="mdi mdi-close"></i> Keine Farbe</button></div><small>Leer = Standardfarbe (Blau)</small></div>
+</div>
+<div class="form-row">
+<div class="fg"><label><i class="mdi mdi-clock-outline"></i> Ablaufdatum (optional)</label><div class="datepicker-wrap"><input type="text" id="tok-expires" placeholder="z.B. 18.05.2026 14:30" oninput="parseExpiresInput()"><i class="mdi mdi-calendar cal-icon" onclick="toggleCal(event)"></i></div><small>Leer = nie ab. Format: TT.MM.JJJJ HH:MM oder Kalender nutzen</small></div>
+</div>
+<div class="fg"><label><i class="mdi mdi-ip-network"></i> IP-Whitelist (eine pro Zeile)</label><textarea id="tok-ips" placeholder="192.168.1.100&#10;10.0.0.0/24"></textarea><small>Leer = alle IPs erlaubt. CIDR-Notation möglich (z.B. 192.168.1.0/24)</small></div>
+
+<div class="section-title"><i class="mdi mdi-folder-multiple"></i> Zugriff filtern</div>
+
+<div class="fg"><label><i class="mdi mdi-domain"></i> Erlaubte Domains</label><input type="text" class="search-input" id="domain-search" placeholder="Domains filtern..." oninput="filterDomains()"><div id="domain-grid" class="domain-grid"><div class="loading-text"><span class="spinner"></span> Domains werden geladen...</div></div><small>Keine Auswahl = alle Domains erlaubt (andere Filter können trotzdem greifen)</small></div>
+
+<div class="form-row">
+<div class="fg"><label><i class="mdi mdi-map-marker-radius"></i> Erlaubte Bereiche (Areas)</label><input type="text" class="search-input" id="area-search" placeholder="Bereiche filtern..." oninput="filterAreas()"><div id="area-grid" class="domain-grid"><div class="loading-text"><span class="spinner"></span> Bereiche werden geladen...</div></div></div>
+<div class="fg"><label><i class="mdi mdi-target"></i> Einzelne Entitäten</label><input type="text" class="search-input" id="entity-search" placeholder="z.B. sensor.temperatur" oninput="debounceEntitySearch()"><div id="entity-picker" class="entity-picker"><p style="color:var(--td);padding:.8rem;text-align:center">Mind. 2 Zeichen eingeben...</p></div><div id="entity-chips" class="entity-chips"></div></div>
+</div>
+
+<div class="section-title"><i class="mdi mdi-filter-variant"></i> Muster-Filter (optional)</div>
+
+<div class="form-row">
+<div class="fg"><label><i class="mdi mdi-check-all"></i> Erlaubte Muster</label><textarea id="tok-patterns" placeholder="sensor.*_temperatur&#10;light.wohnzimmer_*"></textarea><small>Glob-Muster, eins pro Zeile</small></div>
+<div class="fg"><label><i class="mdi mdi-close-circle"></i> Blockierte Muster</label><textarea id="tok-blocked" placeholder="*geheim*&#10;*passwort*"></textarea><small>Blockierte Muster haben immer Vorrang!</small></div>
+</div>
+
+<div class="fg"><label>Attribute einschließen</label><label class="toggle"><input type="checkbox" id="tok-attrs" checked><span class="toggle-slider"></span></label><small>Wenn aktiviert, werden alle Attribute der Entität zurückgegeben (z.B. Temperatur, Batteriestatus). Wenn deaktiviert, wird nur <code style="color:var(--p)">entity_id</code> und <code style="color:var(--p)">state</code> gesendet – spart Bandbreite.</small></div>
+
+<div style="display:flex;gap:1rem;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--bdr)">
+<button class="btn btn-p" style="flex:1;padding:.85rem" onclick="saveToken()"><i class="mdi mdi-content-save"></i> Speichern</button>
+<button class="btn btn-o" style="flex:1;padding:.85rem" onclick="closeM('modal-edit')"><i class="mdi mdi-close"></i> Abbrechen</button>
 </div></div></div>
 <div class="modal" id="modal-ok">
 <div class="modal-body" style="max-width:500px;text-align:center">
 <i class="mdi mdi-check-circle" style="font-size:3rem;color:var(--ok);display:block;margin-bottom:1rem"></i>
-<h2 style="color:var(--ok)">Token erstellt!</h2>
+<div style="text-align:center"><h2 style="color:var(--ok);justify-content:center">Zugang erstellt!</h2></div>
 <p style="color:var(--td);margin:1rem 0">Kopiere diesen Token jetzt. Er wird nicht erneut angezeigt.</p>
 <div class="token-display"><input id="new-token" readonly><button onclick="copyTok()"><i class="mdi mdi-content-copy"></i></button></div>
 <button class="btn btn-p" style="width:100%;margin-top:1rem" onclick="closeM('modal-ok')">Fertig</button>
 </div></div>
 <script>
-let tokens=[],curId=null,allDomains=[],allAreas=[],selectedEntities=[],entityTimer=null;
+let tokens=[],curId=null,allDomains=[],allAreas=[],selectedEntities=[],entityTimer=null,calYear=null,calMonth=null,calSelectedDate=null,calHour=12,calMinute=0;
+let allLogEntries=[],logSortCol='timestamp',logSortAsc=false,logDisplayCount=20;
 const B='/api/ha_read_only';
-async function api(p,m='GET',b=null){const o={method:m,headers:{'Content-Type':'application/json'}};if(b)o.body=JSON.stringify(b);return(await fetch(B+p,o)).json();}
+const MONATE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const TAGE=['Mo','Di','Mi','Do','Fr','Sa','So'];
+async function api(p,m='GET',b=null){const o={method:m,headers:{'Content-Type':'application/json'}};if(b)o.body=JSON.stringify(b);const r=await fetch(B+p,o);if(!r.ok){const t=await r.text();throw new Error(`API ${r.status}: ${t}`);}return r.json();}
 function tab(t){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('p-'+t).classList.add('active');document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));document.querySelector('[data-tab="'+t+'"]').classList.add('active');if(t==='tokens')loadTokens();if(t==='usage')loadStats();if(t==='settings')loadCfg();}
 function tsToLocal(ts){if(!ts)return'';const d=new Date(ts*1000),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
 function isExpired(t){return t.expires_at&&Date.now()/1000>t.expires_at;}
 function tokenBadges(t){let b='';if(isExpired(t))b+='<span class="badge warn">Abgelaufen</span>';else if(t.expires_at)b+='<span class="badge">bis '+new Date(t.expires_at*1000).toLocaleDateString('de-DE')+'</span>';if(t.areas&&t.areas.length)b+='<span class="badge">'+t.areas.length+' Areas</span>';if(t.allowed_ips&&t.allowed_ips.length)b+='<span class="badge">IP-Filter</span>';if(t.allowed_entities&&t.allowed_entities.length)b+='<span class="badge">'+t.allowed_entities.length+' Entitäten</span>';return b;}
-async function loadTokens(){tokens=await api('/admin/api/tokens');const c=document.getElementById('p-tokens');if(!tokens.length){c.innerHTML='<div class="empty"><i class="mdi mdi-key-plus"></i><p>Noch keine Tokens.</p></div>';return;}
-c.innerHTML=tokens.map(t=>{const d=t.created_at?new Date(t.created_at*1000).toLocaleDateString('de-DE'):'';return '<div class="card"><div class="token-header"><h3>'+esc(t.name)+'</h3><span class="badge">'+d+'</span></div><div class="token-meta"><code>'+t.token_masked+'</code><span class="badge">'+(t.domains&&t.domains.length?t.domains.length+' Domains':'Alle Domains')+'</span>'+tokenBadges(t)+(t.include_attributes===false?'<span class="badge">Ohne Attribute</span>':'')+'</div><div class="token-actions"><button class="btn btn-o btn-s" onclick="editToken(\''+t.id+'\')"><i class="mdi mdi-pencil"></i> Bearbeiten</button><button class="btn btn-o btn-s" onclick="regenToken(\''+t.id+'\')"><i class="mdi mdi-refresh"></i> Neu generieren</button><button class="btn btn-d btn-s" onclick="delToken(\''+t.id+'\')"><i class="mdi mdi-delete"></i> Löschen</button></div></div>';}).join('');}
+async function loadTokens(){const loadEl=document.getElementById('tokens-loading');const c=document.getElementById('p-tokens');loadEl.style.display='flex';c.innerHTML='';try{tokens=await api('/admin/api/tokens');loadEl.style.display='none';if(!tokens.length){c.innerHTML='<div class="empty"><i class="mdi mdi-key-plus"></i><p>Noch keine Zugänge.</p></div>';return;}
+c.innerHTML=tokens.map(t=>{const d=t.created_at?new Date(t.created_at*1000).toLocaleDateString('de-DE'):'';const color=t.color||'';const colorStyle=color?`border-left-color:${color}`:'';const colorBadge=color?`<span class="token-color-indicator" style="background:${color}"></span>`:'';return '<div class="card token-card" style="'+colorStyle+'"><div class="token-header"><h3>'+colorBadge+' '+esc(t.name)+'</h3><span class="badge">'+d+'</span></div><div class="token-meta"><code>'+t.token_masked+'</code><span class="badge">'+(t.domains&&t.domains.length?t.domains.length+' Domains':'Alle Domains')+'</span>'+tokenBadges(t)+(t.include_attributes===false?'<span class="badge">Ohne Attribute</span>':'')+'</div><div class="token-actions"><button class="btn btn-o btn-s" onclick="editToken(\''+t.id+'\')"><i class="mdi mdi-pencil"></i> Zugang bearbeiten</button><button class="btn btn-w btn-s" onclick="regenToken(\''+t.id+'\')"><i class="mdi mdi-refresh"></i> Neuen Token generieren</button><button class="btn btn-d btn-s" onclick="delToken(\''+t.id+'\')"><i class="mdi mdi-delete"></i> Zugang löschen</button></div></div>';}).join('');loadTokenLimits(tokens);}catch(e){loadEl.innerHTML='<span style="color:var(--err)"><i class="mdi mdi-alert"></i> Fehler beim Laden: '+esc(e.message)+'</span>';}}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
-function renderChart(hourly){const svg=document.getElementById('usage-chart');if(!hourly||!hourly.length){svg.innerHTML='';return;}const now=new Date(),W=800,H=200,pad={t:10,r:20,b:30,l:38},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b,max=Math.max(...hourly,1),barW=cw/24,steps=4,stepVal=Math.ceil(max/steps);let g='<g transform="translate('+pad.l+','+pad.t+')">';for(let i=0;i<=steps;i++){const y=ch-(i/steps)*ch;g+='<line x1="0" y1="'+y+'" x2="'+cw+'" y2="'+y+'" stroke="rgba(255,255,255,.06)"/>';g+='<text x="-5" y="'+(y+3)+'" fill="var(--td)" font-size="8" text-anchor="end">'+Math.round(stepVal*i)+'</text>';}for(let i=0;i<24;i++){const x=i*barW,bh=Math.max(0,Math.round(hourly[i]/max*ch)),y=ch-bh;const hr=(now.getHours()-23+i+24)%24;g+='<rect x="'+(x+1)+'" y="'+y+'" width="'+(barW-2)+'" height="'+bh+'" fill="rgba(3,169,244,.7)" rx="2" data-i="'+i+'"/>';if(i%4===0)g+='<text x="'+(x+barW/2)+'" y="'+(ch+14)+'" fill="var(--td)" font-size="8" text-anchor="middle">'+String(hr).padStart(2,'0')+':00</text>';}g+='</g>';svg.innerHTML=g;svg.onmousemove=function(e){const rect=svg.getBoundingClientRect(),mx=(e.clientX-rect.left)/rect.width*W-pad.l,barIdx=Math.floor(mx/barW);const tip=document.getElementById('chart-tooltip');if(barIdx>=0&&barIdx<24&&hourly[barIdx]>0){tip.style.display='block';tip.textContent=hourly[barIdx]+' Anfragen um '+String((now.getHours()-23+barIdx+24)%24).padStart(2,'0')+':00';tip.style.left=(e.clientX-rect.left+12)+'px';tip.style.top=(e.clientY-rect.top-30)+'px';}else{tip.style.display='none';}};svg.onmouseleave=function(){document.getElementById('chart-tooltip').style.display='none';};}
-async function loadStats(){const s=await api('/admin/api/stats');document.getElementById('stats-cards').innerHTML='<div class="stat-box"><div class="label">Anfragen gesamt</div><div class="value">'+s.total_requests+'</div></div><div class="stat-box err"><div class="label">Fehler</div><div class="value">'+s.total_errors+'</div></div><div class="stat-box"><div class="label">Aktive Tokens</div><div class="value">'+s.tokens.length+'</div></div>';renderChart(s.hourly||[]);document.getElementById('usage-log-tbody').innerHTML=(s.usage_log||[]).map(e=>'<tr><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+(e.status<400?'status-ok':'status-err')+'">'+e.status+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';document.getElementById('stats-tbody').innerHTML=s.tokens.map(t=>'<tr><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Daten</td></tr>';}
-async function loadCfg(){const c=await api('/admin/api/config');if(c.rate_limit_max_per_ip)document.getElementById('cfg-ip').value=c.rate_limit_max_per_ip;if(c.rate_limit_max_per_token)document.getElementById('cfg-tok').value=c.rate_limit_max_per_token;if(c.rate_limit_window)document.getElementById('cfg-win').value=c.rate_limit_window;document.getElementById('cfg-webhook').value=c.webhook_url||'';document.getElementById('cfg-webhook-api').checked=!!c.webhook_on_api_request;document.getElementById('cfg-webhook-token').checked=!!c.webhook_on_token_created;}
-async function saveCfg(){await api('/admin/api/config','PUT',{rate_limit_max_per_ip:parseInt(document.getElementById('cfg-ip').value),rate_limit_max_per_token:parseInt(document.getElementById('cfg-tok').value),rate_limit_window:parseInt(document.getElementById('cfg-win').value),webhook_url:document.getElementById('cfg-webhook').value.trim(),webhook_on_api_request:document.getElementById('cfg-webhook-api').checked,webhook_on_token_created:document.getElementById('cfg-webhook-token').checked});alert('Einstellungen gespeichert!');}
-function gridHtml(items,sel,gridId){const q=(gridId==='domain-grid'?document.getElementById('domain-search'):document.getElementById('area-search')).value.toLowerCase();return items.filter(x=>!q||(x.name||x).toLowerCase().includes(q)||(x.id&&x.id.toLowerCase().includes(q))).map(x=>{const id=x.id||x,name=x.name||x,ch=sel.includes(id)?'checked':'',cls=ch?'checked':'';return '<label class="'+cls+'" onclick="toggleGrid(this)"><span class="dot"></span><input type="checkbox" value="'+id+'" '+ch+'> '+esc(name)+'</label>';}).join('')||'<p style="color:var(--td)">Keine Treffer</p>';}
+function renderChart(hourly,hourlyByColor){const svg=document.getElementById('usage-chart');if(!hourly||!hourly.length){svg.innerHTML='';return;}const now=new Date(),W=800,H=200,pad={t:10,r:20,b:30,l:38},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b,max=Math.max(...hourly,1),barW=cw/24,steps=4,stepVal=max/steps;let g='<g transform="translate('+pad.l+','+pad.t+')">';for(let i=0;i<=steps;i++){const y=ch-(i/steps)*ch;g+='<line x1="0" y1="'+y+'" x2="'+cw+'" y2="'+y+'" stroke="rgba(255,255,255,.06)"/>';g+='<text x="-5" y="'+(y+3)+'" fill="var(--td)" font-size="8" text-anchor="end">'+Math.round(stepVal*i)+'</text>';}for(let i=0;i<24;i++){const x=i*barW,bh=Math.max(0,Math.round(hourly[i]/max*ch)),y=ch-bh;const hr=(now.getHours()-23+i+24)%24;if(hourlyByColor&&hourlyByColor[i]&&hourlyByColor[i].total>0){const byColor=hourlyByColor[i].by_color;let curY=y;const colors=Object.keys(byColor);for(let c=0;c<colors.length;c++){const col=colors[c]==='_default'?'rgba(3,169,244,.7)':colors[c];const count=byColor[colors[c]];const segH=Math.max(0,Math.round(count/max*ch));g+='<rect x="'+(x+1)+'" y="'+curY+'" width="'+(barW-2)+'" height="'+segH+'" fill="'+col+'" rx="2" data-i="'+i+'"/>';curY+=segH;}}else{g+='<rect x="'+(x+1)+'" y="'+y+'" width="'+(barW-2)+'" height="'+bh+'" fill="rgba(3,169,244,.7)" rx="2" data-i="'+i+'"/>';}if(i%4===0)g+='<text x="'+(x+barW/2)+'" y="'+(ch+14)+'" fill="var(--td)" font-size="8" text-anchor="middle">'+String(hr).padStart(2,'0')+':00</text>';}g+='</g>';svg.innerHTML=g;svg.onmousemove=function(e){const rect=svg.getBoundingClientRect(),mx=(e.clientX-rect.left)/rect.width*W-pad.l,barIdx=Math.floor(mx/barW);const tip=document.getElementById('chart-tooltip');if(barIdx>=0&&barIdx<24&&hourly[barIdx]>0){tip.style.display='block';tip.textContent=hourly[barIdx]+' Anfragen ('+String((now.getHours()-23+barIdx+24)%24).padStart(2,'0')+'-'+String((now.getHours()-23+barIdx+25)%24).padStart(2,'0')+' Uhr)';tip.style.left=(e.clientX-rect.left+12)+'px';tip.style.top=(e.clientY-rect.top-30)+'px';}else{tip.style.display='none';}};svg.onmouseleave=function(){document.getElementById('chart-tooltip').style.display='none';};}
+async function loadStats(){
+  const loadEl=document.getElementById('stats-loading');
+  loadEl.style.display='flex';
+  const cardsEl=document.getElementById('stats-cards');
+  const chartEl=document.getElementById('chart-wrap');
+  const logEl=document.getElementById('log-card');
+  const perTokenEl=document.getElementById('per-token-card');
+  const pieEl=document.getElementById('pie-wrap');
+  const filterRow=document.getElementById('stats-filter-row');
+  const chartRow=document.getElementById('chart-row');
+  cardsEl.style.display='none';chartEl.style.display='none';logEl.style.display='none';perTokenEl.style.display='none';pieEl.style.display='none';filterRow.style.display='none';chartRow.style.display='none';
+  try{
+    const s=await api('/admin/api/stats');
+    loadEl.style.display='none';
+    cardsEl.style.display='grid';
+    chartRow.style.display='grid';
+    chartEl.style.display='block';
+    logEl.style.display='block';
+    perTokenEl.style.display='block';
+    pieEl.style.display='block';
+    filterRow.style.display='flex';
+    document.getElementById('stats-cards').innerHTML='<div class="stat-box"><div class="label">Anfragen gesamt</div><div class="value">'+s.total_requests+'</div></div><div class="stat-box err"><div class="label">Fehler</div><div class="value">'+s.total_errors+'</div></div><div class="stat-box"><div class="label">Aktive Zugänge</div><div class="value">'+s.tokens.length+'</div></div>';
+    renderChart(s.hourly||[],s.hourly_by_color||[]);
+    renderPieChart(s.pie||[]);
+    const sel=document.getElementById('stats-token-filter');
+    sel.innerHTML='<option value="">Alle Zugänge</option>'+s.tokens.map(t=>'<option value="'+esc(t.token_key)+'">'+esc(t.token_name||t.token_key)+'</option>').join('');
+    allLogEntries=s.usage_log||[];
+    logSortCol='timestamp';logSortAsc=false;
+    logDisplayCount=getLogDisplayCount();
+    renderLogTable();
+    const statsHtml=s.tokens.map(t=>'<tr><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>').join('');
+    document.getElementById('stats-tbody').innerHTML=statsHtml||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Daten</td></tr>';
+  }catch(e){
+    console.error('loadStats error:',e);
+    loadEl.innerHTML='<span style="color:var(--err)"><i class="mdi mdi-alert"></i> Fehler beim Laden: '+esc(e.message)+'</span>';
+  }
+}
+
+async function loadStatsForToken(){
+  const tk=document.getElementById('stats-token-filter').value;
+  const loadEl=document.getElementById('stats-loading');
+  loadEl.style.display='flex';
+  const cardsEl=document.getElementById('stats-cards');
+  const chartEl=document.getElementById('chart-wrap');
+  const logEl=document.getElementById('log-card');
+  const perTokenEl=document.getElementById('per-token-card');
+  const pieEl=document.getElementById('pie-wrap');
+  cardsEl.style.display='none';chartEl.style.display='none';logEl.style.display='none';perTokenEl.style.display='none';pieEl.style.display='none';
+  try{
+    const s=await api('/admin/api/stats'+(tk?'?token_id='+encodeURIComponent(tk):''));
+    loadEl.style.display='none';
+    cardsEl.style.display='grid';
+    chartEl.style.display='block';
+    logEl.style.display='block';
+    perTokenEl.style.display='block';
+    pieEl.style.display='block';
+    document.getElementById('stats-cards').innerHTML='<div class="stat-box"><div class="label">Anfragen gesamt</div><div class="value">'+s.total_requests+'</div></div><div class="stat-box err"><div class="label">Fehler</div><div class="value">'+s.total_errors+'</div></div><div class="stat-box"><div class="label">Aktive Zugänge</div><div class="value">'+s.tokens.length+'</div></div>';
+    renderChart(s.hourly||[],s.hourly_by_color||[]);
+    renderPieChart(s.pie||[]);
+    allLogEntries=s.usage_log||[];
+    logSortCol='timestamp';logSortAsc=false;
+    logDisplayCount=getLogDisplayCount();
+    renderLogTable();
+    const statsHtml=s.tokens.map(t=>'<tr><td>'+esc(t.token_name||t.token_key)+'</td><td>'+t.total+'</td><td>'+t.errors+'</td><td>'+esc(t.last_endpoint||'-')+'</td><td>'+(t.last_access?new Date(t.last_access*1000).toLocaleString('de-DE'):'-')+'</td></tr>').join('');
+    document.getElementById('stats-tbody').innerHTML=statsHtml||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Noch keine Daten</td></tr>';
+  }catch(e){
+    console.error('loadStatsForToken error:',e);
+    loadEl.innerHTML='<span style="color:var(--err)"><i class="mdi mdi-alert"></i> Fehler beim Laden: '+esc(e.message)+'</span>';
+  }
+}
+
+function getLogDisplayCount(){
+  const cfg=JSON.parse(localStorage.getItem('ha_read_only_cfg')||'{}');
+  return cfg.log_rows||20;
+}
+
+function sortLogTable(col){
+  if(logSortCol===col){logSortAsc=!logSortAsc;}else{logSortCol=col;logSortAsc=true;}
+  document.querySelectorAll('.sort-th').forEach(th=>{
+    th.classList.remove('active');
+    th.querySelector('.sort-arrow').textContent='';
+  });
+  const activeTh=document.querySelector('.sort-th[data-col="'+col+'"]');
+  if(activeTh){activeTh.classList.add('active');activeTh.querySelector('.sort-arrow').textContent=logSortAsc?'▲':'▼';}
+  logDisplayCount=getLogDisplayCount();
+  renderLogTable();
+}
+
+function renderLogTable(){
+  const indexed=allLogEntries.map((e,i)=>({...e,_origIdx:i}));
+  const sorted=indexed.sort((a,b)=>{
+    let va=a[logSortCol],vb=b[logSortCol];
+    if(logSortCol==='timestamp'){va=va||0;vb=vb||0;}
+    else if(logSortCol==='status'){va=Number(va)||0;vb=Number(vb)||0;}
+    else{va=String(va||'').toLowerCase();vb=String(vb||'').toLowerCase();}
+    if(va<vb)return logSortAsc?-1:1;
+    if(va>vb)return logSortAsc?1:-1;
+    return 0;
+  });
+  const visible=sorted.slice(0,logDisplayCount);
+  const tbody=document.getElementById('usage-log-tbody');
+  tbody.innerHTML=visible.map((e)=>'<tr><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+(e.status<400?'status-ok':'status-err')+'">'+e.status+'</td><td style="width:40px;text-align:center"><button class="btn btn-d btn-s" onclick="deleteLogEntry('+e._origIdx+')" style="padding:.2rem .4rem"><i class="mdi mdi-delete"></i></button></td></tr>').join('')||'<tr><td colspan="6" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';
+  const btn=document.getElementById('load-more-btn');
+  if(btn){btn.style.display=sorted.length>logDisplayCount?'inline-flex':'none';}
+}
+
+function loadMoreLogEntries(){
+  logDisplayCount+=20;
+  renderLogTable();
+}
+
+
+function renderPieChart(data){const svg=document.getElementById('pie-chart');const leg=document.getElementById('pie-legend');if(!data||!data.length){svg.innerHTML='';leg.innerHTML='';return;}const total=data.reduce((s,d)=>s+d.value,0);const DEFAULTS=['#03a9f4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'];let html='',cum=0,defaultIdx=0;data.forEach((d,i)=>{const pct=d.value/total,startAngle=cum*2*Math.PI-Math.PI/2;cum+=pct;const endAngle=cum*2*Math.PI-Math.PI/2;const large=pct>0.5?1:0;const x1=100+90*Math.cos(startAngle),y1=100+90*Math.sin(startAngle),x2=100+90*Math.cos(endAngle),y2=100+90*Math.sin(endAngle);const color=d.color||DEFAULTS[defaultIdx++%DEFAULTS.length];html+='<path d="M100,100 L'+x1+','+y1+' A90,90 0 '+large+',1 '+x2+','+y2+' Z" fill="'+color+'" stroke="rgba(0,0,0,.3)" stroke-width="1"/>';});svg.innerHTML=html;leg.innerHTML=data.map((d,i)=>{const color=d.color||DEFAULTS[i%DEFAULTS.length];return '<div class="pie-legend-item"><span class="pie-legend-dot" style="background:'+color+'"></span><span>'+esc(d.name)+': '+d.value+' ('+Math.round(d.value/total*100)+'%)</span></div>';}).join('');}
+async function loadCfg(){const c=await api('/admin/api/config');if(c.rate_limit_max_per_ip)document.getElementById('cfg-ip').value=c.rate_limit_max_per_ip;if(c.rate_limit_max_per_token)document.getElementById('cfg-tok').value=c.rate_limit_max_per_token;if(c.rate_limit_window)document.getElementById('cfg-win').value=c.rate_limit_window;document.getElementById('cfg-webhook').value=c.webhook_url||'';document.getElementById('cfg-webhook-api').checked=!!c.webhook_on_api_request;document.getElementById('cfg-webhook-token').checked=!!c.webhook_on_token_created;document.getElementById('cfg-stats-max-enabled').checked=c.stats_log_max_enabled!==false;document.getElementById('cfg-stats-max').value=c.stats_log_max||500;document.getElementById('cfg-stats-retention-enabled').checked=c.stats_retention_enabled!==false;document.getElementById('cfg-stats-retention').value=c.stats_retention_days||30;const lc=JSON.parse(localStorage.getItem('ha_read_only_cfg')||'{}');document.getElementById('cfg-log-rows').value=lc.log_rows||20;if(!tokens.length)await loadTokens();loadTokenLimits(tokens);}
+async function saveCfg(){await api('/admin/api/config','PUT',{rate_limit_max_per_ip:parseInt(document.getElementById('cfg-ip').value),rate_limit_max_per_token:parseInt(document.getElementById('cfg-tok').value),rate_limit_window:parseInt(document.getElementById('cfg-win').value),webhook_url:document.getElementById('cfg-webhook').value.trim(),webhook_on_api_request:document.getElementById('cfg-webhook-api').checked,webhook_on_token_created:document.getElementById('cfg-webhook-token').checked,stats_log_max_enabled:document.getElementById('cfg-stats-max-enabled').checked,stats_log_max:parseInt(document.getElementById('cfg-stats-max').value),stats_retention_enabled:document.getElementById('cfg-stats-retention-enabled').checked,stats_retention_days:parseInt(document.getElementById('cfg-stats-retention').value)});const logRows=parseInt(document.getElementById('cfg-log-rows').value)||20;localStorage.setItem('ha_read_only_cfg',JSON.stringify({log_rows:logRows}));toast('Einstellungen gespeichert!','success');}
+async function cleanupStats(){const ok=await confirmDlg('Statistik bereinigen','Einträge ohne gültige Token-ID werden entfernt. Fortfahren?','Bereinigen');if(!ok)return;const r=await api('/admin/api/stats/cleanup','POST');toast(r.removed_log+' Log- und '+r.removed_stats+' Statistik-Einträge entfernt','success');loadStats();}
+async function deleteLogEntry(idx){await api('/admin/api/stats/log/'+idx,'DELETE');loadStats();loadStatsForToken();}
+function loadTokenLimits(tokenList){const tb=document.getElementById('token-limits-tbody');if(!tokenList||!tokenList.length){tb.innerHTML='<tr><td colspan="3" style="color:var(--td);text-align:center">Keine Zugänge</td></tr>';return;}tb.innerHTML=tokenList.map(t=>{const sm=t.stats_max_requests;const sd=t.stats_retention_days;const val=sm!==undefined&&sm!==null?sm:'<span style="color:var(--td)">Global</span>';const ret=sd!==undefined&&sd!==null?sd+' Tage':'<span style="color:var(--td)">Global</span>';return '<tr style="cursor:pointer" onclick="openTokenStats(\''+t.id+'\')"><td>'+esc(t.name||t.token_name||t.token_key)+'</td><td>'+val+'</td><td>'+ret+'</td></tr>';}).join('');}
+let statsCurId=null;
+async function openTokenStats(id){statsCurId=id;const t=tokens.find(x=>x.id===id);if(!t)return;document.getElementById('stats-tok-name').value=t.name||'';const hasLimit=t.stats_max_requests!==undefined&&t.stats_max_requests!==null;document.getElementById('stats-tok-limit-enabled').checked=hasLimit;document.getElementById('stats-tok-max').value=hasLimit?t.stats_max_requests:'';document.getElementById('stats-tok-max').disabled=!hasLimit;const hasRet=t.stats_retention_days!==undefined&&t.stats_retention_days!==null;document.getElementById('stats-tok-retention-enabled').checked=hasRet;document.getElementById('stats-tok-retention').value=hasRet?t.stats_retention_days:'';document.getElementById('stats-tok-retention').disabled=!hasRet;openM('modal-stats');}
+document.getElementById('stats-tok-limit-enabled').addEventListener('change',function(){document.getElementById('stats-tok-max').disabled=!this.checked;if(!this.checked)document.getElementById('stats-tok-max').value='';});
+document.getElementById('stats-tok-retention-enabled').addEventListener('change',function(){document.getElementById('stats-tok-retention').disabled=!this.checked;if(!this.checked)document.getElementById('stats-tok-retention').value='';});
+async function saveTokenStats(){const t=tokens.find(x=>x.id===statsCurId);if(!t)return;const data={};if(document.getElementById('stats-tok-limit-enabled').checked){data.stats_max_requests=parseInt(document.getElementById('stats-tok-max').value)||null;}else{data.stats_max_requests=null;}if(document.getElementById('stats-tok-retention-enabled').checked){data.stats_retention_days=parseInt(document.getElementById('stats-tok-retention').value)||null;}else{data.stats_retention_days=null;}await api('/admin/api/tokens/'+statsCurId+'/stats','PUT',data);toast('Statistik-Einstellungen gespeichert','success');closeM('modal-stats');loadTokens();}
+function gridHtml(items,sel,gridId){const searchId=gridId==='domain-grid'?'domain-search':gridId==='area-grid'?'area-search':'entity-search';const q=document.getElementById(searchId)?.value.toLowerCase()||'';return items.filter(x=>{const name=x.name||x;const id=x.id||x;return !q||name.toLowerCase().includes(q)||id.toLowerCase().includes(q);}).map(x=>{const id=x.id||x,name=x.name||x,ch=sel.includes(id)?'checked':'',cls=ch?'checked':'';return '<label class="'+cls+'" onclick="toggleGrid(this)"><span class="dot"></span><input type="checkbox" value="'+id+'" '+ch+'> '+esc(name)+'</label>';}).join('')||'<p style="color:var(--td);padding:1rem;text-align:center;width:100%">Keine Treffer</p>';}
 function toggleGrid(el){setTimeout(()=>{const cb=el.querySelector('input');if(cb.checked)el.classList.add('checked');else el.classList.remove('checked');},10);}
 function filterDomains(){document.getElementById('domain-grid').innerHTML=gridHtml(allDomains.map(d=>({id:d,name:d})),getSel('#domain-grid'),'domain-grid');}
 function filterAreas(){document.getElementById('area-grid').innerHTML=gridHtml(allAreas,getSel('#area-grid'),'area-grid');}
 function getSel(sel){return Array.from(document.querySelectorAll(sel+' input:checked')).map(i=>i.value);}
-async function loadOptions(){const o=await api('/admin/api/options');allDomains=o.domains||[];allAreas=o.areas||[];}
-async function loadDomains(sel){document.getElementById('domain-grid').innerHTML=gridHtml(allDomains.map(d=>({id:d,name:d})),sel,'domain-grid');}
-async function loadAreas(sel){document.getElementById('area-grid').innerHTML=gridHtml(allAreas,sel,'area-grid');}
+async function loadOptions(){const o=await api('/admin/api/options');if(o.error)throw new Error(o.error);allDomains=o.domains||[];allAreas=o.areas||[];}
+async function loadDomains(sel){document.getElementById('domain-grid').innerHTML=gridHtml(allDomains.map(d=>({id:d,name:d})),sel||[],'domain-grid');}
+async function loadAreas(sel){document.getElementById('area-grid').innerHTML=gridHtml(allAreas,sel||[],'area-grid');}
 function renderEntityChips(){document.getElementById('entity-chips').innerHTML=selectedEntities.map(e=>'<span>'+esc(e)+'<button type="button" onclick="removeEntity(\''+e.replace(/'/g,"\\'")+'\')">&times;</button></span>').join('');}
 function removeEntity(id){selectedEntities=selectedEntities.filter(x=>x!==id);renderEntityChips();}
 function debounceEntitySearch(){clearTimeout(entityTimer);entityTimer=setTimeout(searchEntities,300);}
-async function searchEntities(){const q=document.getElementById('entity-search').value.trim();const box=document.getElementById('entity-picker');if(q.length<2){box.innerHTML='<p style="color:var(--td);padding:.5rem">Mind. 2 Zeichen eingeben</p>';return;}const list=await api('/admin/api/entities?q='+encodeURIComponent(q));box.innerHTML=list.map(e=>'<label><input type="checkbox" '+(selectedEntities.includes(e)?'checked':'')+' onchange="toggleEntity(\''+e.replace(/'/g,"\\'")+'\',this.checked)"> '+esc(e)+'</label>').join('')||'<p style="color:var(--td)">Keine Treffer</p>';}
+async function searchEntities(){const q=document.getElementById('entity-search').value.trim();const box=document.getElementById('entity-picker');if(q.length<2){box.innerHTML='<p style="color:var(--td);padding:.5rem">Mind. 2 Zeichen eingeben</p>';return;}box.innerHTML='<div class="loading-text"><span class="spinner"></span> Entitäten werden gesucht...</div>';const list=await api('/admin/api/entities?q='+encodeURIComponent(q));box.innerHTML=list.map(e=>'<label><input type="checkbox" '+(selectedEntities.includes(e)?'checked':'')+' onchange="toggleEntity(\''+e.replace(/'/g,"\\'")+'\',this.checked)"> '+esc(e)+'</label>').join('')||'<p style="color:var(--td)">Keine Treffer</p>';}
 function toggleEntity(id,on){if(on&&!selectedEntities.includes(id))selectedEntities.push(id);if(!on)selectedEntities=selectedEntities.filter(x=>x!==id);renderEntityChips();}
-async function resetTokenForm(t){document.getElementById('tok-name').value=t?t.name||'':'';document.getElementById('tok-expires').value=t?tsToLocal(t.expires_at):'';document.getElementById('tok-ips').value=t&&t.allowed_ips?t.allowed_ips.join('\n'):'';document.getElementById('tok-patterns').value=t?t.patterns||'':'';document.getElementById('tok-blocked').value=t?t.blocked_patterns||'':'';document.getElementById('tok-attrs').checked=t?t.include_attributes!==false:true;document.getElementById('domain-search').value='';document.getElementById('area-search').value='';document.getElementById('entity-search').value='';selectedEntities=t&&t.allowed_entities?[...t.allowed_entities]:[];renderEntityChips();document.getElementById('entity-picker').innerHTML='<p style="color:var(--td);padding:.5rem">Suchbegriff eingeben</p>';await loadOptions();await loadDomains(t?t.domains||[]:[]);await loadAreas(t?t.areas||[]:[]);}
-async function openCreate(){curId=null;document.getElementById('modal-title').textContent='Token erstellen';await resetTokenForm(null);openM('modal-edit');}
-async function editToken(id){curId=id;const t=tokens.find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').textContent='Token bearbeiten';await resetTokenForm(t);openM('modal-edit');}
-async function saveToken(){const exp=document.getElementById('tok-expires').value;const data={name:document.getElementById('tok-name').value||'Unbenannt',domains:getSel('#domain-grid'),areas:getSel('#area-grid'),allowed_entities:selectedEntities,allowed_ips:document.getElementById('tok-ips').value,patterns:document.getElementById('tok-patterns').value,blocked_patterns:document.getElementById('tok-blocked').value,include_attributes:document.getElementById('tok-attrs').checked,expires_at:exp||null};if(curId){await api('/admin/api/tokens/'+curId,'PUT',data);closeM('modal-edit');loadTokens();}else{const r=await api('/admin/api/tokens','POST',data);document.getElementById('new-token').value=r.token;closeM('modal-edit');openM('modal-ok');loadTokens();}}
-async function delToken(id){if(confirm('Token löschen?')){await api('/admin/api/tokens/'+id,'DELETE');loadTokens();}}
-async function regenToken(id){if(confirm('Token neu generieren?')){const r=await api('/admin/api/tokens/'+id+'/regenerate','POST');document.getElementById('new-token').value=r.token;openM('modal-ok');loadTokens();}}
-function copyTok(){const i=document.getElementById('new-token');navigator.clipboard.writeText(i.value).then(()=>{const b=i.nextElementSibling;b.innerHTML='<i class="mdi mdi-check"></i>';setTimeout(()=>{b.innerHTML='<i class="mdi mdi-content-copy"></i>';},1500);});}
-function openM(id){document.getElementById(id).classList.add('active');}
-function closeM(id){document.getElementById(id).classList.remove('active');}
+function syncColorText(){const t=document.getElementById('tok-color-text'),p=document.getElementById('tok-color');if(t.value.match(/^#[0-9a-f]{6}$/i)){p.value=t.value;}}
+function syncColorPicker(){document.getElementById('tok-color-text').value=document.getElementById('tok-color').value;}
+function clearColor(){document.getElementById('tok-color').value='#03a9f4';document.getElementById('tok-color-text').value='';}
+async function resetTokenForm(t){document.getElementById('tok-name').value=t?t.name||'':'';const color=t&&t.color?t.color:'#03a9f4';document.getElementById('tok-color').value=color;document.getElementById('tok-color-text').value=t&&t.color?t.color:'';if(t&&t.expires_at){const d=new Date(t.expires_at*1000);calYear=d.getFullYear();calMonth=d.getMonth();calSelectedDate=new Date(calYear,calMonth,d.getDate());calHour=d.getHours();calMinute=d.getMinutes();const v=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+' '+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');document.getElementById('tok-expires').value=v;document.getElementById('tok-expires').dataset.iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');}else{document.getElementById('tok-expires').value='';document.getElementById('tok-expires').dataset.iso='';calSelectedDate=null;calHour=12;calMinute=0;}document.getElementById('tok-ips').value=t&&t.allowed_ips?t.allowed_ips.join('\n'):'';document.getElementById('tok-patterns').value=t?t.patterns||'':'';document.getElementById('tok-blocked').value=t?t.blocked_patterns||'':'';document.getElementById('tok-attrs').checked=t?t.include_attributes!==false:true;document.getElementById('domain-search').value='';document.getElementById('area-search').value='';document.getElementById('entity-search').value='';selectedEntities=t&&t.allowed_entities?[...t.allowed_entities]:[];renderEntityChips();document.getElementById('entity-picker').innerHTML='<p style="color:var(--td);padding:.8rem;text-align:center">Mind. 2 Zeichen eingeben...</p>';try{await loadOptions();await loadDomains(t?t.domains||[]:[]);await loadAreas(t?t.areas||[]:[]);}catch(e){console.error('loadOptions failed:',e);const msg=e.message||'Unbekannter Fehler';document.getElementById('domain-grid').innerHTML='<p style="color:var(--err);padding:1rem;text-align:center"><i class="mdi mdi-alert"></i> '+esc(msg)+'</p>';document.getElementById('area-grid').innerHTML='<p style="color:var(--err);padding:1rem;text-align:center"><i class="mdi mdi-alert"></i> '+esc(msg)+'</p>';}}
+async function openCreate(){curId=null;document.getElementById('modal-title').innerHTML='<i class="mdi mdi-key-plus"></i> Zugang erstellen';await resetTokenForm(null);openM('modal-edit');}
+async function editToken(id){curId=id;const t=tokens.find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').innerHTML='<i class="mdi mdi-key-variant"></i> Zugang bearbeiten';await resetTokenForm(t);openM('modal-edit');}
+async function saveToken(){const exp=document.getElementById('tok-expires').dataset.iso||null;const colorVal=document.getElementById('tok-color-text').value.trim();const color=colorVal?colorVal:'';const data={name:document.getElementById('tok-name').value||'Unbenannt',domains:getSel('#domain-grid'),areas:getSel('#area-grid'),allowed_entities:selectedEntities,allowed_ips:document.getElementById('tok-ips').value,patterns:document.getElementById('tok-patterns').value,blocked_patterns:document.getElementById('tok-blocked').value,include_attributes:document.getElementById('tok-attrs').checked,expires_at:exp,color:color};if(curId){await api('/admin/api/tokens/'+curId,'PUT',data);toast('Zugang bearbeitet','success');closeM('modal-edit');loadTokens();}else{const r=await api('/admin/api/tokens','POST',data);document.getElementById('new-token').value=r.token;toast('Zugang erstellt','success');closeM('modal-edit');openM('modal-ok');loadTokens();}}
+async function delToken(id){if(await confirmDlg('Zugang löschen','Möchtest du diesen Zugang wirklich unwiderruflich löschen?','Löschen')){await api('/admin/api/tokens/'+id,'DELETE');toast('Zugang gelöscht','success');loadTokens();}}
+async function regenToken(id){if(await confirmDlg('Token neu generieren','Das alte Token wird sofort ungültig. Alle Geräte müssen mit dem neuen Token neu verbunden werden.','Neu generieren')){const r=await api('/admin/api/tokens/'+id+'/regenerate','POST');document.getElementById('new-token').value=r.token;toast('Token neu generiert','success');openM('modal-ok');loadTokens();}}
+async function copyTok(){const i=document.getElementById('new-token');try{await navigator.clipboard.writeText(i.value);const b=i.nextElementSibling;b.innerHTML='<i class="mdi mdi-check"></i>';setTimeout(()=>{b.innerHTML='<i class="mdi mdi-content-copy"></i>';},1500);}catch(e){i.select();document.execCommand('copy');}}
+function openM(id){const el=document.getElementById(id);el.classList.add('active');const body=el.querySelector('.modal-body');if(body)body.scrollTop=0;}
+function closeM(id){document.getElementById(id).classList.remove('active');closeCal();}
+function toast(msg,type='info',duration=3000){const c=document.getElementById('toast-container');const icons={success:'check-circle',error:'alert-circle',info:'information'};const t=document.createElement('div');t.className='toast toast-'+type;t.innerHTML='<i class="mdi mdi-'+icons[type]+'"></i><span>'+msg+'</span>';t.onclick=()=>dismissToast(t);c.appendChild(t);setTimeout(()=>dismissToast(t),duration);}
+function dismissToast(t){if(!t.parentNode)return;t.classList.add('out');setTimeout(()=>t.remove(),250);}
+let confirmResolve=null;
+function confirmDlg(title,msg,btnText='Bestätigen'){return new Promise(r=>{confirmResolve=r;document.getElementById('confirm-title').textContent=title;document.getElementById('confirm-message').textContent=msg;document.getElementById('confirm-btn').textContent=btnText;document.getElementById('confirm-overlay').classList.add('active');});}
+function confirmOk(){document.getElementById('confirm-overlay').classList.remove('active');if(confirmResolve){confirmResolve(true);confirmResolve=null;}}
+function confirmCancel(){document.getElementById('confirm-overlay').classList.remove('active');if(confirmResolve){confirmResolve(false);confirmResolve=null;}}
+function toggleCal(e){if(e)e.stopPropagation();console.log('toggleCal called');const p=document.getElementById('tok-cal');const inp=document.getElementById('tok-expires');console.log('popup:',p,'input:',inp);if(!p||!inp){console.error('Elements not found');return;}const r=inp.getBoundingClientRect();console.log('rect:',r);p.style.top=(r.bottom+6)+'px';p.style.left=r.left+'px';p.classList.toggle('active');console.log('active:',p.classList.contains('active'));if(p.classList.contains('active'))renderCal();}
+function closeCal(){document.getElementById('tok-cal').classList.remove('active');}
+function parseExpiresInput(){const v=document.getElementById('tok-expires').value.trim();if(!v){document.getElementById('tok-expires').dataset.iso='';return;}
+const de=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{1,2})$/);
+if(de){const d=new Date(de[3],de[2]-1,de[1],de[4],de[5]);document.getElementById('tok-expires').dataset.iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+else{const iso=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2})$/);if(iso){document.getElementById('tok-expires').dataset.iso=iso[0];}else{document.getElementById('tok-expires').dataset.iso='';}}}
+function renderCal(){const now=new Date();if(calYear===null){calYear=now.getFullYear();calMonth=now.getMonth();}
+const today=now.getDate(),thisMonth=now.getMonth(),thisYear=now.getFullYear();
+const firstDay=new Date(calYear,calMonth,1);let startDay=firstDay.getDay()-1;if(startDay<0)startDay=6;
+const daysInMonth=new Date(calYear,calMonth+1,0).getDate();const daysInPrev=new Date(calYear,calMonth,0).getDate();
+let html='<div class="cal-header"><button onclick="event.stopPropagation();calNav(-1)"><i class="mdi mdi-chevron-left"></i></button><span>'+MONATE[calMonth]+' '+calYear+'</span><button onclick="event.stopPropagation();calNav(1)"><i class="mdi mdi-chevron-right"></i></button></div>';
+html+='<div class="cal-weekdays">'+TAGE.map(d=>'<span>'+d+'</span>').join('')+'</div><div class="cal-days">';
+for(let i=startDay-1;i>=0;i--){html+='<div class="cal-day other-month" onclick="event.stopPropagation();calPrevMonth('+daysInPrev+')">'+(daysInPrev-i)+'</div>';}
+for(let d=1;d<=daysInMonth;d++){const isToday=d===today&&calMonth===thisMonth&&calYear===thisYear;
+const sel=calSelectedDate&&d===calSelectedDate.getDate()&&calMonth===calSelectedDate.getMonth()&&calYear===calSelectedDate.getFullYear();
+const cls='cal-day'+(isToday?' today':'')+(sel?' selected':'');
+html+='<div class="'+cls+'" onclick="event.stopPropagation();calPick('+d+')">'+d+'</div>';}
+const totalCells=startDay+daysInMonth;const remaining=(7-totalCells%7)%7;
+for(let d=1;d<=remaining;d++){html+='<div class="cal-day other-month">'+d+'</div>';}
+html+='</div>';
+html+='<div class="cal-time"><input type="number" id="cal-h" value="'+String(calHour).padStart(2,'0')+'" min="0" max="23" onchange="calSetTime()" onclick="event.stopPropagation()"><span>:</span><input type="number" id="cal-m" value="'+String(calMinute).padStart(2,'0')+'" min="0" max="59" onchange="calSetTime()" onclick="event.stopPropagation()"></div>';
+html+='<div class="cal-actions"><button class="cal-del" onclick="event.stopPropagation();calClear()"><i class="mdi mdi-delete"></i> Löschen</button><button class="cal-today" onclick="event.stopPropagation();calToday()"><i class="mdi mdi-calendar-today"></i> Heute</button><button class="cal-ok" onclick="event.stopPropagation();calOk()"><i class="mdi mdi-check"></i> OK</button></div>';
+document.getElementById('tok-cal').innerHTML=html;}
+function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calPrevMonth(daysInPrev){calNav(-1);calPick(daysInPrev);}
+function calPick(d){calSelectedDate=new Date(calYear,calMonth,d);renderCal();}
+function calSetTime(){const h=parseInt(document.getElementById('cal-h').value)||0;const m=parseInt(document.getElementById('cal-m').value)||0;calHour=Math.min(23,Math.max(0,h));calMinute=Math.min(59,Math.max(0,m));}
+function calClear(){calSelectedDate=null;document.getElementById('tok-expires').value='';closeCal();}
+function calToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();calSelectedDate=new Date(calYear,calMonth,n.getDate());calHour=n.getHours();calMinute=n.getMinutes();calOk();}
+function calOk(){if(!calSelectedDate){calClear();return;}
+const d=calSelectedDate;const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');
+document.getElementById('tok-expires').value=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()+' '+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');
+document.getElementById('tok-expires').dataset.iso=iso;closeCal();}
 loadTokens();
+document.addEventListener('click',function(e){const cal=document.getElementById('tok-cal');if(!cal||!cal.classList.contains('active'))return;const wrap=document.querySelector('.datepicker-wrap');if(wrap&&wrap.contains(e.target))return;if(cal.contains(e.target))return;closeCal();});
 </script>
+<div id="tok-cal" class="datepicker-popup"></div>
+<div id="toast-container" class="toast-container"></div>
+<div class="confirm-overlay" id="confirm-overlay">
+<div class="confirm-box">
+<i class="mdi mdi-alert-circle"></i>
+<h3 id="confirm-title">Bestätigung</h3>
+<p id="confirm-message"></p>
+<div class="confirm-actions">
+<button class="btn-cancel" onclick="confirmCancel()">Abbrechen</button>
+<button class="btn-confirm" id="confirm-btn" onclick="confirmOk()">Bestätigen</button>
+</div>
+</div>
+</div>
 <div style="text-align:center;padding:2rem 1rem 1rem;color:var(--td);font-size:.75rem;border-top:1px solid var(--bdr);margin-top:2rem">
-&copy; 2026 T. Kuhn &middot; HA Read-Only API v0.3.5 &middot; MIT-Lizenz &middot; <a href="https://github.com/tkuhn001/HA_read_only" target="_blank" style="color:var(--p);text-decoration:none">GitHub</a>
+&copy; 2026 T. Kuhn &middot; HA Read-Only API v0.3.9 &middot; MIT-Lizenz &middot; <a href="https://github.com/tkuhn001/HA_read_only" target="_blank" style="color:var(--p);text-decoration:none">GitHub</a>
 </div>
 </body></html>

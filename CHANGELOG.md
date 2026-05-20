@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.9 – 20. Mai 2026
+- Zugänge können individuelle Farben zugewiesen werden (Color-Picker im Create/Edit-Modal)
+- Token-Karten zeigen farbigen linken Rahmen und Farb-Badge beim Namen
+- Pie Chart verwendet zugewiesene Token-Farben (Fallback auf Standard-Palette)
+- Balkendiagramm segmentiert nach Token-Farben (Anteile pro Farbe pro Stunde)
+- Tabelle "Letzte Anfragen" mit sortierbaren Spalten (Klick auf Header)
+- "Mehr anzeigen"-Button für inkrementelles Nachladen der Log-Einträge
+- Neue Einstellung für Standard-Zeilenanzahl der Log-Tabelle
+- Chart-Icons farbig hervorgehoben
+
 ## 0.3.5 – 15. Mai 2026
 - Versionsnummer aus Python-Headern entfernt
 - HACS-Branding (brand/ Ordner)
