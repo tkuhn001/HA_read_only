@@ -124,6 +124,30 @@ def _compute_hourly_chart(usage_log: list[dict]) -> list[int]:
     return buckets
 
 
+def _compute_hourly_chart_by_color(usage_log: list[dict], tokens_map: dict) -> list[dict]:
+    """Request counts per hour broken down by token color for the last 24 hours."""
+    now = time.time()
+    now_hour = datetime.fromtimestamp(now).hour
+    buckets = []
+    for _ in range(24):
+        buckets.append({"total": 0, "by_color": {}})
+    for entry in usage_log:
+        ts = entry.get("timestamp")
+        if not ts or now - ts > 86400:
+            continue
+        ts_hour = datetime.fromtimestamp(ts).hour
+        idx = (ts_hour - now_hour + 23) % 24
+        buckets[idx]["total"] += 1
+        token_id = entry.get("token_id", "")
+        token_data = tokens_map.get(token_id)
+        color = token_data.get("color", "") if token_data else ""
+        if color:
+            buckets[idx]["by_color"][color] = buckets[idx]["by_color"].get(color, 0) + 1
+        else:
+            buckets[idx]["by_color"]["_default"] = buckets[idx]["by_color"].get("_default", 0) + 1
+    return buckets
+
+
 async def _fire_webhook(hass: HomeAssistant, event: str, payload: dict) -> None:
     config = _get_handler(hass).data.get("config", {})
     url = config.get(CONF_WEBHOOK_URL, "").strip()
@@ -357,6 +381,7 @@ def _token_fields_from_request(data: dict) -> dict:
         "areas": data.get("areas", []),
         "allowed_ips": _parse_ip_list(data.get("allowed_ips", "")),
         "allowed_entities": data.get("allowed_entities", []),
+        "color": data.get("color", ""),
     }
 
 
@@ -557,13 +582,24 @@ class AdminApiStatsView(HomeAssistantView):
         stats = handler.data.get("stats", {})
         usage_log = handler.data.get("usage_log", [])
         filter_id = request.query.get("token_id")
-        pie_data = [{"name": v.get("token_name", k[:8]+"..."), "value": v["total"]} for k, v in stats.items() if v["total"] > 0]
+        tokens_map = {t["id"]: t for t in handler.data.get("tokens", [])}
+        pie_data = []
+        for k, v in stats.items():
+            if v["total"] > 0:
+                token_data = tokens_map.get(k)
+                entry = {
+                    "name": v.get("token_name", k[:8]+"..."),
+                    "value": v["total"],
+                    "color": token_data.get("color", "") if token_data else "",
+                }
+                pie_data.append(entry)
         if filter_id:
             usage_log = [e for e in usage_log if e.get("token_id") == filter_id]
             stats = {k: v for k, v in stats.items() if k == filter_id}
         total_requests = sum(s["total"] for s in stats.values())
         total_errors = sum(s["errors"] for s in stats.values())
-        tokens_stats = [{**v, "token_key": k} for k, v in stats.items()]
+        tokens_stats = [{**v, "token_key": k, "color": tokens_map.get(k, {}).get("color", "")} for k, v in stats.items()]
+        tokens_map_for_chart = {t["id"]: t for t in handler.data.get("tokens", [])}
         return web.json_response(
             {
                 "total_requests": total_requests,
@@ -571,6 +607,7 @@ class AdminApiStatsView(HomeAssistantView):
                 "tokens": tokens_stats,
                 "usage_log": usage_log,
                 "hourly": _compute_hourly_chart(usage_log),
+                "hourly_by_color": _compute_hourly_chart_by_color(usage_log, tokens_map_for_chart),
                 "pie": pie_data,
             }
         )
