@@ -156,6 +156,25 @@ def _compute_hourly_chart_by_color(usage_log: list[dict], tokens_map: dict) -> l
     return buckets
 
 
+def _compute_daily_usage(usage_log: list[dict]) -> dict:
+    """Request counts per day for the last 7 days, grouped by token_id."""
+    now = time.time()
+    daily = {}
+    for entry in usage_log:
+        ts = entry.get("timestamp")
+        if not ts or now - ts > 7 * 86400:
+            continue
+        token_id = entry.get("token_id", "")
+        if not token_id:
+            continue
+        day_idx = int((now - ts) / 86400)
+        day_idx = min(6, day_idx)
+        if token_id not in daily:
+            daily[token_id] = [0] * 7
+        daily[token_id][6 - day_idx] += 1
+    return daily
+
+
 async def _fire_webhook(hass: HomeAssistant, event: str, payload: dict) -> None:
     config = _get_handler(hass).data.get("config", {})
     url = config.get(CONF_WEBHOOK_URL, "").strip()
@@ -525,9 +544,32 @@ class AdminApiTokensView(HomeAssistantView):
 
     async def get(self, request: web.Request) -> web.Response:
         handler = _get_handler(request.app["hass"])
+        stats = handler.data.get("stats", {})
+        usage_log = handler.data.get("usage_log", [])
+        daily_usage = _compute_daily_usage(usage_log)
         result = []
         for t in handler.data.get("tokens", []):
-            result.append({**t, "token_masked": _mask_token(t.get(CONF_TOKEN, ""))})
+            token_stats = stats.get(t["id"], {})
+            rl_max = t.get("rate_limit_max_requests")
+            rl_window = t.get("rate_limit_window_value")
+            rl_unit = t.get("rate_limit_window_unit")
+            rate_limit_str = ""
+            if rl_max:
+                unit_labels = {"minutes": "Min.", "hours": "Std.", "days": "Tage"}
+                if rl_window and rl_unit:
+                    rate_limit_str = f"{rl_max}/{rl_window} {unit_labels.get(rl_unit, '')}"
+                else:
+                    rate_limit_str = f"{rl_max} (einmalig)"
+            result.append({
+                **t,
+                "token_masked": _mask_token(t.get(CONF_TOKEN, "")),
+                "stats_total": token_stats.get("total", 0),
+                "stats_errors": token_stats.get("errors", 0),
+                "stats_last_access": token_stats.get("last_access"),
+                "stats_last_endpoint": token_stats.get("last_endpoint"),
+                "rate_limit_display": rate_limit_str,
+                "daily_usage": daily_usage.get(t["id"], []),
+            })
         return web.json_response(result)
 
     async def post(self, request: web.Request) -> web.Response:
@@ -537,6 +579,7 @@ class AdminApiTokensView(HomeAssistantView):
             "id": secrets.token_hex(4),
             CONF_TOKEN: token,
             "created_at": time.time(),
+            "regeneration_count": 0,
             **_token_fields_from_request(data),
         }
         handler = _get_handler(request.app["hass"])
@@ -586,6 +629,7 @@ class AdminApiTokenRegenerateView(HomeAssistantView):
         for t in handler.data.get("tokens", []):
             if t["id"] == token_id:
                 t[CONF_TOKEN] = new_token
+                t["regeneration_count"] = t.get("regeneration_count", 0) + 1
                 break
         await handler.async_save()
         return web.json_response({"token": new_token})
@@ -606,8 +650,11 @@ class AdminApiStatsView(HomeAssistantView):
         for k, v in stats.items():
             if v["total"] > 0:
                 token_data = tokens_map.get(k)
+                name = v.get("token_name")
+                if not name:
+                    name = k[:8] + "..."
                 entry = {
-                    "name": v.get("token_name", k[:8]+"..."),
+                    "name": name,
                     "value": v["total"],
                     "color": token_data.get("color", "") if token_data else "",
                 }
