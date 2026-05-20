@@ -110,16 +110,17 @@ def _rate_limit(hass: HomeAssistant, key: tuple[str, str]) -> bool:
 
 
 def _compute_hourly_chart(usage_log: list[dict]) -> list[int]:
-    """Request counts per hour for the last 24 hours."""
+    """Request counts per hour for the last 24 hours (fixed clock hours)."""
     now = time.time()
+    now_hour = datetime.fromtimestamp(now).hour
     buckets = [0] * 24
     for entry in usage_log:
         ts = entry.get("timestamp")
-        if not ts:
+        if not ts or now - ts > 86400:
             continue
-        age_hours = int((now - ts) // 3600)
-        if 0 <= age_hours < 24:
-            buckets[23 - age_hours] += 1
+        ts_hour = datetime.fromtimestamp(ts).hour
+        idx = (ts_hour - now_hour + 23) % 24
+        buckets[idx] += 1
     return buckets
 
 
@@ -149,11 +150,12 @@ async def _track_usage(
     endpoint: str,
     status: int,
     token_name: str = "",
+    token_id: str = "",
     ip: str = "",
 ) -> None:
     handler = _get_handler(hass)
     stats = handler.data.setdefault("stats", {})
-    key = token or "no_token"
+    key = token_id or (token or "no_token")
     entry = stats.setdefault(
         key,
         {
@@ -182,6 +184,10 @@ async def _track_usage(
     entry["last_endpoint"] = endpoint
     if token_name:
         entry["token_name"] = token_name
+    if token_id and not entry.get("token_id"):
+        entry["token_id"] = token_id
+    if token_data and token_data.get("stats_retention_days"):
+        entry["stats_retention_days"] = token_data["stats_retention_days"]
 
     log_entry = {
         "timestamp": time.time(),
@@ -189,7 +195,7 @@ async def _track_usage(
         "endpoint": endpoint,
         "status": status,
         "token_name": token_name or (key[:8] + "..." if key != "no_token" else "—"),
-        "token_key": key,
+        "token_id": token_id,
     }
     usage_log = handler.data.setdefault("usage_log", [])
     usage_log.insert(0, log_entry)
@@ -379,13 +385,13 @@ async def _validate_token_request(
 
     if not _is_token_valid(token_data):
         await _track_usage(
-            hass, token, endpoint, 401, token_data.get("name", ""), ip=ip
+            hass, token, endpoint, 401, token_data.get("name", ""), token_id=token_data.get("id", ""), ip=ip
         )
         return None, web.json_response({"error": "Token expired"}, status=401)
 
     if not _is_ip_allowed(ip, token_data.get("allowed_ips", [])):
         await _track_usage(
-            hass, token, endpoint, 403, token_data.get("name", ""), ip=ip
+            hass, token, endpoint, 403, token_data.get("name", ""), token_id=token_data.get("id", ""), ip=ip
         )
         return None, web.json_response({"error": "IP not allowed"}, status=403)
 
@@ -402,8 +408,11 @@ async def async_setup_api(hass: HomeAssistant) -> None:
     hass.http.register_view(AdminApiTokensView)
     hass.http.register_view(AdminApiTokenView)
     hass.http.register_view(AdminApiTokenRegenerateView)
+    hass.http.register_view(AdminApiTokenStatsView)
     hass.http.register_view(AdminApiStatsView)
     hass.http.register_view(AdminApiConfigView)
+    hass.http.register_view(AdminApiStatsCleanupView)
+    hass.http.register_view(AdminApiStatsLogDeleteView)
     hass.http.register_view(HelpView)
     hass.http.register_view(StatesView)
     hass.http.register_view(SingleStateView)
@@ -547,13 +556,14 @@ class AdminApiStatsView(HomeAssistantView):
         handler = _get_handler(request.app["hass"])
         stats = handler.data.get("stats", {})
         usage_log = handler.data.get("usage_log", [])
-        filter_token = request.query.get("token")
-        if filter_token:
-            usage_log = [e for e in usage_log if e.get("token_key") == filter_token]
+        filter_id = request.query.get("token_id")
+        pie_data = [{"name": v.get("token_name", k[:8]+"..."), "value": v["total"]} for k, v in stats.items() if v["total"] > 0]
+        if filter_id:
+            usage_log = [e for e in usage_log if e.get("token_id") == filter_id]
+            stats = {k: v for k, v in stats.items() if k == filter_id}
         total_requests = sum(s["total"] for s in stats.values())
         total_errors = sum(s["errors"] for s in stats.values())
         tokens_stats = [{**v, "token_key": k} for k, v in stats.items()]
-        pie_data = [{"name": v.get("token_name", k[:8]+"..."), "value": v["total"]} for k, v in stats.items() if v["total"] > 0]
         return web.json_response(
             {
                 "total_requests": total_requests,
@@ -564,6 +574,25 @@ class AdminApiStatsView(HomeAssistantView):
                 "pie": pie_data,
             }
         )
+
+
+class AdminApiTokenStatsView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/tokens/{{token_id}}/stats"
+    name = f"{DOMAIN}:admin_api_token_stats"
+    requires_auth = False
+
+    async def put(self, request: web.Request, token_id: str) -> web.Response:
+        data = await request.json()
+        handler = _get_handler(request.app["hass"])
+        for t in handler.data.get("tokens", []):
+            if t["id"] == token_id:
+                if "stats_max_requests" in data:
+                    t["stats_max_requests"] = int(data["stats_max_requests"]) if data["stats_max_requests"] else None
+                if "stats_retention_days" in data:
+                    t["stats_retention_days"] = int(data["stats_retention_days"]) if data["stats_retention_days"] else None
+                break
+        await handler.async_save()
+        return web.json_response({"success": True})
 
 
 class AdminApiConfigView(HomeAssistantView):
@@ -588,6 +617,55 @@ class AdminApiConfigView(HomeAssistantView):
         return web.json_response({"success": True})
 
 
+class AdminApiStatsCleanupView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/stats/cleanup"
+    name = f"{DOMAIN}:admin_api_stats_cleanup"
+    requires_auth = False
+
+    async def post(self, request: web.Request) -> web.Response:
+        handler = _get_handler(request.app["hass"])
+        usage_log = handler.data.get("usage_log", [])
+        valid_log = [e for e in usage_log if e.get("token_id")]
+        removed_log = len(usage_log) - len(valid_log)
+        handler.data["usage_log"] = valid_log
+
+        token_ids = {t["id"] for t in handler.data.get("tokens", [])}
+        stats = handler.data.get("stats", {})
+        valid_stats = {}
+        removed_stats = 0
+        for k, v in stats.items():
+            if k in token_ids or k == "no_token":
+                valid_stats[k] = v
+            else:
+                removed_stats += 1
+        handler.data["stats"] = valid_stats
+
+        await handler.async_save()
+        return web.json_response({"removed_log": removed_log, "removed_stats": removed_stats, "remaining_log": len(valid_log)})
+
+        await handler.async_save()
+        return web.json_response({"removed_log": removed_log, "removed_stats": removed_stats, "remaining_log": len(valid_log)})
+
+
+class AdminApiStatsLogDeleteView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/stats/log/{{index}}"
+    name = f"{DOMAIN}:admin_api_stats_log_delete"
+    requires_auth = False
+
+    async def delete(self, request: web.Request, index: str) -> web.Response:
+        handler = _get_handler(request.app["hass"])
+        usage_log = handler.data.get("usage_log", [])
+        try:
+            idx = int(index)
+            if 0 <= idx < len(usage_log):
+                usage_log.pop(idx)
+                handler.data["usage_log"] = usage_log
+                await handler.async_save()
+        except ValueError:
+            pass
+        return web.json_response({"success": True})
+
+
 # --- PUBLIC API ENDPOINTS ---
 
 
@@ -602,7 +680,8 @@ class HelpView(HomeAssistantView):
         token = request.headers.get(HEADER_TOKEN_NAME)
         token_data = _find_token_data(hass, token) if token else None
         token_name = token_data.get("name", "") if token_data else ""
-        await _track_usage(hass, token, "GET /help", 200, token_name=token_name, ip=ip)
+        token_id = token_data.get("id", "") if token_data else ""
+        await _track_usage(hass, token, "GET /help", 200, token_name=token_name, token_id=token_id, ip=ip)
         return web.json_response(API_HELP)
 
 
@@ -630,6 +709,7 @@ class StatesView(HomeAssistantView):
             "GET /states",
             200,
             token_data.get("name", ""),
+            token_id=token_data.get("id", ""),
             ip=_get_client_ip(request),
         )
         return web.json_response(states)
@@ -655,6 +735,7 @@ class SingleStateView(HomeAssistantView):
                 endpoint,
                 403,
                 token_data.get("name", ""),
+                token_id=token_data.get("id", ""),
                 ip=_get_client_ip(request),
             )
             return web.json_response({"error": "Forbidden"}, status=403)
@@ -667,6 +748,7 @@ class SingleStateView(HomeAssistantView):
                 endpoint,
                 404,
                 token_data.get("name", ""),
+                token_id=token_data.get("id", ""),
                 ip=_get_client_ip(request),
             )
             return web.json_response({"error": "Not found"}, status=404)
@@ -678,6 +760,7 @@ class SingleStateView(HomeAssistantView):
             endpoint,
             200,
             token_data.get("name", ""),
+            token_id=token_data.get("id", ""),
             ip=_get_client_ip(request),
         )
         return web.json_response(_build_response(state, incl_attrs))
@@ -706,6 +789,7 @@ class EntityListView(HomeAssistantView):
             "GET /entities",
             200,
             token_data.get("name", ""),
+            token_id=token_data.get("id", ""),
             ip=_get_client_ip(request),
         )
         return web.json_response(entities)

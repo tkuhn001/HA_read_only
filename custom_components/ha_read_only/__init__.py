@@ -63,15 +63,27 @@ class ReadOnlyDataHandler:
         log_max = config.get("stats_log_max", 500)
 
         usage_log = self.data.get("usage_log", [])
+        token_map = {t["id"]: t for t in self.data.get("tokens", [])}
 
-        if retention_enabled and retention_days > 0:
-            cutoff = now - (retention_days * 86400)
-            usage_log = [e for e in usage_log if e.get("timestamp", 0) >= cutoff]
+        cleaned = []
+        for e in usage_log:
+            tid = e.get("token_id")
+            token_data = token_map.get(tid) if tid else None
+            eff_retention = None
+            if token_data and token_data.get("stats_retention_days"):
+                eff_retention = token_data["stats_retention_days"]
+            elif retention_enabled:
+                eff_retention = retention_days
+            if eff_retention is not None:
+                cutoff = now - (eff_retention * 86400)
+                if e.get("timestamp", 0) < cutoff:
+                    continue
+            cleaned.append(e)
 
         if log_max_enabled and log_max > 0:
-            usage_log = usage_log[:log_max]
+            cleaned = cleaned[:log_max]
 
-        self.data["usage_log"] = usage_log
+        self.data["usage_log"] = cleaned
 
 try:
     from .api import async_setup_api
