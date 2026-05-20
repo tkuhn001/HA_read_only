@@ -23,6 +23,8 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.http import HomeAssistantView
 
+import hashlib
+
 from .const import (
     API_PREFIX,
     CONF_TOKEN,
@@ -53,7 +55,7 @@ API_HELP = {
             "method": "GET",
             "path": f"{API_PREFIX}/help",
             "description": "Kurzübersicht aller API-Endpunkte (dieser Endpunkt)",
-            "auth_required": False,
+            "auth_required": True,
         },
         {
             "method": "GET",
@@ -89,7 +91,7 @@ def _rate_limit_key(key: tuple[str, str]) -> str:
     return f"{key[0]}|{key[1]}"
 
 
-def _rate_limit(hass: HomeAssistant, key: tuple[str, str]) -> bool:
+def _rate_limit(hass: HomeAssistant, key: tuple[str, str], token_data: dict | None = None) -> bool:
     now = time.time()
     handler = _get_handler(hass)
     config = handler.data.get("config", {})
@@ -99,6 +101,14 @@ def _rate_limit(hass: HomeAssistant, key: tuple[str, str]) -> bool:
         if key[0] == "ip"
         else config.get("rate_limit_max_per_token", RATE_LIMIT_MAX_PER_TOKEN)
     )
+    if key[0] == "token" and token_data:
+        token_max = token_data.get("rate_limit_max_requests")
+        token_window_val = token_data.get("rate_limit_window_value")
+        token_unit = token_data.get("rate_limit_window_unit")
+        if token_max is not None and token_window_val and token_unit:
+            max_limit = token_max
+            unit_seconds = {"minutes": 60, "hours": 3600, "days": 86400}
+            window = token_window_val * unit_seconds.get(token_unit, 3600)
     cache = handler.data.setdefault("rate_limit", {})
     cache_key = _rate_limit_key(key)
     records = [t for t in cache.get(cache_key, []) if t > now - window]
@@ -148,6 +158,25 @@ def _compute_hourly_chart_by_color(usage_log: list[dict], tokens_map: dict) -> l
     return buckets
 
 
+def _compute_daily_usage(usage_log: list[dict]) -> dict:
+    """Request counts per day for the last 7 days, grouped by token_id."""
+    now = time.time()
+    daily = {}
+    for entry in usage_log:
+        ts = entry.get("timestamp")
+        if not ts or now - ts > 7 * 86400:
+            continue
+        token_id = entry.get("token_id", "")
+        if not token_id:
+            continue
+        day_idx = int((now - ts) / 86400)
+        day_idx = min(6, day_idx)
+        if token_id not in daily:
+            daily[token_id] = [0] * 7
+        daily[token_id][6 - day_idx] += 1
+    return daily
+
+
 async def _fire_webhook(hass: HomeAssistant, event: str, payload: dict) -> None:
     config = _get_handler(hass).data.get("config", {})
     url = config.get(CONF_WEBHOOK_URL, "").strip()
@@ -192,13 +221,9 @@ async def _track_usage(
         },
     )
     token_data = _find_token_data(hass, token)
-    token_max = None
-    if token_data:
-        token_max = token_data.get("stats_max_requests")
     config = handler.data.get("config", {})
     global_max = config.get("stats_log_max") if config.get("stats_log_max_enabled") else None
-    effective_max = token_max if token_max is not None else global_max
-    if effective_max is not None and entry["total"] >= effective_max:
+    if global_max is not None and entry["total"] >= global_max:
         return
     entry["total"] += 1
     entry["by_endpoint"][endpoint] = entry["by_endpoint"].get(endpoint, 0) + 1
@@ -221,9 +246,14 @@ async def _track_usage(
         "token_name": token_name or (key[:8] + "..." if key != "no_token" else "—"),
         "token_id": token_id,
     }
-    usage_log = handler.data.setdefault("usage_log", [])
-    usage_log.insert(0, log_entry)
-    handler.data["usage_log"] = usage_log[:USAGE_LOG_MAX]
+    if status == 401:
+        invalid_log = handler.data.setdefault("invalid_log", [])
+        invalid_log.insert(0, log_entry)
+        handler.data["invalid_log"] = invalid_log[:USAGE_LOG_MAX]
+    else:
+        usage_log = handler.data.setdefault("usage_log", [])
+        usage_log.insert(0, log_entry)
+        handler.data["usage_log"] = usage_log[:USAGE_LOG_MAX]
 
     await handler.async_save()
 
@@ -243,6 +273,14 @@ def _mask_token(token: str) -> str:
     return token[:8] + "..." if len(token) > 8 else token
 
 
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _verify_token(plain_token: str, hashed_token: str) -> bool:
+    return hashlib.sha256(plain_token.encode("utf-8")).hexdigest() == hashed_token
+
+
 def _get_client_ip(request: web.Request) -> str:
     fwd = request.headers.get("X-Forwarded-For", "")
     if fwd:
@@ -254,7 +292,10 @@ def _get_client_ip(request: web.Request) -> str:
 def _find_token_data(hass: HomeAssistant, token: str | None) -> dict | None:
     if not token:
         return None
+    token_hash = _hash_token(token)
     for t in _get_handler(hass).data.get("tokens", []):
+        if t.get("token_hash") == token_hash:
+            return t
         if t.get(CONF_TOKEN) == token:
             return t
     return None
@@ -382,6 +423,9 @@ def _token_fields_from_request(data: dict) -> dict:
         "allowed_ips": _parse_ip_list(data.get("allowed_ips", "")),
         "allowed_entities": data.get("allowed_entities", []),
         "color": data.get("color", ""),
+        "rate_limit_max_requests": int(data["rate_limit_max_requests"]) if data.get("rate_limit_max_requests") else None,
+        "rate_limit_window_value": int(data["rate_limit_window_value"]) if data.get("rate_limit_window_value") else None,
+        "rate_limit_window_unit": data.get("rate_limit_window_unit") or None,
     }
 
 
@@ -400,9 +444,6 @@ async def _validate_token_request(
         await _track_usage(hass, None, endpoint, 401, ip=ip)
         return None, web.json_response({"error": "Invalid token"}, status=401)
 
-    if not _rate_limit(hass, ("token", token)):
-        return None, web.json_response({"error": "Too many requests"}, status=429)
-
     token_data = _find_token_data(hass, token)
     if not token_data:
         await _track_usage(hass, token, endpoint, 401, ip=ip)
@@ -413,6 +454,12 @@ async def _validate_token_request(
             hass, token, endpoint, 401, token_data.get("name", ""), token_id=token_data.get("id", ""), ip=ip
         )
         return None, web.json_response({"error": "Token expired"}, status=401)
+
+    if not _rate_limit(hass, ("token", token), token_data):
+        await _track_usage(
+            hass, token, endpoint, 429, token_data.get("name", ""), token_id=token_data.get("id", ""), ip=ip
+        )
+        return None, web.json_response({"error": "Too many requests"}, status=429)
 
     if not _is_ip_allowed(ip, token_data.get("allowed_ips", [])):
         await _track_usage(
@@ -453,9 +500,9 @@ class AdminPanelView(HomeAssistantView):
     requires_auth = False
 
     async def get(self, request: web.Request) -> web.Response:
+        hass = request.app["hass"]
         try:
-            with open(_ADMIN_HTML_PATH, "r", encoding="utf-8") as f:
-                html = f.read()
+            html = await hass.async_add_executor_job(self._read_admin_html)
         except Exception:
             html = "<html><body><h1>Error: admin.html not found</h1></body></html>"
         return web.Response(
@@ -463,6 +510,10 @@ class AdminPanelView(HomeAssistantView):
             content_type="text/html",
             headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
         )
+
+    def _read_admin_html(self) -> str:
+        with open(_ADMIN_HTML_PATH, "r", encoding="utf-8") as f:
+            return f.read()
 
 
 class AdminApiOptionsView(HomeAssistantView):
@@ -506,9 +557,33 @@ class AdminApiTokensView(HomeAssistantView):
 
     async def get(self, request: web.Request) -> web.Response:
         handler = _get_handler(request.app["hass"])
+        stats = handler.data.get("stats", {})
+        usage_log = handler.data.get("usage_log", [])
+        daily_usage = _compute_daily_usage(usage_log)
         result = []
         for t in handler.data.get("tokens", []):
-            result.append({**t, "token_masked": _mask_token(t.get(CONF_TOKEN, ""))})
+            token_stats = stats.get(t["id"], {})
+            rl_max = t.get("rate_limit_max_requests")
+            rl_window = t.get("rate_limit_window_value")
+            rl_unit = t.get("rate_limit_window_unit")
+            rate_limit_str = ""
+            if rl_max:
+                unit_labels = {"minutes": "Min.", "hours": "Std.", "days": "Tage"}
+                if rl_window and rl_unit:
+                    rate_limit_str = f"{rl_max}/{rl_window} {unit_labels.get(rl_unit, '')}"
+                else:
+                    rate_limit_str = f"{rl_max} (einmalig)"
+            token_value = t.get(CONF_TOKEN, "") or t.get("token_hash", "")
+            result.append({
+                **t,
+                "token_masked": _mask_token(token_value),
+                "stats_total": token_stats.get("total", 0),
+                "stats_errors": token_stats.get("errors", 0),
+                "stats_last_access": token_stats.get("last_access"),
+                "stats_last_endpoint": token_stats.get("last_endpoint"),
+                "rate_limit_display": rate_limit_str,
+                "daily_usage": daily_usage.get(t["id"], []),
+            })
         return web.json_response(result)
 
     async def post(self, request: web.Request) -> web.Response:
@@ -516,8 +591,9 @@ class AdminApiTokensView(HomeAssistantView):
         token = secrets.token_urlsafe(32)
         new_token = {
             "id": secrets.token_hex(4),
-            CONF_TOKEN: token,
+            "token_hash": _hash_token(token),
             "created_at": time.time(),
+            "regeneration_count": 0,
             **_token_fields_from_request(data),
         }
         handler = _get_handler(request.app["hass"])
@@ -566,7 +642,8 @@ class AdminApiTokenRegenerateView(HomeAssistantView):
         new_token = secrets.token_urlsafe(32)
         for t in handler.data.get("tokens", []):
             if t["id"] == token_id:
-                t[CONF_TOKEN] = new_token
+                t["token_hash"] = _hash_token(new_token)
+                t["regeneration_count"] = t.get("regeneration_count", 0) + 1
                 break
         await handler.async_save()
         return web.json_response({"token": new_token})
@@ -587,8 +664,11 @@ class AdminApiStatsView(HomeAssistantView):
         for k, v in stats.items():
             if v["total"] > 0:
                 token_data = tokens_map.get(k)
+                name = v.get("token_name")
+                if not name:
+                    name = k[:8] + "..."
                 entry = {
-                    "name": v.get("token_name", k[:8]+"..."),
+                    "name": name,
                     "value": v["total"],
                     "color": token_data.get("color", "") if token_data else "",
                 }
@@ -600,12 +680,20 @@ class AdminApiStatsView(HomeAssistantView):
         total_errors = sum(s["errors"] for s in stats.values())
         tokens_stats = [{**v, "token_key": k, "color": tokens_map.get(k, {}).get("color", "")} for k, v in stats.items()]
         tokens_map_for_chart = {t["id"]: t for t in handler.data.get("tokens", [])}
+        for entry in usage_log:
+            if not entry.get("token_name") or entry["token_name"] in ("—",):
+                tid = entry.get("token_id", "")
+                td = tokens_map.get(tid)
+                if td and td.get("name"):
+                    entry["token_name"] = td["name"]
+        invalid_log = handler.data.get("invalid_log", [])
         return web.json_response(
             {
                 "total_requests": total_requests,
                 "total_errors": total_errors,
                 "tokens": tokens_stats,
                 "usage_log": usage_log,
+                "invalid_log": invalid_log,
                 "hourly": _compute_hourly_chart(usage_log),
                 "hourly_by_color": _compute_hourly_chart_by_color(usage_log, tokens_map_for_chart),
                 "pie": pie_data,
@@ -623,8 +711,12 @@ class AdminApiTokenStatsView(HomeAssistantView):
         handler = _get_handler(request.app["hass"])
         for t in handler.data.get("tokens", []):
             if t["id"] == token_id:
-                if "stats_max_requests" in data:
-                    t["stats_max_requests"] = int(data["stats_max_requests"]) if data["stats_max_requests"] else None
+                if "rate_limit_max_requests" in data:
+                    t["rate_limit_max_requests"] = int(data["rate_limit_max_requests"]) if data["rate_limit_max_requests"] else None
+                if "rate_limit_window_value" in data:
+                    t["rate_limit_window_value"] = int(data["rate_limit_window_value"]) if data["rate_limit_window_value"] else None
+                if "rate_limit_window_unit" in data:
+                    t["rate_limit_window_unit"] = data["rate_limit_window_unit"] or None
                 if "stats_retention_days" in data:
                     t["stats_retention_days"] = int(data["stats_retention_days"]) if data["stats_retention_days"] else None
                 break
@@ -715,9 +807,11 @@ class HelpView(HomeAssistantView):
         hass = request.app["hass"]
         ip = _get_client_ip(request)
         token = request.headers.get(HEADER_TOKEN_NAME)
-        token_data = _find_token_data(hass, token) if token else None
-        token_name = token_data.get("name", "") if token_data else ""
-        token_id = token_data.get("id", "") if token_data else ""
+        token_data, err = await _validate_token_request(hass, request, token, "GET /help")
+        if err:
+            return err
+        token_name = token_data.get("name", "")
+        token_id = token_data.get("id", "")
         await _track_usage(hass, token, "GET /help", 200, token_name=token_name, token_id=token_id, ip=ip)
         return web.json_response(API_HELP)
 

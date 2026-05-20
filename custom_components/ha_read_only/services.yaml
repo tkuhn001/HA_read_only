@@ -1,57 +1,15 @@
-regenerate_token:
-  name: Token neu generieren
-  description: Erzeugt einen neuen zufälligen Token für einen bestehenden API-Eintrag und macht den alten ungültig.
-  target:
-    entity: null
-  fields:
-    old_token:
-      name: Aktueller Token
-      description: Der bestehende Token, der ersetzt werden soll.
-      required: false
-      example: "abc123..."
-      selector:
-        text:
-          type: text
-    token_name:
-      name: Token-Name
-      description: Alternativ zum Token kann der Name des Eintrags angegeben werden.
-      required: false
-      example: "Wetterdienst"
-      selector:
-        text:
-          type: text
-
 list_tokens:
   name: Token auflisten
   description: Listet alle konfigurierten API-Tokens mit Namen und maskierten Token-Werten auf.
-  target:
-    entity: null
   fields: {}
 
 get_token_info:
   name: Token-Details abrufen
   description: Zeigt die vollständige Konfiguration eines Tokens an (Token-Wert maskiert).
-  target:
-    entity: null
   fields:
     token_name:
       name: Token-Name
       description: Name des Tokens dessen Details abgerufen werden sollen.
-      required: true
-      example: "Wetterdienst"
-      selector:
-        text:
-          type: text
-
-delete_token:
-  name: Token löschen
-  description: Löscht einen API-Token-Eintrag dauerhaft. Der Token ist danach sofort ungültig.
-  target:
-    entity: null
-  fields:
-    token_name:
-      name: Token-Name
-      description: Name des Tokens der gelöscht werden soll.
       required: true
       example: "Wetterdienst"
       selector:

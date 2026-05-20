@@ -1,8 +1,8 @@
 # 🛡️ HA Read-Only API
 
-**Version:** 0.3.9 · **Datum:** 20. Mai 2026 · **Autor:** T. Kuhn
+**Version:** 0.4.0 · **Datum:** 20. Mai 2026 · **Autor:** T. Kuhn
 
-[![Version](https://img.shields.io/badge/version-0.3.9-blue.svg)](https://github.com/tkuhn001/HA_read_only)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/tkuhn001/HA_read_only)
 [![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
@@ -31,6 +31,25 @@ Anders als der HA-Langzeit-Token (der Vollzugriff gewährt) erlaubt dieses Plugi
 - **🎨 Light/Dark Mode** – Passt sich automatisch an dein System-Theme an.
 - **💬 Toast-Benachrichtigungen** – Elegante Feedback-Meldungen statt blockierender Pop-ups.
 - **🔒 HA-Auth für Admin-API** – Alle Verwaltungs-Endpunkte sind durch Home Assistant Authentication geschützt.
+
+---
+
+## 🖥️ Screenshots
+
+### Zugänge – Übersicht
+![Zugänge Übersicht](assets/screenshots/ha_read_only_screenshot_zugaenge.png)
+
+### Zugänge – Bearbeiten
+![Zugang bearbeiten](assets/screenshots/ha_read_only_screenshot_zugaenge_bearbeiten.png)
+
+### Statistik – Übersicht
+![Statistik Übersicht](assets/screenshots/ha_read_only_screenshot_statistik_01.png)
+
+### Statistik – Details
+![Statistik Details](assets/screenshots/ha_read_only_screenshot_statistik_02.png)
+
+### Einstellungen
+![Einstellungen](assets/screenshots/ha_read_only_screenshot_einstellungen_01.png)
 
 ---
 

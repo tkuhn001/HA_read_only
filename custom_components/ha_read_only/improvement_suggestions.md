@@ -13,13 +13,12 @@ Das Plugin funktioniert gut: Token-Verwaltung per Sidebar-Dashboard, öffentlich
 - [x] Frontend sendet `Authorization: Bearer` Token aus Parent-Fenster
 - [x] `require_admin=True` im Sidebar-Panel gesetzt
 
-### 1.2 Tokens hashen statt im Klartext speichern
-Aktuell werden Tokens im Klartext in `.storage/ha_read_only.storage` gespeichert. Wenn jemand Zugriff auf das Dateisystem hat, hat er alle Tokens.
-
-**Lösung:**
-- Beim Erstellen: Token einmal im Klartext zeigen, dann nur den SHA-256-Hash speichern
-- Bei API-Anfragen: eingehenden Token hashen und gegen gespeicherten Hash vergleichen
-- Aufwand: ~30 Minuten
+### 1.2 Tokens hashen statt im Klartext speichern ✅ (umgesetzt v0.3.9)
+- [x] SHA-256-Hashing für Tokens implementiert
+- [x] `_hash_token()` und `_verify_token()` in `api.py`
+- [x] `_find_token_data()` prüft `token_hash` mit Fallback auf Plaintext (Migration)
+- [x] Token-Erstellung und Regenerierung speichern nur noch Hash
+- [x] Alte Tokens im Klartext bleiben funktionell
 
 ### 1.3 CORS-Header setzen
 Aktuell kann jede beliebige Website im Browser API-Anfragen an deine HA-Instanz senden.
@@ -47,11 +46,11 @@ Aktuell kann jede beliebige Website im Browser API-Anfragen an deine HA-Instanz 
 - [x] Semantic Versioning (aktuell v0.3.3)
 - [x] GitHub Releases mit Tags
 
-### 2.5 Screenshots im README
-- [ ] Dashboard-Übersicht mit Token-Liste
-- [ ] Token-Erstellen-Modal mit Domain-Auswahl
-- [ ] Usage-Statistiken
-- [ ] Anleitung-Tab
+### 2.5 Screenshots im README ✅ (umgesetzt v0.3.9)
+- [x] Dashboard-Übersicht mit Token-Liste
+- [x] Token-Erstellen-Modal mit Domain-Auswahl
+- [x] Usage-Statistiken
+- [x] Einstellungen-Tab
 
 ---
 
@@ -106,11 +105,13 @@ Aktuell gibt es **keine Tests**. Für ein Community-Plugin sind mindestens nöti
 - [x] `CONF_ALLOWED_AREAS`, `CONF_ALLOWED_ENTITIES` – Features nutzen diese Konzepte (Keys: `areas`, `allowed_entities`)
 - [ ] Noch ungenutzt: `CONF_BLOCKED_ENTITIES`, `CONF_PROVIDE_ENTITIES_LIST`, `CONF_RETURN_ONLY_IDS` – entfernen oder implementieren
 
-### 4.4 Services implementieren oder entfernen
-`services.yaml` existiert, aber die Services (`regenerate_token`, `list_tokens`, etc.) sind im aktuellen Code nicht registriert. Das verwirrt Nutzer.
+### 4.4 Services implementieren oder entfernen ✅ (umgesetzt v0.3.9)
+- [x] `list_tokens` – Gibt alle Tokens mit maskiertem Wert zurück
+- [x] `get_token_info` – Sucht Token nach Namen und liefert Details
+- [x] `regenerate_token` und `delete_token` aus `services.yaml` entfernt (bereits über Dashboard verfügbar)
 
-### 4.5 `panel/panel.js` aufräumen
-Der Ordner `panel/` mit `panel.js` wird nicht mehr verwendet (wir nutzen jetzt den Built-in Iframe). Sollte entfernt werden.
+### 4.5 `panel/panel.js` aufräumen ✅
+- [x] Ordner `panel/` entfernt (nutzen jetzt den Built-in Iframe)
 
 ---
 
@@ -163,7 +164,7 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 | # | Aufgabe | Aufwand | Impact |
 |---|---------|---------|--------|
 | 1 | Admin-Auth absichern | 2-3h | 🔴 Kritisch |
-| 2 | Token-Hashing | 1h | 🔴 Sicherheit |
+| 2 | Token-Hashing | 1h | ✅ erledigt |
 | 3 | Tests schreiben | 3-4h | 🟠 Qualität |
 | 4 | HACS-Manifest | 10min | ✅ erledigt |
 | 5 | Übersetzung (i18n) | 2h | ✅ erledigt |
@@ -176,7 +177,7 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 | 12 | Entity-Suche im Modal | 1h | ✅ erledigt |
 | 13 | `/help`-Endpunkt | 15min | ✅ erledigt |
 | 14 | Versionierung & Changelog | 30min | ✅ erledigt |
-| 15 | Screenshots im README | 1h | 🟠 Sichtbarkeit |
+| 15 | Screenshots im README | 1h | ✅ erledigt |
 
 ---
 
@@ -184,8 +185,7 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 
 **Das Plugin hat eine solide Basis.** Die größten Hürden für ein Community-Release sind:
 
-1. **Sicherheit** – Admin-Endpoints müssen abgesichert werden
-2. **Tests** – Ohne Tests akzeptieren viele Community-Reviewer kein Plugin
-3. **Screenshots** – Für die HACS-Übersicht
+1. **Tests** – Ohne Tests akzeptieren viele Community-Reviewer kein Plugin
+2. **CORS-Header** – Für externe Web-Apps empfohlen
 
-HACS-Integration, i18n, Versionierung und Changelog sind bereits umgesetzt. Der Rest sind Verbesserungen, die über Zeit kommen können.
+Sicherheit (Token-Hashing, Admin-Auth), HACS-Integration, i18n, Versionierung, Changelog und Screenshots sind bereits umgesetzt. Der Rest sind Verbesserungen, die über Zeit kommen können.
