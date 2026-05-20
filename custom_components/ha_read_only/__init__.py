@@ -85,6 +85,28 @@ class ReadOnlyDataHandler:
 
         self.data["usage_log"] = cleaned
 
+        # Move existing 401s to invalid_log
+        invalid_log = self.data.setdefault("invalid_log", [])
+        moved = [e for e in cleaned if e.get("status") == 401]
+        kept = [e for e in cleaned if e.get("status") != 401]
+        if moved:
+            all_invalid = moved + invalid_log
+            all_invalid.sort(key=lambda x: x.get("timestamp", 0), reverse=True)
+            invalid_log = all_invalid[:log_max if log_max_enabled else len(all_invalid)]
+            self.data["usage_log"] = kept
+
+        cleaned_invalid = []
+        invalid_retention = retention_days if retention_enabled else None
+        for e in invalid_log:
+            if invalid_retention is not None:
+                cutoff = now - (invalid_retention * 86400)
+                if e.get("timestamp", 0) < cutoff:
+                    continue
+            cleaned_invalid.append(e)
+        if log_max_enabled and log_max > 0:
+            cleaned_invalid = cleaned_invalid[:log_max]
+        self.data["invalid_log"] = cleaned_invalid
+
 try:
     from .api import async_setup_api
     HAS_API = True
