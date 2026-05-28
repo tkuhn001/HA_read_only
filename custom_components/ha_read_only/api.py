@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import fnmatch
 import ipaddress
+import json
 import logging
 import os
 import secrets
@@ -24,6 +25,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.http import HomeAssistantView
 
 import hashlib
+from unittest.mock import MagicMock, patch
 
 from .const import (
     API_PREFIX,
@@ -485,6 +487,8 @@ async def async_setup_api(hass: HomeAssistant) -> None:
     hass.http.register_view(AdminApiConfigView)
     hass.http.register_view(AdminApiStatsCleanupView)
     hass.http.register_view(AdminApiStatsLogDeleteView)
+    hass.http.register_view(AdminApiTokenTestView)
+    hass.http.register_view(AdminApiTokenCallView)
     hass.http.register_view(HelpView)
     hass.http.register_view(StatesView)
     hass.http.register_view(SingleStateView)
@@ -793,6 +797,319 @@ class AdminApiStatsLogDeleteView(HomeAssistantView):
         except ValueError:
             pass
         return web.json_response({"success": True})
+
+
+class AdminApiTokenTestView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/tokens/{{token_id}}/test"
+    name = f"{DOMAIN}:admin_api_token_test"
+    requires_auth = False
+
+    async def post(self, request: web.Request, token_id: str) -> web.Response:
+        hass = request.app["hass"]
+        handler = _get_handler(hass)
+        token_data = next((t for t in handler.data.get("tokens", []) if t["id"] == token_id), None)
+
+        if not token_data:
+            return web.json_response({"error": "Token not found"}, status=404)
+
+        tests = []
+        entity_registry = hass.data.get("entity_registry")
+
+        for test_fn in [
+            self._test_token_validity,
+            self._test_ip_whitelist,
+            self._test_domains,
+            self._test_areas,
+            self._test_entities,
+            self._test_patterns,
+        ]:
+            try:
+                result = await test_fn(hass, token_data, request)
+                tests.append(result)
+            except Exception as e:
+                tests.append({
+                    "category": test_fn.__name__.replace("_test_", ""),
+                    "label": result.get("label", test_fn.__name__) if isinstance(result, dict) else test_fn.__name__,
+                    "status": "error",
+                    "message": str(e),
+                })
+
+        passed = sum(1 for t in tests if t.get("status") == "pass")
+        failed = sum(1 for t in tests if t.get("status") == "fail")
+        skipped = sum(1 for t in tests if t.get("status") == "skip")
+
+        return web.json_response({
+            "token_name": token_data.get("name", "Unnamed"),
+            "timestamp": time.time(),
+            "tests": tests,
+            "summary": {
+                "total": len(tests),
+                "passed": passed,
+                "failed": failed,
+                "skipped": skipped,
+            },
+        })
+
+    async def _test_token_validity(self, hass, token_data, request) -> dict:
+        result = {"category": "token_validity", "label": "Token-Gültigkeit", "details": []}
+        result["details"].append({"check": "Token existiert", "status": "pass", "message": f"Name: {token_data.get('name', 'Unnamed')}"})
+        if _is_token_valid(token_data):
+            expires = token_data.get("expires_at")
+            result["details"].append({"check": "Ablaufdatum", "status": "pass", "message": "Kein Ablauf" if expires is None else f"Ablauf: {datetime.fromtimestamp(float(expires)).strftime('%d.%m.%Y %H:%M')}"})
+            result["status"] = "pass"
+            result["message"] = "Token ist gültig"
+        else:
+            result["details"].append({"check": "Ablaufdatum", "status": "fail", "message": f"Token ist abgelaufen seit {datetime.fromtimestamp(float(token_data['expires_at'])).strftime('%d.%m.%Y %H:%M')}"})
+            result["status"] = "fail"
+            result["message"] = "Token ist abgelaufen"
+        return result
+
+    async def _test_ip_whitelist(self, hass, token_data, request) -> dict:
+        result = {"category": "ip_whitelist", "label": "IP-Whitelist", "details": []}
+        allowed_ips = token_data.get("allowed_ips", [])
+        if not allowed_ips:
+            result["status"] = "skip"
+            result["message"] = "Keine IP-Whitelist konfiguriert"
+            return result
+
+        client_ip = _get_client_ip(request)
+        for ip_entry in allowed_ips:
+            ip_allowed = _is_ip_allowed(client_ip, [ip_entry])
+            result["details"].append({
+                "check": f"IP {ip_entry}",
+                "status": "pass" if ip_allowed else "fail",
+                "message": f"Client-IP {client_ip} ist {'erlaubt' if ip_allowed else 'blockiert'}",
+            })
+
+        test_ip = "10.255.255.255"
+        if not _is_ip_allowed(test_ip, allowed_ips):
+            result["details"].append({
+                "check": "IP außerhalb",
+                "status": "pass",
+                "message": f"IP {test_ip} wird korrekt blockiert",
+            })
+        else:
+            result["details"].append({
+                "check": "IP außerhalb",
+                "status": "info",
+                "message": f"IP {test_ip} ist erlaubt (Whitelist ist sehr breit)",
+            })
+
+        has_fail = any(d["status"] == "fail" for d in result["details"])
+        result["status"] = "fail" if has_fail else "pass"
+        result["message"] = f"{len(allowed_ips)} IP-Regel(n) konfiguriert"
+        return result
+
+    async def _test_domains(self, hass, token_data, request) -> dict:
+        result = {"category": "domains", "label": "Domain-Zugriff", "details": []}
+        domains = token_data.get("domains", [])
+        if not domains:
+            result["status"] = "skip"
+            result["message"] = "Keine Domains eingeschränkt"
+            return result
+
+        all_states = hass.states.async_all()
+        all_domains = set(s.domain for s in all_states)
+
+        for domain in domains:
+            count = sum(1 for s in all_states if s.domain == domain)
+            result["details"].append({
+                "check": f"Domain: {domain}",
+                "status": "pass",
+                "message": f"{count} Entität(en) verfügbar",
+            })
+
+        blocked_domains = all_domains - set(domains)
+        for domain in list(blocked_domains)[:3]:
+            sample = next((s.entity_id for s in all_states if s.domain == domain), None)
+            if sample and not _is_entity_allowed(sample, token_data, hass):
+                result["details"].append({
+                    "check": f"Blockiert: {domain}",
+                    "status": "pass",
+                    "message": f"{sample} wird korrekt blockiert",
+                })
+
+        result["status"] = "pass"
+        result["message"] = f"{len(domains)} Domain(s) geprüft"
+        return result
+
+    async def _test_areas(self, hass, token_data, request) -> dict:
+        result = {"category": "areas", "label": "Bereichs-Zugriff", "details": []}
+        areas = token_data.get("areas", [])
+        if not areas:
+            result["status"] = "skip"
+            result["message"] = "Keine Bereiche eingeschränkt"
+            return result
+
+        area_reg = ar.async_get(hass)
+        all_states = hass.states.async_all()
+
+        for area_id in areas:
+            area_name = area_id
+            area_obj = area_reg.async_get_area(area_id)
+            if area_obj:
+                area_name = area_obj.name or area_id
+            entities_in_area = [s.entity_id for s in all_states if _get_entity_area(hass, s.entity_id) == area_id]
+            if entities_in_area:
+                allowed = sum(1 for eid in entities_in_area if _is_entity_allowed(eid, token_data, hass))
+                result["details"].append({
+                    "check": f"Bereich: {area_name}",
+                    "status": "pass" if allowed == len(entities_in_area) else "warn",
+                    "message": f"{allowed}/{len(entities_in_area)} Entität(en) zugänglich",
+                })
+            else:
+                result["details"].append({
+                    "check": f"Bereich: {area_name}",
+                    "status": "warn",
+                    "message": "Keine Entitäten in diesem Bereich gefunden",
+                })
+
+        has_warn = any(d["status"] == "warn" for d in result["details"])
+        result["status"] = "warn" if has_warn else "pass"
+        result["message"] = f"{len(areas)} Bereich(e) geprüft"
+        return result
+
+    async def _test_entities(self, hass, token_data, request) -> dict:
+        result = {"category": "entities", "label": "Entitäten-Zugriff", "details": []}
+        allowed_entities = token_data.get("allowed_entities", [])
+        if not allowed_entities:
+            result["status"] = "skip"
+            result["message"] = "Keine Einzel-Entitäten konfiguriert"
+            return result
+
+        for eid in allowed_entities:
+            state = hass.states.get(eid)
+            if not state:
+                result["details"].append({
+                    "check": eid,
+                    "status": "fail",
+                    "message": "Entität existiert nicht in Home Assistant",
+                })
+                continue
+            allowed = _is_entity_allowed(eid, token_data, hass)
+            result["details"].append({
+                "check": eid,
+                "status": "pass" if allowed else "fail",
+                "message": f"Status: {state.state}" if allowed else "Blockiert trotz Freigabe!",
+            })
+
+        has_fail = any(d["status"] == "fail" for d in result["details"])
+        result["status"] = "fail" if has_fail else "pass"
+        result["message"] = f"{len(allowed_entities)} Entität(en) geprüft"
+        return result
+
+    async def _test_patterns(self, hass, token_data, request) -> dict:
+        result = {"category": "patterns", "label": "Pattern-Zugriff", "details": []}
+        patterns = _to_pattern_list(token_data.get("patterns", ""))
+        blocked_patterns = _to_pattern_list(token_data.get("blocked_patterns", ""))
+        if not patterns and not blocked_patterns:
+            result["status"] = "skip"
+            result["message"] = "Keine Patterns konfiguriert"
+            return result
+
+        all_states = hass.states.async_all()
+        for pat in patterns:
+            matching = [s.entity_id for s in all_states if fnmatch.fnmatch(s.entity_id, pat)]
+            if matching:
+                allowed = sum(1 for eid in matching if _is_entity_allowed(eid, token_data, hass))
+                result["details"].append({
+                    "check": f"Pattern: {pat}",
+                    "status": "pass" if allowed else "fail",
+                    "message": f"{allowed}/{len(matching)} Treffer zugänglich",
+                })
+            else:
+                result["details"].append({
+                    "check": f"Pattern: {pat}",
+                    "status": "warn",
+                    "message": "Keine passenden Entitäten gefunden",
+                })
+
+        for pat in blocked_patterns:
+            matching = [s.entity_id for s in all_states if fnmatch.fnmatch(s.entity_id, pat)]
+            blocked = sum(1 for eid in matching if not _is_entity_allowed(eid, token_data, hass))
+            result["details"].append({
+                "check": f"Block-Pattern: {pat}",
+                "status": "pass" if blocked == len(matching) else "fail",
+                "message": f"{blocked}/{len(matching)} Treffer korrekt blockiert" if matching else "Keine passenden Entitäten",
+            })
+
+        has_fail = any(d["status"] == "fail" for d in result["details"])
+        result["status"] = "fail" if has_fail else "pass"
+        result["message"] = f"{len(patterns)} Allow- + {len(blocked_patterns)} Block-Pattern(s) geprüft"
+        return result
+
+
+class AdminApiTokenCallView(HomeAssistantView):
+    url = f"{API_PREFIX}/admin/api/tokens/{{token_id}}/test/call"
+    name = f"{DOMAIN}:admin_api_token_call"
+    requires_auth = False
+
+    async def post(self, request: web.Request, token_id: str) -> web.Response:
+        hass = request.app["hass"]
+        handler = _get_handler(hass)
+        token_data = next((t for t in handler.data.get("tokens", []) if t["id"] == token_id), None)
+        if not token_data:
+            return web.json_response({"error": "Token not found"}, status=404)
+
+        body = await request.json()
+        endpoint = body.get("endpoint", "")
+        entity_id = body.get("entity_id", "")
+        test_ip = body.get("test_ip", "")
+
+        mock_req = MagicMock(spec=web.Request)
+        mock_req.headers = {HEADER_TOKEN_NAME: "__test__"}
+        mock_req.app = {"hass": hass}
+        mock_req.method = "GET"
+        mock_req.query = {}
+        transport = MagicMock()
+        transport.get_extra_info.return_value = (test_ip or "127.0.0.1", 0)
+        mock_req.transport = transport
+
+        def _fake_find(hass, token):
+            return token_data
+
+        start = time.time()
+        try:
+            view = None
+            path = API_PREFIX
+            if endpoint == "states":
+                view = StatesView()
+                path += "/states"
+            elif endpoint == "entities":
+                view = EntityListView()
+                path += "/entities"
+            elif endpoint == "help":
+                view = HelpView()
+                path += "/help"
+            elif endpoint == "state":
+                if not entity_id:
+                    return web.json_response({"error": "entity_id required"}, status=400)
+                view = SingleStateView()
+                path += f"/states/{entity_id}"
+            else:
+                return web.json_response({"error": f"Unknown endpoint: {endpoint}"}, status=400)
+
+            mock_req.path = path
+            with patch("custom_components.ha_read_only.api._find_token_data", _fake_find):
+                if endpoint == "state":
+                    resp = await view.get(mock_req, entity_id)
+                else:
+                    resp = await view.get(mock_req)
+
+            elapsed = round((time.time() - start) * 1000, 1)
+            resp_body = json.loads(resp.body) if resp.body else None
+            return web.json_response({
+                "status": resp.status,
+                "time_ms": elapsed,
+                "body": resp_body,
+            })
+        except Exception as e:
+            elapsed = round((time.time() - start) * 1000, 1)
+            return web.json_response({
+                "status": 500,
+                "time_ms": elapsed,
+                "error": str(e),
+            })
 
 
 # --- PUBLIC API ENDPOINTS ---

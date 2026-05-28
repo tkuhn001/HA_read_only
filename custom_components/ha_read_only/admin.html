@@ -35,6 +35,8 @@ background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transpa
 .btn-w:hover{border-color:#ff9800;background:rgba(255,152,0,.1)}
 .btn-d{border-color:rgba(239,68,68,.3);color:var(--err)}
 .btn-d:hover{border-color:var(--err);background:rgba(239,68,68,.1)}
+.btn-g{border-color:rgba(34,197,94,.35);color:#22c55e}
+.btn-g:hover{border-color:#22c55e;background:rgba(34,197,94,.1)}
 .btn-s{padding:.35rem .7rem;font-size:.78rem;border-radius:6px}
 .btn i{font-size:1em}
 .card{background:var(--card);padding:.5rem;border-radius:var(--r);border:1px solid var(--bdr);backdrop-filter:blur(10px);margin-bottom:1rem;transition:border-color .3s;display:flex;flex-direction:column}
@@ -62,7 +64,8 @@ background-image:radial-gradient(circle at top right,rgba(3,169,244,.12),transpa
 .token-stat .value.err{color:var(--err)}
 .token-stat .value.ok{color:var(--ok)}
 .token-card-badges{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem}
-.token-card-actions{display:flex;gap:.4rem;flex-wrap:wrap;padding-top:.6rem;border-top:1px solid var(--bdr)}
+.token-card-body{flex:1;display:flex;flex-direction:column;justify-content:flex-start}
+.token-card-actions{display:flex;gap:.4rem;flex-wrap:wrap;padding-top:.6rem;border-top:1px solid var(--bdr);margin-top:auto}
 .usage-bars{display:flex;align-items:flex-end;gap:2px;height:24px;margin-top:.4rem}
 .usage-bar{width:8px;background:var(--p);border-radius:2px 2px 0 0;opacity:.6;transition:opacity .15s}
 .usage-bar:hover{opacity:1}
@@ -164,7 +167,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .toggle input:checked+.toggle-slider{background:var(--p)}
 .toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
 .toggle input:focus+.toggle-slider{box-shadow:0 0 0 3px rgba(3,169,244,.2)}
-@media(prefers-color-scheme:light){.toggle-slider{background:rgba(0,0,0,.15)}.toggle input:checked+.toggle-slider{background:var(--p)}.btn-w:hover{background:rgba(255,152,0,.08)}.btn-d:hover{background:rgba(239,68,68,.08)}}
+@media(prefers-color-scheme:light){.toggle-slider{background:rgba(0,0,0,.15)}.toggle input:checked+.toggle-slider{background:var(--p)}.btn-w:hover{background:rgba(255,152,0,.08)}.btn-d:hover{background:rgba(239,68,68,.08)}.btn-g:hover{background:rgba(34,197,94,.08)}}
 .token-display{position:relative;margin:1rem 0}
 .token-display input{width:100%;padding:.8rem 3rem .8rem .8rem;font-family:monospace;font-size:.85rem;background:rgba(0,0,0,.35);border:1px solid var(--bdr);border-radius:10px;color:var(--p);overflow-x:auto;white-space:nowrap}
 .token-display button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--p);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
@@ -207,12 +210,16 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 .pie-legend-item{display:flex;align-items:center;gap:.5rem;font-size:.85rem}
 .pie-legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 .token-limit-row{display:flex;gap:.8rem;align-items:center}
+.test-summary-box{flex:1;min-width:100px;text-align:center;padding:1rem;border-radius:10px;min-height:70px;display:flex;flex-direction:column;justify-content:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.test-summary-num{font-size:1.5rem;font-weight:700;line-height:1}
+.test-summary-label{font-size:.75rem;color:var(--td);margin-top:.3rem}
 .token-limit-row input[type=number]{width:90px}
 .token-limit-row .switch{flex:1}
 .token-limits-table{width:100%;border-collapse:collapse}
 .token-limits-table th{text-align:left;padding:.7rem .5rem;color:var(--td);font-size:.75rem;text-transform:uppercase;border-bottom:1px solid var(--bdr)}
 .token-limits-table td{padding:.7rem .5rem;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.04)}
-.token-limits-table tr:hover{background:rgba(255,255,255,.03)}
+.token-limits-table tr{cursor:pointer}.token-limits-table tr:hover{background:rgba(255,255,255,.03)}
 .row-accent td:first-child{background-image:linear-gradient(to right,var(--row-accent),transparent);background-size:24px 100%;background-repeat:no-repeat;background-position:left center}
 .sort-th{cursor:pointer;user-select:none;transition:color .15s}.sort-th:hover{color:var(--p)}
 .sort-arrow{font-size:.7rem;opacity:.4;margin-left:2px}.sort-th.active .sort-arrow{opacity:1;color:var(--p)}
@@ -274,6 +281,7 @@ td{padding:.8rem;border-bottom:1px solid var(--bdr);font-size:.85rem}
 </div>
 </div>
 <div class="card"><h3><i class="mdi mdi-table" style="color:var(--p)"></i> Zugang-Limits (Übersicht)</h3>
+<p style="color:var(--td);font-size:.82rem;margin:-.5rem 0 1rem"><i class="mdi mdi-information" style="color:var(--p)"></i> Klicke auf eine Zeile, um die Limits für einen Zugang anzupassen.</p>
 <table class="token-limits-table"><thead><tr><th>Name</th><th>Max. Anfragen</th><th>Aufbewahrung</th></tr></thead><tbody id="token-limits-tbody"><tr><td colspan="3" style="color:var(--td);text-align:center">Lade...</td></tr></tbody></table>
 </div>
 <button class="btn btn-p" onclick="saveCfg()"><i class="mdi mdi-content-save"></i> Speichern</button>
@@ -550,7 +558,7 @@ async function loadTokens(){
       const statusBadge=isExpired(t)?'<span class="badge warn">Abgelaufen</span>':'<span class="badge" style="background:rgba(16,185,129,.15);color:var(--ok)">Aktiv</span>';
       const usageBars=renderUsageBars(t.daily_usage||[],globalMax);
       const expiresStr=t.expires_at?'<span class="badge">Gültig bis '+new Date(t.expires_at*1000).toLocaleDateString('de-DE')+'</span>':'';
-      return '<div class="card token-card" style="'+colorStyle+'"><div class="token-card-header"><div><h3><span style="-webkit-text-stroke:1px '+color+'">'+esc(t.name)+'</span> <span class="token-token-badge">'+esc(t.token_masked)+'</span></h3>'+statusBadge+'</div><div class="token-card-stats"><div class="token-stat"><span class="label">API Calls</span><span class="value">'+total+'</span></div><div class="token-stat"><span class="label">Erfolgsrate</span><span class="value '+(successRate==='-'?'':successRate>=90?'ok':'err')+'">'+successRate+(successRate==='-'?'':'%')+'</span></div><div class="token-stat"><span class="label">Letzter Zugriff</span><span class="value">'+lastAccess+'</span></div><div class="token-stat"><span class="label">Token-Alter</span><span class="value">'+ageDays+' Tage</span></div>'+(rlStr?'<div class="token-stat"><span class="label">Rate-Limit</span><span class="value">'+rlStr+'</span></div>':'')+(regenCount>0?'<div class="token-stat"><span class="label">Regeneriert</span><span class="value">'+regenCount+'x</span></div>':'')+'</div></div><div class="token-card-badges"><span class="badge">'+(t.domains&&t.domains.length?t.domains.length+' Domains':'Alle Domains')+'</span>'+(t.areas&&t.areas.length?'<span class="badge">'+t.areas.length+' Areas</span>':'')+(t.allowed_ips&&t.allowed_ips.length?'<span class="badge">IP-Filter</span>':'')+(t.include_attributes===false?'<span class="badge">Ohne Attribute</span>':'')+expiresStr+(t.patterns?'<span class="badge">Patterns</span>':'')+'</div>'+usageBars+'<div class="token-card-actions"><button class="btn btn-o btn-s" onclick="editToken(\''+t.id+'\')"><i class="mdi mdi-pencil"></i> Bearbeiten</button><button class="btn btn-w btn-s" onclick="regenToken(\''+t.id+'\')"><i class="mdi mdi-refresh"></i> Neuen Token generieren</button><button class="btn btn-d btn-s" onclick="delToken(\''+t.id+'\')"><i class="mdi mdi-delete"></i> Löschen</button></div></div>';
+      return '<div class="card token-card" style="'+colorStyle+'"><div class="token-card-header"><div><h3><span style="-webkit-text-stroke:1px '+color+'">'+esc(t.name)+'</span> <span class="token-token-badge">'+esc(t.token_masked)+'</span></h3>'+statusBadge+'</div><div class="token-card-stats"><div class="token-stat"><span class="label">API Calls</span><span class="value">'+total+'</span></div><div class="token-stat"><span class="label">Erfolgsrate</span><span class="value '+(successRate==='-'?'':successRate>=90?'ok':'err')+'">'+successRate+(successRate==='-'?'':'%')+'</span></div><div class="token-stat"><span class="label">Letzter Zugriff</span><span class="value">'+lastAccess+'</span></div><div class="token-stat"><span class="label">Token-Alter</span><span class="value">'+ageDays+' Tage</span></div>'+(rlStr?'<div class="token-stat"><span class="label">Rate-Limit</span><span class="value">'+rlStr+'</span></div>':'')+(regenCount>0?'<div class="token-stat"><span class="label">Regeneriert</span><span class="value">'+regenCount+'x</span></div>':'')+'</div></div><div class="token-card-body"><div class="token-card-badges"><span class="badge">'+(t.domains&&t.domains.length?t.domains.length+' Domains':'Alle Domains')+'</span>'+(t.areas&&t.areas.length?'<span class="badge">'+t.areas.length+' Areas</span>':'')+(t.allowed_ips&&t.allowed_ips.length?'<span class="badge">IP-Filter</span>':'')+(t.include_attributes===false?'<span class="badge">Ohne Attribute</span>':'')+expiresStr+(t.patterns?'<span class="badge">Patterns</span>':'')+'</div>'+usageBars+'</div><div class="token-card-actions"><button class="btn btn-o btn-s" onclick="editToken(\''+t.id+'\')"><i class="mdi mdi-pencil"></i> Bearbeiten</button><button class="btn btn-w btn-s" onclick="regenToken(\''+t.id+'\')"><i class="mdi mdi-refresh"></i> Neuen Token generieren</button><button class="btn btn-g btn-s" onclick="testToken(\''+t.id+'\')"><i class="mdi mdi-play"></i> Testen</button><button class="btn btn-d btn-s" onclick="delToken(\''+t.id+'\')"><i class="mdi mdi-delete"></i> Löschen</button></div></div>';
     }).join('');
     loadTokenLimits(tokens);
   }catch(e){loadEl.innerHTML='<span style="color:var(--err)"><i class="mdi mdi-alert"></i> Fehler beim Laden: '+esc(e.message)+'</span>';}
@@ -670,7 +678,8 @@ function renderLogTable(){
   });
   const visible=sorted.slice(0,logDisplayCount);
   const tbody=document.getElementById('usage-log-tbody');
-  tbody.innerHTML=visible.map((e)=>{const c=colorMap[e.token_id]||'';const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';const sc=e.status<400?'status-ok':e.status===429?'status-warn':'status-err';return '<tr'+acc+'><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+sc+'">'+e.status+'</td><td style="width:40px;text-align:center"><button class="btn btn-d btn-s" onclick="deleteLogEntry('+e._origIdx+')" style="padding:.2rem .4rem"><i class="mdi mdi-delete"></i></button></td></tr>';}).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';
+  const statusHint={'200':'OK – Erfolgreiche Antwort','201':'Erstellt','204':'Kein Inhalt','301':'Weitergeleitet','400':'Fehlerhafte Anfrage','401':'Token ungültig oder abgelaufen','403':'IP nicht in Whitelist','404':'Entität nicht gefunden','429':'Rate-Limit überschritten','500':'Interner Serverfehler'};
+  tbody.innerHTML=visible.map((e)=>{const c=colorMap[e.token_id]||'';const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';const sc=e.status<400?'status-ok':e.status===429?'status-warn':'status-err';return '<tr'+acc+'><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="'+sc+'" title="'+esc(statusHint[e.status]||'Status '+e.status)+'">'+e.status+'</td><td style="width:40px;text-align:center"><button class="btn btn-d btn-s" onclick="deleteLogEntry('+e._origIdx+')" style="padding:.2rem .4rem"><i class="mdi mdi-delete"></i></button></td></tr>';}).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--td)">Noch keine Anfragen</td></tr>';
   const btn=document.getElementById('load-more-btn');
   if(btn){btn.style.display=sorted.length>logDisplayCount?'inline-flex':'none';}
 }
@@ -688,7 +697,8 @@ function getInvalidLogDisplayCount(){
 function renderInvalidLogTable(){
   const visible=allInvalidEntries.slice(0,invalidLogDisplayCount);
   const tbody=document.getElementById('invalid-log-tbody');
-  tbody.innerHTML=visible.map(e=>{const c=colorMap[e.token_id]||'';const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';return '<tr'+acc+'><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="status-err">'+e.status+'</td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Keine ungültigen Anfragen</td></tr>';
+  const statusHint2={'200':'OK – Erfolgreiche Antwort','201':'Erstellt','400':'Fehlerhafte Anfrage','401':'Token ungültig oder abgelaufen','403':'IP nicht in Whitelist','404':'Entität nicht gefunden','429':'Rate-Limit überschritten','500':'Interner Serverfehler'};
+  tbody.innerHTML=visible.map(e=>{const c=colorMap[e.token_id]||'';const acc=c?' class="row-accent" style="--row-accent:'+c+'"':'';return '<tr'+acc+'><td>'+(e.timestamp?new Date(e.timestamp*1000).toLocaleString('de-DE'):'-')+'</td><td>'+esc(e.token_name||'-')+'</td><td>'+esc(e.ip)+'</td><td>'+esc(e.endpoint)+'</td><td class="status-err" title="'+esc(statusHint2[e.status]||'Status '+e.status)+'">'+e.status+'</td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--td)">Keine ungültigen Anfragen</td></tr>';
   const card=document.getElementById('invalid-log-card');
   const btn=document.getElementById('load-more-invalid-btn');
   if(card){card.style.display=allInvalidEntries.length>0?'block':'none';}
@@ -734,6 +744,180 @@ async function editToken(id){curId=id;const t=tokens.find(x=>x.id===id);if(!t)re
 async function saveToken(){const exp=document.getElementById('tok-expires').dataset.iso||null;const colorVal=document.getElementById('tok-color-text').value.trim();const color=colorVal?colorVal:'';const data={name:document.getElementById('tok-name').value||'Unbenannt',domains:getSel('#domain-grid'),areas:getSel('#area-grid'),allowed_entities:selectedEntities,allowed_ips:document.getElementById('tok-ips').value,patterns:document.getElementById('tok-patterns').value,blocked_patterns:document.getElementById('tok-blocked').value,include_attributes:document.getElementById('tok-attrs').checked,expires_at:exp,color:color};if(curId){await api('/admin/api/tokens/'+curId,'PUT',data);toast('Zugang bearbeitet','success');closeM('modal-edit');loadTokens();}else{const r=await api('/admin/api/tokens','POST',data);document.getElementById('new-token').value=r.token;toast('Zugang erstellt','success');closeM('modal-edit');openM('modal-ok');loadTokens();}}
 async function delToken(id){if(await confirmDlg('Zugang löschen','Möchtest du diesen Zugang wirklich unwiderruflich löschen?','Löschen')){await api('/admin/api/tokens/'+id,'DELETE');toast('Zugang gelöscht','success');loadTokens();}}
 async function regenToken(id){if(await confirmDlg('Token neu generieren','Das alte Token wird sofort ungültig. Alle Geräte müssen mit dem neuen Token neu verbunden werden.','Neu generieren')){const r=await api('/admin/api/tokens/'+id+'/regenerate','POST');document.getElementById('new-token').value=r.token;toast('Token neu generiert','success');openM('modal-ok');loadTokens();}}
+async function testToken(id){
+  _testTokenId=id;
+  const t=tokens.find(x=>x.id===id);
+  if(!t)return;
+  document.getElementById('test-token-name').textContent=t.name;
+  document.getElementById('test-results').innerHTML='<div style="text-align:center;padding:3rem"><div class="spinner"></div><p style="margin-top:1rem;color:var(--td)">Teste Zugangskonfiguration...</p></div>';
+  document.getElementById('api-test-controls').style.display='none';
+  clearApiLog();
+  openM('modal-test');
+  try{
+    const r=await api('/admin/api/tokens/'+id+'/test','POST');
+    renderTestResults(r);
+  }catch(e){
+    document.getElementById('test-results').innerHTML='<div style="text-align:center;padding:3rem;color:var(--err)"><i class="mdi mdi-alert" style="font-size:2rem"></i><p style="margin-top:1rem">Test fehlgeschlagen: '+esc(e.message)+'</p></div>';
+  }
+}
+function renderTestResults(r){
+  const c=document.getElementById('test-results');
+  const summary=r.summary;
+  let html='<div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">' +
+    '<div class="test-summary-box" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3)"><span class="test-summary-num">'+summary.passed+'</span><span class="test-summary-label">Erfolgreich</span></div>' +
+    '<div class="test-summary-box" style="background:'+(summary.failed?'rgba(239,68,68,.1)':'transparent')+';border:1px solid '+(summary.failed?'rgba(239,68,68,.3)':'var(--bdr)')+'"><span class="test-summary-num">'+summary.failed+'</span><span class="test-summary-label">Fehlgeschlagen</span></div>' +
+    '<div class="test-summary-box" style="background:rgba(100,116,139,.1);border:1px solid rgba(100,116,139,.3)"><span class="test-summary-num">'+summary.skipped+'</span><span class="test-summary-label">Übersprungen</span></div>' +
+    '</div>';
+  html+='<div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem">';
+  for(const test of r.tests){
+    const icon=test.status==='pass'?'check-circle':test.status==='fail'?'close-circle':test.status==='warn'?'alert':'skip-next';
+    const color=test.status==='pass'?'var(--ok)':test.status==='fail'?'var(--err)':test.status==='warn'?'#ff9800':'var(--td)';
+    html+='<div class="test-group" style="border:1px solid var(--bdr);border-radius:10px;overflow:hidden">' +
+      '<div class="test-group-header" style="display:flex;align-items:center;gap:.6rem;padding:.6rem 1rem;background:rgba(255,255,255,.03);cursor:pointer" onclick="const d=this.nextElementSibling;d.style.display=d.style.display==\'none\'?\'\':\'none\'">' +
+      '<i class="mdi mdi-'+icon+'" style="color:'+color+';font-size:1.2rem"></i>' +
+      '<span style="flex:1;font-weight:600">'+esc(test.label)+'</span>' +
+      '<span style="color:'+color+';font-size:.82rem">'+esc(test.status === 'pass' ? 'OK' : test.status === 'fail' ? 'FEHLER' : test.status === 'warn' ? 'WARNUNG' : 'ÜBERSPRUNGEN')+'</span>' +
+      '<span style="color:var(--td);font-size:.78rem">'+(test.message?esc(test.message):'')+'</span>' +
+      '<i class="mdi mdi-chevron-down" style="color:var(--td)"></i></div>' +
+      '<div class="test-group-details" style="'+(test.details&&test.details.length?'padding:0 1rem .5rem 1rem':'display:none')+'">';
+    if(test.details){
+      for(const d of test.details){
+        const di=d.status==='pass'?'check-circle':d.status==='fail'?'close-circle':d.status==='warn'?'alert':'information';
+        const dc=d.status==='pass'?'var(--ok)':d.status==='fail'?'var(--err)':d.status==='warn'?'#ff9800':'var(--p)';
+        html+='<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04)">' +
+          '<i class="mdi mdi-'+di+'" style="color:'+dc+';font-size:.9rem"></i>' +
+          '<span style="min-width:140px;color:var(--td)">'+esc(d.check)+'</span>' +
+          '<span>'+esc(d.message)+'</span></div>';
+      }
+    }
+    html+='</div></div>';
+  }
+  html+='</div>';
+  c.innerHTML=html;
+
+  document.getElementById('api-test-controls').style.display='block';
+  document.getElementById('api-test-log').innerHTML='<div style="text-align:center;padding:1rem;color:var(--td);font-size:.82rem">Klicke einen Endpunkt-Button oben, um einen API-Call auszuführen.</div>';
+  populateEntityDropdown();
+}
+
+let _testTokenId = null;
+
+async function apiTestCall(endpoint){
+  const id=_testTokenId;
+  if(!id)return;
+  const entity=document.getElementById('api-test-entity').value;
+  if(endpoint==='state'&&!entity){toast('Bitte zuerst eine Entity auswählen','error');return;}
+  const ip=document.getElementById('api-test-ip').value;
+  doApiCall(id,endpoint,entity,ip);
+}
+
+async function apiTestFire(count){
+  const id=_testTokenId;
+  if(!id)return;
+  const sel=document.querySelector('#api-test-controls [data-endpoint].selected');
+  if(!sel){toast('Bitte zuerst einen Endpunkt klicken','error');return;}
+  const endpoint=sel.dataset.endpoint;
+  const entity=endpoint==='state'?document.getElementById('api-test-entity').value:'';
+  if(endpoint==='state'&&!entity){toast('Bitte zuerst eine Entity auswählen','error');return;}
+  const ip=document.getElementById('api-test-ip').value;
+  for(let i=0;i<count;i++){
+    await doApiCall(id,endpoint,entity,ip);
+  }
+}
+
+async function doApiCall(id,endpoint,entity,ip){
+  const log=document.getElementById('api-test-log');
+  const rowId='call-'+Date.now()+Math.random().toString(36).slice(2,6);
+  const pendingRow=document.createElement('div');
+  pendingRow.id=rowId+'-pending';
+  pendingRow.style.cssText='display:flex;align-items:center;gap:.5rem;padding:.3rem .5rem;font-size:.78rem;color:var(--td);border-bottom:1px solid rgba(255,255,255,.04)';
+  pendingRow.innerHTML='<i class="mdi mdi-loading mdi-spin" style="color:var(--p)"></i><span>Sende '+(endpoint==='state'?'/states/'+entity:endpoint==='help'?'/help':endpoint==='entities'?'/entities':'/states')+'...</span>';
+  log.insertBefore(pendingRow,log.firstChild);
+  try{
+    const r=await api('/admin/api/tokens/'+id+'/test/call','POST',{endpoint,entity_id:entity,test_ip:ip});
+    const statusColor=r.status>=200&&r.status<300?'var(--ok)':r.status>=400&&r.status<500?'#ff9800':r.status>=500?'var(--err)':'var(--td)';
+    const statusIcon=r.status>=200&&r.status<300?'check-circle':r.status===429?'clock-alert':r.status===403?'shield-off':r.status===401?'key-remove':r.status===404?'file-find':'alert';
+    const bodyPreview=r.body?JSON.stringify(r.body).slice(0,200)+(JSON.stringify(r.body).length>200?'...':''):'';
+    const row=document.createElement('div');
+    row.id=rowId;
+    row.style.cssText='display:flex;align-items:center;gap:.5rem;padding:.3rem .5rem;font-size:.78rem;border-bottom:1px solid rgba(255,255,255,.04);animation:fadeIn .2s ease-out';
+    row.innerHTML='<i class="mdi mdi-'+statusIcon+'" style="color:'+statusColor+';font-size:.85rem"></i>' +
+      '<span style="min-width:100px;color:var(--td)">'+(endpoint==='state'?'/states/<wbr>'+entity:endpoint==='help'?'/help':endpoint==='entities'?'/entities':'/states')+'</span>' +
+      '<span style="color:'+statusColor+';font-weight:600;min-width:30px">'+r.status+'</span>' +
+      '<span style="color:var(--td);min-width:50px">'+r.time_ms+'ms</span>' +
+      '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--td)" title="'+esc(bodyPreview)+'">'+esc(bodyPreview||(r.error||''))+'</span>';
+    row.onclick=function(){
+      const detail=document.getElementById(rowId+'-detail');
+      if(detail){detail.style.display=detail.style.display==='none'?'':'none';}
+    };
+    log.insertBefore(row,log.firstChild);
+    if(log.children.length>50){
+      while(log.children.length>50)log.removeChild(log.lastChild);
+    }
+    const detail=document.createElement('div');
+    detail.id=rowId+'-detail';
+    detail.style.cssText='display:none;padding:.5rem .8rem;font-size:.78rem;border-bottom:1px solid rgba(255,255,255,.04);background:rgba(255,255,255,.02);overflow-x:auto;white-space:pre-wrap;font-family:monospace;line-height:1.4';
+    detail.textContent=JSON.stringify(r.body||{error:r.error||'keine Antwort'},null,2);
+    log.insertBefore(detail,log.firstChild);
+    if(r.status===429){toast('Rate-Limit erreicht! (Status 429)','warning');}
+    if(r.status===403){toast('IP gesperrt! (Status 403)','warning');}
+  }catch(e){
+    const pendEl=document.getElementById(rowId+'-pending');
+    if(pendEl)pendEl.remove();
+    const row=document.createElement('div');
+    row.id=rowId;
+    row.style.cssText='display:flex;align-items:center;gap:.5rem;padding:.3rem .5rem;font-size:.78rem;color:var(--err);border-bottom:1px solid rgba(255,255,255,.04)';
+    row.innerHTML='<i class="mdi mdi-alert" style="color:var(--err)"></i><span>Fehler: '+esc(e.message)+'</span><span style="margin-left:auto;color:var(--td);font-size:.75rem">'+endpoint+'</span>';
+    log.insertBefore(row,log.firstChild);
+  }
+  const pendEl=document.getElementById(rowId+'-pending');
+  if(pendEl)pendEl.remove();
+}
+
+function clearApiLog(){
+  document.getElementById('api-test-log').innerHTML='<div style="text-align:center;padding:1rem;color:var(--td);font-size:.82rem">Klicke einen Endpunkt-Button oben, um einen API-Call auszuführen.</div>';
+}
+
+function populateEntityDropdown(){
+  const sel=document.getElementById('api-test-entity');
+  sel.innerHTML='<option value="">-- Entity wählen --</option>';
+  const t=tokens.find(x=>x.id===_testTokenId);
+  if(t&&t.allowed_entities&&t.allowed_entities.length){
+    for(const e of t.allowed_entities.sort()){
+      const opt=document.createElement('option');
+      opt.value=e;opt.textContent=e;
+      sel.appendChild(opt);
+    }
+    return;
+  }
+  api('/admin/api/entities').then(all=>{
+    if(!all||!all.length){
+      sel.innerHTML='<option value="">Keine Entitäten verfügbar</option>';
+      return;
+    }
+    const shuffled=[...all].sort(()=>Math.random()-0.5).slice(0,10);
+    for(const e of shuffled){
+      const opt=document.createElement('option');
+      opt.value=e;opt.textContent=e;
+      sel.appendChild(opt);
+    }
+  }).catch(()=>{
+    sel.innerHTML='<option value="">Fehler beim Laden</option>';
+  });
+}
+
+function selectEndpoint(btn){
+  document.querySelectorAll('#api-test-controls [data-endpoint]').forEach(b=>{
+    b.classList.remove('selected');
+    b.style.borderColor='';
+    b.style.background='';
+  });
+  btn.classList.add('selected');
+  btn.style.borderColor='var(--p)';
+  btn.style.background='rgba(3,169,244,.08)';
+}
+function testStateSel(){}
+function testIpSel(){}
 async function copyTok(){const i=document.getElementById('new-token');try{await navigator.clipboard.writeText(i.value);const b=i.nextElementSibling;b.innerHTML='<i class="mdi mdi-check"></i>';setTimeout(()=>{b.innerHTML='<i class="mdi mdi-content-copy"></i>';},1500);}catch(e){i.select();document.execCommand('copy');}}
 function openM(id){const el=document.getElementById(id);el.classList.add('active');const body=el.querySelector('.modal-body');if(body)body.scrollTop=0;}
 function closeM(id){document.getElementById(id).classList.remove('active');closeCal();}
@@ -781,6 +965,43 @@ document.addEventListener('click',function(e){const cal=document.getElementById(
 </script>
 <div id="tok-cal" class="datepicker-popup"></div>
 <div id="toast-container" class="toast-container"></div>
+<div class="modal" id="modal-test">
+<div class="modal-body" style="max-width:800px">
+<button class="modal-close" onclick="closeM('modal-test')"><i class="mdi mdi-close"></i></button>
+<h2><i class="mdi mdi-play-circle" style="color:var(--p)"></i> Token-Test: <span id="test-token-name"></span></h2>
+<div id="test-results" style="margin-top:1rem"></div>
+<div id="api-test-controls" style="display:none;margin-top:.5rem;padding:1rem;border:1px solid var(--bdr);border-radius:10px;background:rgba(255,255,255,.02)">
+  <h3 style="margin:0 0 .8rem;font-size:.95rem"><i class="mdi mdi-api" style="color:var(--p)"></i> API-Live-Test</h3>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem">
+    <button class="btn btn-o btn-s" data-endpoint="states" onclick="selectEndpoint(this);apiTestCall('states')"><i class="mdi mdi-format-list-bulleted"></i> GET /states</button>
+    <button class="btn btn-o btn-s" data-endpoint="entities" onclick="selectEndpoint(this);apiTestCall('entities')"><i class="mdi mdi-view-list"></i> GET /entities</button>
+    <button class="btn btn-o btn-s" data-endpoint="help" onclick="selectEndpoint(this);apiTestCall('help')"><i class="mdi mdi-help-circle"></i> GET /help</button>
+    <button class="btn btn-o btn-s" data-endpoint="state" onclick="selectEndpoint(this);apiTestCall('state')"><i class="mdi mdi-toggle-switch"></i> GET /states/{entity}</button>
+    <select id="api-test-entity" style="padding:.3rem .5rem;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--t);font-size:.78rem;max-width:200px" onchange="testStateSel()">
+      <option value="">-- Entity wählen --</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+    <select id="api-test-ip" style="padding:.3rem .5rem;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--t);font-size:.78rem" onchange="testIpSel()">
+      <option value="">Aktuelle IP</option>
+      <option value="10.0.0.99">10.0.0.99 (außerhalb)</option>
+      <option value="192.168.1.1">192.168.1.1 (außerhalb)</option>
+      <option value="172.16.0.1">172.16.0.1 (außerhalb)</option>
+    </select>
+    <span style="color:var(--td);font-size:.78rem">×</span>
+    <button class="btn btn-s" style="border:1px solid rgba(255,152,0,.35);color:#ff9800" onclick="apiTestFire(1)" id="api-btn-1"><i class="mdi mdi-numeric-1-box"></i> 1x</button>
+    <button class="btn btn-s" style="border:1px solid rgba(255,152,0,.35);color:#ff9800" onclick="apiTestFire(3)" id="api-btn-3"><i class="mdi mdi-numeric-3-box"></i> 3x</button>
+    <button class="btn btn-s" style="border:1px solid rgba(255,152,0,.35);color:#ff9800" onclick="apiTestFire(5)" id="api-btn-5"><i class="mdi mdi-numeric-5-box"></i> 5x</button>
+    <button class="btn btn-s" style="border:1px solid rgba(239,68,68,.3);color:var(--err)" onclick="clearApiLog()"><i class="mdi mdi-delete-sweep"></i> Löschen</button>
+  </div>
+  <div id="api-test-log" style="margin-top:.6rem;max-height:300px;overflow-y:auto"></div>
+</div>
+<div style="margin-top:1rem;text-align:center">
+  <button class="btn btn-o" onclick="closeM('modal-test')">Schließen</button>
+</div>
+</div>
+</div>
+
 <div class="confirm-overlay" id="confirm-overlay">
 <div class="confirm-box">
 <i class="mdi mdi-alert-circle"></i>

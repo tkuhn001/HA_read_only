@@ -19,6 +19,7 @@ from custom_components.ha_read_only.api import (
     AdminApiConfigView,
     AdminApiStatsCleanupView,
     AdminApiStatsLogDeleteView,
+    AdminApiTokenTestView,
     _hash_token,
     _compute_hourly_chart,
     _compute_daily_usage,
@@ -858,3 +859,88 @@ async def test_stats_log_delete_invalid_index_non_numeric(mock_handler):
         assert body["success"] is True
         assert handler.data["usage_log"] == initial_log
         handler.async_save.assert_not_called()
+
+
+class TestAdminApiTokenTest:
+    """Tests for the AdminApiTokenTestView endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_token_not_found(self, mock_handler):
+        handler, token1_id, token2_id = mock_handler
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            req = MagicMock(spec=web.Request)
+            req.app = {"hass": MagicMock()}
+            view = AdminApiTokenTestView()
+            resp = await view.post(req, "non_existent_id")
+            assert resp.status == 404
+            body = json.loads(resp.body)
+            assert body["error"] == "Token not found"
+
+    @pytest.mark.asyncio
+    async def test_token_test_returns_summary(self, mock_handler):
+        handler, token1_id, token2_id = mock_handler
+        hass = MagicMock()
+        hass.data = {}
+        hass.states = MagicMock()
+        hass.states.async_all = MagicMock(return_value=[])
+        handler.data["tokens"][0]["expires_at"] = time.time() + 86400
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            req = MagicMock(spec=web.Request)
+            req.app = {"hass": hass}
+            req.headers = {}
+            transport = MagicMock()
+            transport.get_extra_info.return_value = ("127.0.0.1", 0)
+            req.transport = transport
+            view = AdminApiTokenTestView()
+            resp = await view.post(req, token1_id)
+            assert resp.status == 200
+            body = json.loads(resp.body)
+            assert body["token_name"] == "Token 1"
+            assert "summary" in body
+            assert body["summary"]["total"] > 0
+            assert body["summary"]["passed"] + body["summary"]["failed"] + body["summary"]["skipped"] == body["summary"]["total"]
+
+    @pytest.mark.asyncio
+    async def test_token_test_with_features(self, mock_handler):
+        handler, token1_id, token2_id = mock_handler
+        hass = MagicMock()
+        hass.data = {}
+
+        s1 = MagicMock()
+        s1.entity_id = "sensor.temp"
+        s1.state = "22"
+        s1.domain = "sensor"
+        s1.attributes = {}
+        hass.states.async_all = MagicMock(return_value=[s1])
+
+        handler.data["tokens"][0].update({
+            "expires_at": time.time() + 86400,
+            "domains": ["sensor"],
+            "areas": [],
+            "allowed_entities": [],
+            "patterns": "",
+            "blocked_patterns": "",
+            "allowed_ips": ["10.0.0.0/24"],
+        })
+
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler), \
+             patch("custom_components.ha_read_only.api.er") as mock_er:
+            registry = MagicMock()
+            entry = MagicMock()
+            entry.area_id = None
+            registry.async_get = MagicMock(return_value=entry)
+            mock_er.async_get = MagicMock(return_value=registry)
+
+            req = MagicMock(spec=web.Request)
+            req.app = {"hass": hass}
+            req.headers = {}
+            transport = MagicMock()
+            transport.get_extra_info.return_value = ("10.0.0.5", 0)
+            req.transport = transport
+            view = AdminApiTokenTestView()
+            resp = await view.post(req, token1_id)
+            assert resp.status == 200
+            body = json.loads(resp.body)
+            assert body["summary"]["total"] > 0
+            passed_or_skipped = body["summary"]["passed"] + body["summary"]["skipped"]
+            assert passed_or_skipped >= body["summary"]["total"] - body["summary"]["failed"]
