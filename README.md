@@ -4,7 +4,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/tkuhn001/HA_read_only)
 [![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+<img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1%2B-blue.svg)](https://www.home-assistant.io/)
 
 Eine leistungsstarke Home-Assistant-Integration zum Bereitstellen einer sicheren, **schreibgeschützten** HTTP-API für externe Systeme. Mit integriertem Admin-Panel zur Token-Verwaltung, Live-Statistiken und granularen Berechtigungen.
