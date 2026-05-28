@@ -6,7 +6,7 @@
 # NUTZUNG AUF EIGENE GEFAHR.
 
 DOMAIN = "ha_read_only"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 
 STORAGE_KEY = f"{DOMAIN}.storage"
 STORAGE_VERSION = 1
