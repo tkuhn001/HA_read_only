@@ -338,6 +338,21 @@ async def test_token_put_partial_update(mock_handler):
         assert t1["rate_limit_window_unit"] is None
 
 
+async def test_token_put_clears_expires_at(mock_handler):
+    handler, token1_id, token2_id = mock_handler
+    t1 = next(t for t in handler.data["tokens"] if t["id"] == token1_id)
+    t1["expires_at"] = 9999999999.0
+    with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+        req = MagicMock(spec=web.Request)
+        req.app = {"hass": MagicMock()}
+        req.json = AsyncMock(return_value={"expires_at": None})
+        view = AdminApiTokenView()
+        resp = await view.put(req, token1_id)
+        assert resp.status == 200
+        t1 = next(t for t in handler.data["tokens"] if t["id"] == token1_id)
+        assert t1["expires_at"] is None
+
+
 # ========== AdminApiTokenView - DELETE ==========
 
 

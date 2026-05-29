@@ -954,7 +954,7 @@ function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calM
 function calPrevMonth(daysInPrev){calNav(-1);calPick(daysInPrev);}
 function calPick(d){calSelectedDate=new Date(calYear,calMonth,d);renderCal();}
 function calSetTime(){const h=parseInt(document.getElementById('cal-h').value)||0;const m=parseInt(document.getElementById('cal-m').value)||0;calHour=Math.min(23,Math.max(0,h));calMinute=Math.min(59,Math.max(0,m));}
-function calClear(){calSelectedDate=null;document.getElementById('tok-expires').value='';closeCal();}
+function calClear(){calSelectedDate=null;document.getElementById('tok-expires').value='';document.getElementById('tok-expires').dataset.iso='';closeCal();}
 function calToday(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();calSelectedDate=new Date(calYear,calMonth,n.getDate());calHour=n.getHours();calMinute=n.getMinutes();calOk();}
 function calOk(){if(!calSelectedDate){calClear();return;}
 const d=calSelectedDate;const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(calHour).padStart(2,'0')+':'+String(calMinute).padStart(2,'0');
