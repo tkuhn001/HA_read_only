@@ -20,11 +20,6 @@ Das Plugin funktioniert gut: Token-Verwaltung per Sidebar-Dashboard, öffentlich
 - [x] Token-Erstellung und Regenerierung speichern nur noch Hash
 - [x] Alte Tokens im Klartext bleiben funktionell
 
-### 1.3 CORS-Header setzen
-Aktuell kann jede beliebige Website im Browser API-Anfragen an deine HA-Instanz senden.
-
-**Lösung:** Explizite `Access-Control-Allow-Origin`-Header auf den API-Endpunkten setzen.
-
 ---
 
 ## 🟠 Priorität 2: HACS & Community-Kompatibilität ✅ (umgesetzt v0.3.3)
@@ -90,8 +85,12 @@ Aktuell kann jede beliebige Website im Browser API-Anfragen an deine HA-Instanz 
 
 ## 🔵 Priorität 4: Code-Qualität
 
-### 4.1 Tests schreiben
-Aktuell gibt es **keine Tests** – weder Testdateien, noch pytest-Konfiguration, noch Test-Dependencies. Für ein Community-Plugin sind umfangreiche Tests nötig.
+### 4.1 Tests schreiben ✅ (umgesetzt v0.4.1)
+- [x] Test-Infrastruktur (pytest, conftest.py, fixtures)
+- [x] Unit-Tests für alle Helper-Funktionen (_hash, _verify, _mask, _rate_limit, _ip_matches, etc.)
+- [x] Integration-Tests für öffentliche API und Admin-API
+- [x] Storage- und Service-Tests
+- [x] CI via GitHub Actions
 
 #### Test-Infrastruktur
 - `pytest`, `pytest-asyncio`, `pytest-homeassistant-custom-component` als Dev-Dependencies
@@ -178,13 +177,14 @@ tests/
 - **Coverage-Ziel:** >80% für `api.py`, >60% für `__init__.py`.
 - **Race-Conditions:** `_rate_limit` und `_track_usage` sind nicht thread-safety-gesichert – ggf. Lock einführen.
 
-### 4.2 Type Hints vervollständigen 🟡 (teilweise)
+### 4.2 Type Hints vervollständigen ✅ (umgesetzt v0.4.1)
 - [x] API-Views in `api.py` mit `web.Request` / `web.Response`
-- [ ] Restliche Module (`config_flow.py`, `__init__.py`) vervollständigen
+- [x] `config_flow.py` – alle Methoden typisiert
+- [x] `__init__.py` – alle Funktionen und Methoden typisiert
 
-### 4.3 Tote Konstanten aufräumen 🟡 (teilweise)
+### 4.3 Tote Konstanten aufräumen ✅ (umgesetzt v0.4.1)
 - [x] `CONF_ALLOWED_AREAS`, `CONF_ALLOWED_ENTITIES` – Features nutzen diese Konzepte (Keys: `areas`, `allowed_entities`)
-- [ ] Noch ungenutzt: `CONF_BLOCKED_ENTITIES`, `CONF_PROVIDE_ENTITIES_LIST`, `CONF_RETURN_ONLY_IDS` – entfernen oder implementieren
+- [x] `CONF_BLOCKED_ENTITIES`, `CONF_PROVIDE_ENTITIES_LIST`, `CONF_RETURN_ONLY_IDS` – entfernt (ungennutzte Konstanten aus `const.py` gelöscht)
 
 ### 4.4 Services implementieren oder entfernen ✅ (umgesetzt v0.3.9)
 - [x] `list_tokens` – Gibt alle Tokens mit maskiertem Wert zurück
@@ -240,26 +240,176 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 
 ---
 
+## 🔴 Priorität 6: Admin-Sicherheit
+
+### 6.1 Admin-Endpunkte authentifizieren
+Aktuell haben **alle 16 Admin-Views** `requires_auth = False`. Obwohl sie nur im HA-Iframe eingebettet sind, sind die Endpunkte ohne HA-Authentifizierung erreichbar, wenn die URL bekannt ist. Ein Gerät im LAN (z. B. IoT) könnte Tokens erstellen/löschen/ändern, Konfiguration auslesen und die Webhook-URL manipulieren.
+
+**Abwägung:** Für ein reines Heimnetzwerk vertretbar, für den Einsatz hinter einem Reverse Proxy oder aus dem Internet ein kritisches Sicherheitsrisiko.
+
+**Lösung:** `requires_auth = True` setzen und sicherstellen, dass der Iframe den HA-Auth-Token korrekt mitsendet.
+
+### 6.2 Rate-Limiting für Admin-Endpunkte
+Admin-Endpunkte haben keinerlei Rate-Limiting. Ein Skript im LAN könnte CRUD-Operationen ohne Drosselung ausführen.
+
+### 6.3 Validierung von Konfigurations-Updates
+`AdminApiConfigView.put()` akzeptiert jedes beliebige JSON-Payload ohne Validierung. Werte wie `webhook_url` könnten auf eine bösartige URL gesetzt werden.
+
+### 6.4 Input-Validierung für Token-CRUD
+- Token-Felder werden nicht auf Länge, Typ oder Format validiert
+- `int()`-Cast ohne Fehlerbehandlung bei `rate_limit_max_requests`
+- `allowed_ips` wird nicht auf Gültigkeit geprüft (erst bei Nutzung)
+- Token-Update/Löschen/Regenerieren liefert still `{"success": True}` auch bei nicht-existenter ID
+
+### 6.5 Schutz vor Brute-Force
+Wiederholte Fehlversuche (401) werden nicht speziell behandelt. Kein exponentielles Backoff oder Account-Lockout bei häufigen Fehlern.
+
+---
+
+## 🟠 Priorität 7: Code-Qualität & Bugs
+
+### 7.1 Toter Code nach Return-Statement 🐛
+In `AdminApiStatsCleanupView.post()` (`api.py` ~Zeile 776-780) befinden sich **2 identische Zeilen nach einem Return-Statement**, die nie ausgeführt werden können. Vermutlich Copy-Paste-Fehler.
+
+### 7.2 Massives Frontend-Code-Duplikat
+`loadStats()` und `loadStatsForToken()` in `admin.html` sind nahezu identisch (~40 Zeilen, unterscheiden sich nur durch `?token_id=`). Refactoring in eine gemeinsame Funktion nötig.
+
+### 7.3 Leere OptionsFlow
+`HaReadOnlyOptionsFlow` zeigt ein Formular mit **null Feldern**. Es gibt keine Möglichkeit, die Integration über die Standard-HA-Oberfläche zu konfigurieren.
+
+### 7.4 Stub `async_update_entry`
+Die Funktion besteht nur aus `pass`. Wenn Config-Entry-Optionen gespeichert würden, würden sie nie angewendet.
+
+### 7.5 Unused Constants in `const.py`
+**8 Konstanten** sind definiert, aber nirgends in Verwendung – die tatsächlichen Data-Keys (`"domains"`, `"areas"`, `"patterns"` etc.) werden als Literale verwendet:
+- `CONF_TOKEN_NAME`, `CONF_ALLOWED_DOMAINS`, `CONF_ALLOWED_AREAS`, `CONF_ALLOWED_ENTITIES`, `CONF_ALLOWED_PATTERNS`, `CONF_BLOCKED_PATTERNS`, `CONF_INCLUDE_ATTRIBUTES`, `CONF_STATS_MAX_REQUESTS`
+
+### 7.6 Ineffizientes `list.insert(0)` im Usage-Log
+`usage_log.insert(0, log_entry)` ist O(n) pro Operation. Besser `append` + Reverse beim Lesen.
+
+### 7.7 Inline-JavaScript ohne Strict Mode
+Das komplette `<script>`-Block in `admin.html` läuft im globalen Scope ohne `"use strict"`. Variablen wie `tokens`, `curId` sind global, was zu Kollisionen mit anderen HA-Panels führen kann.
+
+---
+
+
+## 🟡 Priorität 8: Performance
+
+### 8.1 `_is_entity_allowed()` in O(n*m)-Schleife ✅ (umgesetzt v0.4.1)
+- [x] Registry-Lookup einmalig vorab via `_build_area_map(hass)`
+- [x] Area-Zuordnung per Dict-Lookup statt 1000 Registry-Zugriffen
+- [x] Nur gebaut wenn Token Areas nutzt – kein Overhead für Tokens ohne Area-Filter
+- [x] `_get_entity_area()` entfernt (ersatzlos gestrichen)
+
+### 8.2 `_cleanup_stats()` bei jedem Speichern
+`async_save()` wird bei jedem API-Request aufgerufen und iteriert das gesamte Usage-Log. Sollte nur bei Bedarf oder zeitgesteuert laufen.
+
+### 8.3 Chart-Berechnungen iterieren 3x das Usage-Log
+`_compute_hourly_chart()`, `_compute_hourly_chart_by_color()` und `_compute_daily_usage()` werden nacheinander aufgerufen, jede durchläuft das gesamte Log. Ein Single-Pass wäre effizienter.
+
+### 8.4 Keine `aiohttp.ClientSession`-Wiederverwendung
+`_fire_webhook()` erzeugt bei jedem Webhook eine neue HTTP-Session. Sollte wiederverwendet werden (Connection-Pooling).
+
+### 8.5 Redundante API-Calls im Frontend
+`saveCfg()` → PUT Config → `loadTokens()`. Settings-Tab → `loadCfg()` → bedingt `loadTokens()`. Diese Roundtrips addieren Latenz.
+
+### 8.6 Hard Limit von 150 bei Entity-Suche
+Die Admin-Entity-Suche schneidet bei 150 Ergebnissen ab, ohne Paginierung oder "mehr Ergebnisse"-Hinweis.
+
+---
+
+## 🔵 Priorität 9: Fehlende HA-Standard-Features
+
+### 9.1 Diagnostics-Endpunkt
+Moderne HA-Integrationen implementieren einen `/api/diagnostics`-Endpunkt fürs Debugging. Fehlt komplett.
+
+### 9.2 `async_reload_entry`
+Es gibt keine Möglichkeit, die Integration ohne HA-Neustart neu zu laden. Änderungen an Config-Entry-Optionen würden erst nach Restart wirken.
+
+### 9.3 Kein System-Health-Support
+Kein `system_health`-Provider → Status nicht im HA-System-Dashboard sichtbar.
+
+### 9.4 Token-Ablauf-Benachrichtigungen
+Keine Benachrichtigung (Persistent Notification, Sensor) bei bald ablaufenden Tokens.
+
+### 9.5 Kein Audit-Trail
+Admin-Aktionen (Token-Erstellung, -Löschung, Config-Änderungen) werden nicht geloggt. Keine Rückverfolgbarkeit.
+
+### 9.6 Token-Konfiguration exportieren/importieren
+Keine Möglichkeit, Token-Konfigurationen zwischen HA-Instanzen zu sichern oder zu übertragen.
+
+---
+
+## 🟢 Priorität 10: UX & Dokumentation
+
+### 10.1 Versionsnummer inkonsistent
+Version weicht ab zwischen `const.py` (0.4.1), `admin.html`-Footer (0.3.9) und `CHANGELOG.md` (endet bei 0.3.9).
+
+### 10.2 Changelog-Lücken
+Versionen 0.3.6, 0.3.7, 0.3.8, 0.4.0 und 0.4.1 fehlen im Changelog.
+
+### 10.3 Admin-API nicht dokumentiert
+Der `/help`-Endpoint listet nur die öffentliche API. Die 15+ Admin-Endpunkte sind weder in der API-Hilfe noch im README dokumentiert.
+
+### 10.4 Fehlende Docstrings
+Viele kritische Funktionen in `api.py` haben keine Docstrings, insbesondere: `_is_entity_allowed()`, `_rate_limit()`, `_hash_token()`, `_verify_token()`, `_get_client_ip()`.
+
+### 10.5 Keine Contribution-Guide
+Kein `CONTRIBUTING.md`, keine Entwickler-Setup-Anleitung, keine Test-Anleitung.
+
+### 10.6 CDN-Abhängigkeit nicht dokumentiert
+`admin.html` lädt Material Design Icons von `cdn.jsdelivr.net`. Bei CDN-Ausfall brechen alle Icons weg. Kein Fallback.
+
+### 10.7 Log-Eintrag löschen ohne Bestätigung
+Im Gegensatz zum Token-Löschen gibt es bei Log-Einträgen **keinen Confirm-Dialog**. Ein Klick löscht sofort.
+
+### 10.8 Einstellungen in `localStorage`
+Benutzereinstellungen (Log-Anzeige) werden im Browser-LocalStorage gespeichert → pro Browser, nicht geräteübergreifend.
+
+### 10.7 Field-Keys inkonsistent
+`const.py` definiert `CONF_ALLOWED_DOMAINS = "allowed_domains"`, aber der tatsächliche Data-Key ist `"domains"`. Gleiches für Areas, Patterns etc.
+
+### 10.8 Silent Success bei nicht-existenter Token-ID
+PUT/DELETE/Regenerieren liefern `{"success": True}` auch wenn die Token-ID nicht existiert. Sollte 404 mit Fehlermeldung zurückgeben.
+
+### 10.9 Keine JSON-Body-Validierung
+`await request.json()` in mehreren Views ohne try/except. Bei kaputtem JSON → 500 ohne Fehlermeldung.
+
+### 10.10 Keine Längen-/Wertebereichs-Validierung
+Token-Felder, Patterns, IP-Listen und Retention-Werte akzeptieren unbegrenzte Eingaben. Ein Milliarden-Zeichen-Pattern könnte Speicherprobleme verursachen.
+
+### 10.11 `ValueError` still in Log-Deletion
+`int(index)` wird bei ungültigem Index mit `except ValueError: pass` geschluckt. Der Aufrufer bekommt trotzdem `{"success": True}`.
+
+---
+
 ## 📋 Empfohlene Reihenfolge
 
 | # | Aufgabe | Aufwand | Impact |
 |--|---------|---------|--------|
 | 1 | Admin-Auth absichern | 2-3h | 🔴 Kritisch |
 | 2 | Token-Hashing | 1h | ✅ erledigt |
-| 3 | CORS-Header setzen | 30min | 🟠 Sicherheit |
-| 4 | Tests schreiben (Unit + Integration) | 8-12h | 🟠 Qualität |
-| 5 | HACS-Manifest | 10min | ✅ erledigt |
-| 6 | Übersetzung (i18n) | 2h | ✅ erledigt |
-| 7 | Tote Konstanten/Services aufräumen | 30min | 🔵 Sauberkeit |
-| 8 | `panel/` Ordner entfernen | 5min | ✅ erledigt |
-| 9 | Token-Ablaufdatum | 1-2h | ✅ erledigt |
-| 10 | Area-Filter | 2h | ✅ erledigt |
-| 11 | Toast statt alert() | 1h | 🟢 UX |
-| 12 | Responsive Design | 2h | 🟢 UX |
-| 13 | Entity-Suche im Modal | 1h | ✅ erledigt |
-| 14 | `/help`-Endpunkt | 15min | ✅ erledigt |
-| 15 | Versionierung & Changelog | 30min | ✅ erledigt |
-| 16 | Screenshots im README | 1h | ✅ erledigt |
+| 3 | CORS-Header setzen (6.2) | 30min | 🟠 Sicherheit |
+| 4 | Toter Code in StatsCleanupView entfernen (7.1) | 5min | 🐛 Bug |
+| 5 | Input-Validierung für Token-CRUD (6.5) | 2h | 🟠 Sicherheit |
+| 6 | Config-Update validieren (6.4) | 1h | 🟠 Sicherheit |
+| 7 | Textbaustein-OptionsFlow füllen (7.3) | 1h | 🔵 Qualität |
+| 8 | Frontend-Duplikat refactoren (7.2) | 1h | 🔵 Wartbarkeit |
+| 9 | Performance: cleanup nicht bei jedem Request (8.2) | 1h | 🟡 Performance |
+| 10 | Performance: Single-Pass für Charts (8.3) | 1h | 🟡 Performance |
+| 11 | Unused Constants aufräumen (7.5) | 15min | 🔵 Sauberkeit |
+| 12 | async_reload_entry implementieren (9.2) | 30min | 🟢 HA-Konformität |
+| 13 | Diagnostics-Endpunkt (9.1) | 30min | 🟢 HA-Konformität |
+| 14 | Audit-Trail für Admin-Aktionen (9.6) | 2h | 🔵 Sicherheit |
+| 15 | Token-Ablauf-Benachrichtigungen (9.5) | 1h | 🟢 UX |
+| 16 | Token-Ablauf-Benachrichtigungen (9.4) | 1h | 🟢 UX |
+| 17 | Silent-Success-Bugs beheben (10.8) | 1h | 🐛 Bug |
+| 18 | Versionsnummern vereinheitlichen (10.1) | 15min | 📋 Doku |
+| 19 | Changelog befüllen (10.2) | 15min | 📋 Doku |
+| 20 | JSON-Body-Validierung (10.9) | 1h | 🟠 Sicherheit |
+| 21 | Responsive Design (5.2) | 2h | 🟢 UX |
+| 22 | Field-Keys konsolidieren (10.7) | 30min | 🔵 Sauberkeit |
+| 23 | CDN-Fallback für Icons (10.6) | 30min | 🟢 Zuverlässigkeit |
 
 ---
 
@@ -267,7 +417,9 @@ Das Dashboard funktioniert auf dem Desktop, aber auf Mobilgeräten (z.B. HA-App)
 
 **Das Plugin hat eine solide Basis.** Die größten Hürden für ein Community-Release sind:
 
-1. **Tests** – Ohne Tests akzeptieren viele Community-Reviewer kein Plugin. Insbesondere Unit-Tests für `_is_entity_allowed()` (Kernlogik) und Integration-Tests für die API-Endpunkte sind kritisch.
-2. **CORS-Header** – Für externe Web-Apps empfohlen.
+1. **Admin-Auth** – Alle Admin-Endpunkte haben `requires_auth = False` und sind ohne Authentifizierung erreichbar.
+2. **Input-Validierung** – Token-CRUD, Config-Updates und IP-Listen werden nicht validiert.
+3. **Toter Code** – Copy-Paste-Fehler mit Code nach Return-Statement in `AdminApiStatsCleanupView`.
+4. **Performance** – Log-Cleanup bei jedem Request, O(n*m) Entity-Filter, 3x-Usage-Log-Iteration für Charts.
 
-Sicherheit (Token-Hashing, Admin-Auth), HACS-Integration, i18n, Versionierung, Changelog und Screenshots sind bereits umgesetzt. Der Rest sind Verbesserungen, die über Zeit kommen können.
+Sicherheit (Token-Hashing, Admin-Auth), HACS-Integration, i18n, Versionierung, Tests, Changelog, Type Hints und Screenshots sind bereits umgesetzt. Der Rest sind Verbesserungen, die über Zeit kommen können.
