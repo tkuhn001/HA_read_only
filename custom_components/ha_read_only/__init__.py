@@ -5,19 +5,18 @@
 # DIE SOFTWARE WIRD "AS IS" BEREITGESTELLT, OHNE JEGLICHE GEWÄHRLEISTUNG.
 # NUTZUNG AUF EIGENE GEFAHR.
 
-import hashlib
 import logging
-import secrets
 import time
+from typing import Any
+
 import voluptuous as vol
-import os
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.storage import Store
 
-from .const import API_PREFIX, CONF_TOKEN, CONF_TOKEN_NAME, DOMAIN, STORAGE_KEY, STORAGE_VERSION
+from .const import DOMAIN, STORAGE_KEY, STORAGE_VERSION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,8 +26,6 @@ SERVICE_GET_TOKEN_INFO = "get_token_info"
 SERVICE_GET_TOKEN_INFO_SCHEMA = vol.Schema({
     vol.Required("token_name"): cv.string,
 })
-
-_LOGGER = logging.getLogger(__name__)
 
 class ReadOnlyDataHandler:
     """Manages the centralized storage for tokens and stats."""
@@ -45,7 +42,7 @@ class ReadOnlyDataHandler:
 
     async def async_load(self) -> None:
         """Load data from storage."""
-        stored = await self.store.async_load()
+        stored: dict | None = await self.store.async_load()
         if stored:
             self.data = stored
         else:
@@ -57,14 +54,14 @@ class ReadOnlyDataHandler:
                 "rate_limit": {},
             }
 
-    async def async_save(self) -> None:
-        """Save data to storage."""
-        await self._cleanup_stats()
+    async def async_save(self, *, run_cleanup: bool = False) -> None:
+        if run_cleanup:
+            await self._cleanup_stats()
         await self.store.async_save(self.data)
 
     async def _cleanup_stats(self) -> None:
         """Apply retention and limit rules to usage_log and stats."""
-        config = self.data.get("config", {})
+        config: dict = self.data.get("config", {})
         now = time.time()
 
         retention_enabled = config.get("stats_retention_enabled", True)
@@ -128,8 +125,8 @@ async def _register_services(hass: HomeAssistant) -> None:
     def _mask_token(token: str) -> str:
         return token[:8] + "..." if len(token) > 8 else token
 
-    async def _handle_list_tokens(call: ServiceCall) -> dict:
-        handler = hass.data[DOMAIN]["handler"]
+    async def _handle_list_tokens(call: ServiceCall) -> dict[str, Any]:
+        handler: ReadOnlyDataHandler = hass.data[DOMAIN]["handler"]
         tokens = []
         for t in handler.data.get("tokens", []):
             tokens.append({
@@ -145,8 +142,8 @@ async def _register_services(hass: HomeAssistant) -> None:
             })
         return {"tokens": tokens, "count": len(tokens)}
 
-    async def _handle_get_token_info(call: ServiceCall) -> dict:
-        handler = hass.data[DOMAIN]["handler"]
+    async def _handle_get_token_info(call: ServiceCall) -> dict[str, Any]:
+        handler: ReadOnlyDataHandler = hass.data[DOMAIN]["handler"]
         target_name = call.data["token_name"].lower()
         for t in handler.data.get("tokens", []):
             if t.get("name", "").lower() == target_name:

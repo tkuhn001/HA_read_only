@@ -69,9 +69,9 @@ class TestReadOnlyDataHandler:
         handler.store.async_save.assert_awaited_once_with(handler.data)
 
     async def test_async_save_runs_cleanup_first(self, handler):
-        """async_save runs _cleanup_stats before saving."""
+        """async_save runs _cleanup_stats when run_cleanup=True."""
         with patch.object(handler, "_cleanup_stats") as mock_cleanup:
-            await handler.async_save()
+            await handler.async_save(run_cleanup=True)
             mock_cleanup.assert_awaited_once()
             handler.store.async_save.assert_awaited_once_with(handler.data)
 

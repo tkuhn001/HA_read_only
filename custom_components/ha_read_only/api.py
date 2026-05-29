@@ -121,11 +121,14 @@ def _rate_limit(hass: HomeAssistant, key: tuple[str, str], token_data: dict | No
     return True
 
 
-def _compute_hourly_chart(usage_log: list[dict]) -> list[int]:
-    """Request counts per hour for the last 24 hours (fixed clock hours)."""
+def _compute_hourly_charts(usage_log: list[dict], tokens_map: dict) -> tuple[list[int], list[dict]]:
+    """Request counts per hour for the last 24 hours, with and without color breakdown."""
     now = time.time()
     now_hour = datetime.fromtimestamp(now).hour
     buckets = [0] * 24
+    color_buckets = []
+    for _ in range(24):
+        color_buckets.append({"total": 0, "by_color": {}})
     for entry in usage_log:
         ts = entry.get("timestamp")
         if not ts or now - ts > 86400:
@@ -133,31 +136,15 @@ def _compute_hourly_chart(usage_log: list[dict]) -> list[int]:
         ts_hour = datetime.fromtimestamp(ts).hour
         idx = (ts_hour - now_hour + 23) % 24
         buckets[idx] += 1
-    return buckets
-
-
-def _compute_hourly_chart_by_color(usage_log: list[dict], tokens_map: dict) -> list[dict]:
-    """Request counts per hour broken down by token color for the last 24 hours."""
-    now = time.time()
-    now_hour = datetime.fromtimestamp(now).hour
-    buckets = []
-    for _ in range(24):
-        buckets.append({"total": 0, "by_color": {}})
-    for entry in usage_log:
-        ts = entry.get("timestamp")
-        if not ts or now - ts > 86400:
-            continue
-        ts_hour = datetime.fromtimestamp(ts).hour
-        idx = (ts_hour - now_hour + 23) % 24
-        buckets[idx]["total"] += 1
+        color_buckets[idx]["total"] += 1
         token_id = entry.get("token_id", "")
         token_data = tokens_map.get(token_id)
         color = token_data.get("color", "") if token_data else ""
         if color:
-            buckets[idx]["by_color"][color] = buckets[idx]["by_color"].get(color, 0) + 1
+            color_buckets[idx]["by_color"][color] = color_buckets[idx]["by_color"].get(color, 0) + 1
         else:
-            buckets[idx]["by_color"]["_default"] = buckets[idx]["by_color"].get("_default", 0) + 1
-    return buckets
+            color_buckets[idx]["by_color"]["_default"] = color_buckets[idx]["by_color"].get("_default", 0) + 1
+    return buckets, color_buckets
 
 
 def _compute_daily_usage(usage_log: list[dict]) -> dict:
@@ -257,7 +244,7 @@ async def _track_usage(
         usage_log.insert(0, log_entry)
         handler.data["usage_log"] = usage_log[:USAGE_LOG_MAX]
 
-    await handler.async_save()
+    await handler.async_save(run_cleanup=True)
 
     if status == 200 and token:
         await _fire_webhook(
@@ -359,15 +346,21 @@ def _is_ip_allowed(client_ip: str, allowed_ips: list[str]) -> bool:
     return any(_ip_matches(client_ip, entry) for entry in allowed_ips)
 
 
-def _get_entity_area(hass: HomeAssistant, entity_id: str) -> str | None:
+def _build_area_map(hass: HomeAssistant) -> dict[str, str | None]:
+    """Einmaliger Durchlauf über alle States: entity_id → area_id."""
     registry = er.async_get(hass)
+    return {
+        s.entity_id: _get_area(registry, s.entity_id)
+        for s in hass.states.async_all()
+    }
+
+
+def _get_area(registry: er.EntityRegistry, entity_id: str) -> str | None:
     entry = registry.async_get(entity_id)
-    if entry is None:
-        return None
-    return entry.area_id
+    return entry.area_id if entry else None
 
 
-def _is_entity_allowed(entity_id: str, token_data: dict, hass: HomeAssistant) -> bool:
+def _is_entity_allowed(entity_id: str, token_data: dict, area_map: dict[str, str | None]) -> bool:
     allowed_domains = set(token_data.get("domains", []))
     allowed_patterns = _to_pattern_list(token_data.get("patterns", ""))
     blocked_patterns = _to_pattern_list(token_data.get("blocked_patterns", ""))
@@ -399,7 +392,7 @@ def _is_entity_allowed(entity_id: str, token_data: dict, hass: HomeAssistant) ->
             return True
 
     if allowed_areas:
-        area_id = _get_entity_area(hass, entity_id)
+        area_id = area_map.get(entity_id)
         if area_id and area_id in allowed_areas:
             return True
 
@@ -474,8 +467,27 @@ async def _validate_token_request(
 
 # --- API SETUP ---
 
+MANIFEST_PATH = os.path.join(os.path.dirname(__file__), "manifest.json")
+
+
+def _check_versions(hass: HomeAssistant) -> None:
+    manifest_path = MANIFEST_PATH
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+        mver = manifest.get("version", "")
+        if mver != VERSION:
+            _LOGGER.warning(
+                "Versionskonflikt: const.py (%s) != manifest.json (%s). "
+                "Beide mÃ¼ssen vor Release synchron sein.",
+                VERSION, mver,
+            )
+    except Exception:
+        _LOGGER.warning("Konnte manifest.json nicht lesen (%s)", manifest_path)
+
 
 async def async_setup_api(hass: HomeAssistant) -> None:
+    _check_versions(hass)
     hass.http.register_view(AdminPanelView)
     hass.http.register_view(AdminApiOptionsView)
     hass.http.register_view(AdminApiEntitiesView)
@@ -517,7 +529,7 @@ class AdminPanelView(HomeAssistantView):
 
     def _read_admin_html(self) -> str:
         with open(_ADMIN_HTML_PATH, "r", encoding="utf-8") as f:
-            return f.read()
+            return f.read().replace("{VERSION}", VERSION)
 
 
 class AdminApiOptionsView(HomeAssistantView):
@@ -551,7 +563,7 @@ class AdminApiEntitiesView(HomeAssistantView):
         entities = sorted(s.entity_id for s in hass.states.async_all())
         if query:
             entities = [e for e in entities if query in e]
-        return web.json_response(entities[:150])
+        return web.json_response(entities)
 
 
 class AdminApiTokensView(HomeAssistantView):
@@ -691,6 +703,7 @@ class AdminApiStatsView(HomeAssistantView):
                 if td and td.get("name"):
                     entry["token_name"] = td["name"]
         invalid_log = handler.data.get("invalid_log", [])
+        hourly, hourly_by_color = _compute_hourly_charts(usage_log, tokens_map_for_chart)
         return web.json_response(
             {
                 "total_requests": total_requests,
@@ -698,8 +711,8 @@ class AdminApiStatsView(HomeAssistantView):
                 "tokens": tokens_stats,
                 "usage_log": usage_log,
                 "invalid_log": invalid_log,
-                "hourly": _compute_hourly_chart(usage_log),
-                "hourly_by_color": _compute_hourly_chart_by_color(usage_log, tokens_map_for_chart),
+                "hourly": hourly,
+                "hourly_by_color": hourly_by_color,
                 "pie": pie_data,
             }
         )
@@ -773,10 +786,10 @@ class AdminApiStatsCleanupView(HomeAssistantView):
                 removed_stats += 1
         handler.data["stats"] = valid_stats
 
-        await handler.async_save()
+        await handler.async_save(run_cleanup=True)
         return web.json_response({"removed_log": removed_log, "removed_stats": removed_stats, "remaining_log": len(valid_log)})
 
-        await handler.async_save()
+        await handler.async_save(run_cleanup=True)
         return web.json_response({"removed_log": removed_log, "removed_stats": removed_stats, "remaining_log": len(valid_log)})
 
 
@@ -793,7 +806,7 @@ class AdminApiStatsLogDeleteView(HomeAssistantView):
             if 0 <= idx < len(usage_log):
                 usage_log.pop(idx)
                 handler.data["usage_log"] = usage_log
-                await handler.async_save()
+                await handler.async_save(run_cleanup=True)
         except ValueError:
             pass
         return web.json_response({"success": True})
@@ -813,7 +826,7 @@ class AdminApiTokenTestView(HomeAssistantView):
             return web.json_response({"error": "Token not found"}, status=404)
 
         tests = []
-        entity_registry = hass.data.get("entity_registry")
+        area_map = _build_area_map(hass) if token_data.get("areas") else {}
 
         for test_fn in [
             self._test_token_validity,
@@ -824,7 +837,7 @@ class AdminApiTokenTestView(HomeAssistantView):
             self._test_patterns,
         ]:
             try:
-                result = await test_fn(hass, token_data, request)
+                result = await test_fn(hass, token_data, request, area_map)
                 tests.append(result)
             except Exception as e:
                 tests.append({
@@ -850,7 +863,7 @@ class AdminApiTokenTestView(HomeAssistantView):
             },
         })
 
-    async def _test_token_validity(self, hass, token_data, request) -> dict:
+    async def _test_token_validity(self, hass, token_data, request, area_map) -> dict:
         result = {"category": "token_validity", "label": "Token-Gültigkeit", "details": []}
         result["details"].append({"check": "Token existiert", "status": "pass", "message": f"Name: {token_data.get('name', 'Unnamed')}"})
         if _is_token_valid(token_data):
@@ -864,7 +877,7 @@ class AdminApiTokenTestView(HomeAssistantView):
             result["message"] = "Token ist abgelaufen"
         return result
 
-    async def _test_ip_whitelist(self, hass, token_data, request) -> dict:
+    async def _test_ip_whitelist(self, hass, token_data, request, area_map) -> dict:
         result = {"category": "ip_whitelist", "label": "IP-Whitelist", "details": []}
         allowed_ips = token_data.get("allowed_ips", [])
         if not allowed_ips:
@@ -900,7 +913,7 @@ class AdminApiTokenTestView(HomeAssistantView):
         result["message"] = f"{len(allowed_ips)} IP-Regel(n) konfiguriert"
         return result
 
-    async def _test_domains(self, hass, token_data, request) -> dict:
+    async def _test_domains(self, hass, token_data, request, area_map) -> dict:
         result = {"category": "domains", "label": "Domain-Zugriff", "details": []}
         domains = token_data.get("domains", [])
         if not domains:
@@ -922,7 +935,7 @@ class AdminApiTokenTestView(HomeAssistantView):
         blocked_domains = all_domains - set(domains)
         for domain in list(blocked_domains)[:3]:
             sample = next((s.entity_id for s in all_states if s.domain == domain), None)
-            if sample and not _is_entity_allowed(sample, token_data, hass):
+            if sample and not _is_entity_allowed(sample, token_data, area_map):
                 result["details"].append({
                     "check": f"Blockiert: {domain}",
                     "status": "pass",
@@ -933,7 +946,7 @@ class AdminApiTokenTestView(HomeAssistantView):
         result["message"] = f"{len(domains)} Domain(s) geprüft"
         return result
 
-    async def _test_areas(self, hass, token_data, request) -> dict:
+    async def _test_areas(self, hass, token_data, request, area_map) -> dict:
         result = {"category": "areas", "label": "Bereichs-Zugriff", "details": []}
         areas = token_data.get("areas", [])
         if not areas:
@@ -949,9 +962,9 @@ class AdminApiTokenTestView(HomeAssistantView):
             area_obj = area_reg.async_get_area(area_id)
             if area_obj:
                 area_name = area_obj.name or area_id
-            entities_in_area = [s.entity_id for s in all_states if _get_entity_area(hass, s.entity_id) == area_id]
+            entities_in_area = [s.entity_id for s in all_states if area_map.get(s.entity_id) == area_id]
             if entities_in_area:
-                allowed = sum(1 for eid in entities_in_area if _is_entity_allowed(eid, token_data, hass))
+                allowed = sum(1 for eid in entities_in_area if _is_entity_allowed(eid, token_data, area_map))
                 result["details"].append({
                     "check": f"Bereich: {area_name}",
                     "status": "pass" if allowed == len(entities_in_area) else "warn",
@@ -969,7 +982,7 @@ class AdminApiTokenTestView(HomeAssistantView):
         result["message"] = f"{len(areas)} Bereich(e) geprüft"
         return result
 
-    async def _test_entities(self, hass, token_data, request) -> dict:
+    async def _test_entities(self, hass, token_data, request, area_map) -> dict:
         result = {"category": "entities", "label": "Entitäten-Zugriff", "details": []}
         allowed_entities = token_data.get("allowed_entities", [])
         if not allowed_entities:
@@ -986,7 +999,7 @@ class AdminApiTokenTestView(HomeAssistantView):
                     "message": "Entität existiert nicht in Home Assistant",
                 })
                 continue
-            allowed = _is_entity_allowed(eid, token_data, hass)
+            allowed = _is_entity_allowed(eid, token_data, area_map)
             result["details"].append({
                 "check": eid,
                 "status": "pass" if allowed else "fail",
@@ -998,7 +1011,7 @@ class AdminApiTokenTestView(HomeAssistantView):
         result["message"] = f"{len(allowed_entities)} Entität(en) geprüft"
         return result
 
-    async def _test_patterns(self, hass, token_data, request) -> dict:
+    async def _test_patterns(self, hass, token_data, request, area_map) -> dict:
         result = {"category": "patterns", "label": "Pattern-Zugriff", "details": []}
         patterns = _to_pattern_list(token_data.get("patterns", ""))
         blocked_patterns = _to_pattern_list(token_data.get("blocked_patterns", ""))
@@ -1011,7 +1024,7 @@ class AdminApiTokenTestView(HomeAssistantView):
         for pat in patterns:
             matching = [s.entity_id for s in all_states if fnmatch.fnmatch(s.entity_id, pat)]
             if matching:
-                allowed = sum(1 for eid in matching if _is_entity_allowed(eid, token_data, hass))
+                allowed = sum(1 for eid in matching if _is_entity_allowed(eid, token_data, area_map))
                 result["details"].append({
                     "check": f"Pattern: {pat}",
                     "status": "pass" if allowed else "fail",
@@ -1026,7 +1039,7 @@ class AdminApiTokenTestView(HomeAssistantView):
 
         for pat in blocked_patterns:
             matching = [s.entity_id for s in all_states if fnmatch.fnmatch(s.entity_id, pat)]
-            blocked = sum(1 for eid in matching if not _is_entity_allowed(eid, token_data, hass))
+            blocked = sum(1 for eid in matching if not _is_entity_allowed(eid, token_data, area_map))
             result["details"].append({
                 "check": f"Block-Pattern: {pat}",
                 "status": "pass" if blocked == len(matching) else "fail",
@@ -1146,10 +1159,11 @@ class StatesView(HomeAssistantView):
             return err
 
         incl_attrs = token_data.get("include_attributes", True)
+        area_map = _build_area_map(hass) if token_data.get("areas") else {}
         states = [
             _build_response(state, incl_attrs)
             for state in hass.states.async_all()
-            if _is_entity_allowed(state.entity_id, token_data, hass)
+            if _is_entity_allowed(state.entity_id, token_data, area_map)
         ]
         await _track_usage(
             hass,
@@ -1176,7 +1190,8 @@ class SingleStateView(HomeAssistantView):
         if err:
             return err
 
-        if not _is_entity_allowed(entity_id, token_data, hass):
+        area_map = _build_area_map(hass) if token_data.get("areas") else {}
+        if not _is_entity_allowed(entity_id, token_data, area_map):
             await _track_usage(
                 hass,
                 token,
@@ -1226,10 +1241,11 @@ class EntityListView(HomeAssistantView):
         if err:
             return err
 
+        area_map = _build_area_map(hass) if token_data.get("areas") else {}
         entities = [
             s.entity_id
             for s in hass.states.async_all()
-            if _is_entity_allowed(s.entity_id, token_data, hass)
+            if _is_entity_allowed(s.entity_id, token_data, area_map)
         ]
         await _track_usage(
             hass,
