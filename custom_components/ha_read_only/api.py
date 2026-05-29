@@ -121,11 +121,14 @@ def _rate_limit(hass: HomeAssistant, key: tuple[str, str], token_data: dict | No
     return True
 
 
-def _compute_hourly_chart(usage_log: list[dict]) -> list[int]:
-    """Request counts per hour for the last 24 hours (fixed clock hours)."""
+def _compute_hourly_charts(usage_log: list[dict], tokens_map: dict) -> tuple[list[int], list[dict]]:
+    """Request counts per hour for the last 24 hours, with and without color breakdown."""
     now = time.time()
     now_hour = datetime.fromtimestamp(now).hour
     buckets = [0] * 24
+    color_buckets = []
+    for _ in range(24):
+        color_buckets.append({"total": 0, "by_color": {}})
     for entry in usage_log:
         ts = entry.get("timestamp")
         if not ts or now - ts > 86400:
@@ -133,31 +136,15 @@ def _compute_hourly_chart(usage_log: list[dict]) -> list[int]:
         ts_hour = datetime.fromtimestamp(ts).hour
         idx = (ts_hour - now_hour + 23) % 24
         buckets[idx] += 1
-    return buckets
-
-
-def _compute_hourly_chart_by_color(usage_log: list[dict], tokens_map: dict) -> list[dict]:
-    """Request counts per hour broken down by token color for the last 24 hours."""
-    now = time.time()
-    now_hour = datetime.fromtimestamp(now).hour
-    buckets = []
-    for _ in range(24):
-        buckets.append({"total": 0, "by_color": {}})
-    for entry in usage_log:
-        ts = entry.get("timestamp")
-        if not ts or now - ts > 86400:
-            continue
-        ts_hour = datetime.fromtimestamp(ts).hour
-        idx = (ts_hour - now_hour + 23) % 24
-        buckets[idx]["total"] += 1
+        color_buckets[idx]["total"] += 1
         token_id = entry.get("token_id", "")
         token_data = tokens_map.get(token_id)
         color = token_data.get("color", "") if token_data else ""
         if color:
-            buckets[idx]["by_color"][color] = buckets[idx]["by_color"].get(color, 0) + 1
+            color_buckets[idx]["by_color"][color] = color_buckets[idx]["by_color"].get(color, 0) + 1
         else:
-            buckets[idx]["by_color"]["_default"] = buckets[idx]["by_color"].get("_default", 0) + 1
-    return buckets
+            color_buckets[idx]["by_color"]["_default"] = color_buckets[idx]["by_color"].get("_default", 0) + 1
+    return buckets, color_buckets
 
 
 def _compute_daily_usage(usage_log: list[dict]) -> dict:
@@ -257,7 +244,7 @@ async def _track_usage(
         usage_log.insert(0, log_entry)
         handler.data["usage_log"] = usage_log[:USAGE_LOG_MAX]
 
-    await handler.async_save()
+    await handler.async_save(run_cleanup=True)
 
     if status == 200 and token:
         await _fire_webhook(
@@ -480,8 +467,27 @@ async def _validate_token_request(
 
 # --- API SETUP ---
 
+MANIFEST_PATH = os.path.join(os.path.dirname(__file__), "manifest.json")
+
+
+def _check_versions(hass: HomeAssistant) -> None:
+    manifest_path = MANIFEST_PATH
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+        mver = manifest.get("version", "")
+        if mver != VERSION:
+            _LOGGER.warning(
+                "Versionskonflikt: const.py (%s) != manifest.json (%s). "
+                "Beide mÃ¼ssen vor Release synchron sein.",
+                VERSION, mver,
+            )
+    except Exception:
+        _LOGGER.warning("Konnte manifest.json nicht lesen (%s)", manifest_path)
+
 
 async def async_setup_api(hass: HomeAssistant) -> None:
+    _check_versions(hass)
     hass.http.register_view(AdminPanelView)
     hass.http.register_view(AdminApiOptionsView)
     hass.http.register_view(AdminApiEntitiesView)
@@ -523,7 +529,7 @@ class AdminPanelView(HomeAssistantView):
 
     def _read_admin_html(self) -> str:
         with open(_ADMIN_HTML_PATH, "r", encoding="utf-8") as f:
-            return f.read()
+            return f.read().replace("{VERSION}", VERSION)
 
 
 class AdminApiOptionsView(HomeAssistantView):
@@ -557,7 +563,7 @@ class AdminApiEntitiesView(HomeAssistantView):
         entities = sorted(s.entity_id for s in hass.states.async_all())
         if query:
             entities = [e for e in entities if query in e]
-        return web.json_response(entities[:150])
+        return web.json_response(entities)
 
 
 class AdminApiTokensView(HomeAssistantView):
@@ -697,6 +703,7 @@ class AdminApiStatsView(HomeAssistantView):
                 if td and td.get("name"):
                     entry["token_name"] = td["name"]
         invalid_log = handler.data.get("invalid_log", [])
+        hourly, hourly_by_color = _compute_hourly_charts(usage_log, tokens_map_for_chart)
         return web.json_response(
             {
                 "total_requests": total_requests,
@@ -704,8 +711,8 @@ class AdminApiStatsView(HomeAssistantView):
                 "tokens": tokens_stats,
                 "usage_log": usage_log,
                 "invalid_log": invalid_log,
-                "hourly": _compute_hourly_chart(usage_log),
-                "hourly_by_color": _compute_hourly_chart_by_color(usage_log, tokens_map_for_chart),
+                "hourly": hourly,
+                "hourly_by_color": hourly_by_color,
                 "pie": pie_data,
             }
         )
@@ -779,10 +786,10 @@ class AdminApiStatsCleanupView(HomeAssistantView):
                 removed_stats += 1
         handler.data["stats"] = valid_stats
 
-        await handler.async_save()
+        await handler.async_save(run_cleanup=True)
         return web.json_response({"removed_log": removed_log, "removed_stats": removed_stats, "remaining_log": len(valid_log)})
 
-        await handler.async_save()
+        await handler.async_save(run_cleanup=True)
         return web.json_response({"removed_log": removed_log, "removed_stats": removed_stats, "remaining_log": len(valid_log)})
 
 
@@ -799,7 +806,7 @@ class AdminApiStatsLogDeleteView(HomeAssistantView):
             if 0 <= idx < len(usage_log):
                 usage_log.pop(idx)
                 handler.data["usage_log"] = usage_log
-                await handler.async_save()
+                await handler.async_save(run_cleanup=True)
         except ValueError:
             pass
         return web.json_response({"success": True})

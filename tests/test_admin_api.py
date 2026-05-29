@@ -20,8 +20,8 @@ from custom_components.ha_read_only.api import (
     AdminApiStatsCleanupView,
     AdminApiStatsLogDeleteView,
     AdminApiTokenTestView,
+    AdminPanelView,
     _hash_token,
-    _compute_hourly_chart,
     _compute_daily_usage,
 )
 from custom_components.ha_read_only.const import DOMAIN, HEADER_TOKEN_NAME
@@ -491,7 +491,7 @@ async def test_entities_get_filters_case_insensitive():
     assert body == ["sensor.Temperature"]
 
 
-async def test_entities_get_limits_to_150():
+async def test_entities_get_returns_all_without_hard_limit():
     hass = MagicMock()
     entities = [f"sensor.test_{i}" for i in range(200)]
     hass.states.async_all.return_value = [
@@ -504,7 +504,7 @@ async def test_entities_get_limits_to_150():
     resp = await view.get(req)
     assert resp.status == 200
     body = json.loads(resp.body)
-    assert len(body) == 150
+    assert len(body) == 200
 
 
 # ========== AdminApiStatsView - GET ==========
@@ -944,3 +944,41 @@ class TestAdminApiTokenTest:
             assert body["summary"]["total"] > 0
             passed_or_skipped = body["summary"]["passed"] + body["summary"]["skipped"]
             assert passed_or_skipped >= body["summary"]["total"] - body["summary"]["failed"]
+
+
+# ========== AdminPanelView ==========
+
+
+class TestAdminPanelView:
+    async def test_returns_html(self):
+        hass = MagicMock()
+
+        async def _run(fn, *a, **kw):
+            return fn(*a, **kw)
+
+        hass.async_add_executor_job.side_effect = _run
+        with patch("custom_components.ha_read_only.api.AdminPanelView._read_admin_html",
+                   return_value="<html>test {VERSION}</html>"):
+            view = AdminPanelView()
+            req = MagicMock(spec=web.Request)
+            req.app = {"hass": hass}
+            resp = await view.get(req)
+        assert resp.status == 200
+        assert resp.content_type == "text/html"
+        assert resp.text == "<html>test {VERSION}</html>"
+
+    async def test_fallback_on_file_error(self):
+        hass = MagicMock()
+
+        async def _run(fn, *a, **kw):
+            return fn(*a, **kw)
+
+        hass.async_add_executor_job.side_effect = _run
+        with patch("custom_components.ha_read_only.api.AdminPanelView._read_admin_html",
+                   side_effect=Exception("no file")):
+            view = AdminPanelView()
+            req = MagicMock(spec=web.Request)
+            req.app = {"hass": hass}
+            resp = await view.get(req)
+        assert resp.status == 200
+        assert "Error: admin.html not found" in resp.text

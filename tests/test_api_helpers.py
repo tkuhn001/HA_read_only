@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import time
 import secrets
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -15,8 +15,11 @@ from custom_components.ha_read_only.api import (
     _build_response,
     _find_token_data,
     _get_client_ip,
+    _fire_webhook,
+    _track_usage,
+    _check_versions,
 )
-from custom_components.ha_read_only.const import DOMAIN
+from custom_components.ha_read_only.const import DOMAIN, CONF_WEBHOOK_URL, CONF_WEBHOOK_ON_API, CONF_WEBHOOK_ON_TOKEN, USAGE_LOG_MAX
 
 
 # --- _hash_token ---
@@ -241,3 +244,209 @@ def test_get_client_ip_unknown():
 
     ip = _get_client_ip(request)
     assert ip == "unknown"
+
+
+# --- _fire_webhook ---
+
+
+class TestFireWebhook:
+    def _make_handler(self, url="http://hook.example.com", on_api=True, on_token=True):
+        handler = MagicMock()
+        handler.data = {
+            "config": {
+                CONF_WEBHOOK_URL: url,
+                CONF_WEBHOOK_ON_API: on_api,
+                CONF_WEBHOOK_ON_TOKEN: on_token,
+            }
+        }
+        return handler
+
+    async def test_sends_post_to_hook_url(self):
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("aiohttp.ClientSession.post") as mock_post:
+                mock_response = AsyncMock()
+                mock_response.status = 200
+                mock_post.return_value = mock_response
+                await _fire_webhook(MagicMock(), "api_request", {"endpoint": "/states"})
+                mock_post.assert_called_once()
+                args, kwargs = mock_post.call_args
+                assert args[0] == "http://hook.example.com"
+                assert kwargs["json"]["event"] == "api_request"
+
+    async def test_skips_when_url_empty(self):
+        handler = self._make_handler(url="")
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("aiohttp.ClientSession.post") as mock_post:
+                await _fire_webhook(MagicMock(), "api_request", {})
+                mock_post.assert_not_called()
+
+    async def test_skips_when_event_not_enabled(self):
+        handler = self._make_handler(on_api=False)
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("aiohttp.ClientSession.post") as mock_post:
+                await _fire_webhook(MagicMock(), "api_request", {})
+                mock_post.assert_not_called()
+
+    async def test_fires_on_token_created(self):
+        handler = self._make_handler(on_token=True)
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("aiohttp.ClientSession.post") as mock_post:
+                mock_response = AsyncMock()
+                mock_response.status = 200
+                mock_post.return_value = mock_response
+                await _fire_webhook(MagicMock(), "token_created", {"token_name": "test"})
+                mock_post.assert_called_once()
+
+    async def test_logs_warning_on_http_error(self):
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("aiohttp.ClientSession.post") as mock_post:
+                mock_response = AsyncMock()
+                mock_response.__aenter__.return_value.status = 500
+                mock_post.return_value = mock_response
+                with patch("custom_components.ha_read_only.api._LOGGER.warning") as mock_log:
+                    await _fire_webhook(MagicMock(), "api_request", {})
+                    mock_log.assert_called_once_with("Webhook returned %s", 500)
+
+    @pytest.mark.filterwarnings("ignore:coroutine.*AsyncMock")
+    async def test_logs_warning_on_exception(self):
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("aiohttp.ClientSession") as mock_session_cls:
+                mock_session = AsyncMock()
+                mock_session.post.side_effect = Exception("timeout")
+                mock_session_cls.return_value = mock_session
+                with patch("custom_components.ha_read_only.api._LOGGER.warning") as mock_log:
+                    await _fire_webhook(MagicMock(), "api_request", {})
+                    mock_log.assert_called_once()
+
+
+# --- _track_usage ---
+
+
+class TestTrackUsage:
+    def _make_handler(self, with_tokens=False):
+        handler = MagicMock()
+        handler.data = {
+            "stats": {},
+            "config": {"stats_log_max": 500, "stats_log_max_enabled": True},
+            "usage_log": [],
+            "invalid_log": [],
+            "tokens": [],
+        }
+        handler.async_save = AsyncMock()
+        return handler
+
+    async def test_creates_new_stats_entry(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        token_data = None
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=token_data):
+                with patch("custom_components.ha_read_only.api._fire_webhook", AsyncMock()):
+                    await _track_usage(hass, "tok_abc", "/states", 200, token_name="test", token_id="t1")
+        stats = handler.data["stats"]
+        assert "t1" in stats
+        assert stats["t1"]["total"] == 1
+        assert stats["t1"]["token_name"] == "test"
+        assert stats["t1"]["by_endpoint"]["/states"] == 1
+        assert stats["t1"]["errors"] == 0
+
+    async def test_increments_existing_stats(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        handler.data["stats"]["t1"] = {"total": 5, "by_endpoint": {"/help": 2}, "errors": 0, "last_access": None, "last_endpoint": None}
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=None):
+                with patch("custom_components.ha_read_only.api._fire_webhook", AsyncMock()):
+                    await _track_usage(hass, "tok_abc", "/states", 200, token_name="test", token_id="t1")
+        assert handler.data["stats"]["t1"]["total"] == 6
+        assert handler.data["stats"]["t1"]["by_endpoint"]["/states"] == 1
+
+    async def test_counts_errors_on_4xx(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=None):
+                with patch("custom_components.ha_read_only.api._fire_webhook", AsyncMock()):
+                    await _track_usage(hass, "tok_abc", "/states", 401, token_id="t1")
+        assert handler.data["stats"]["t1"]["errors"] == 1
+        assert handler.data["stats"]["t1"]["last_endpoint"] == "/states"
+
+    async def test_respects_global_max_limit(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        handler.data["stats"]["t1"] = {"total": 500, "by_endpoint": {}, "errors": 0, "last_access": None, "last_endpoint": None}
+        handler.data["config"] = {"stats_log_max": 500, "stats_log_max_enabled": True}
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=None):
+                with patch("custom_components.ha_read_only.api._fire_webhook", AsyncMock()):
+                    await _track_usage(hass, "tok_abc", "/states", 200, token_id="t1")
+        assert handler.data["stats"]["t1"]["total"] == 500
+
+    async def test_no_token_fallback_key(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=None):
+                with patch("custom_components.ha_read_only.api._fire_webhook", AsyncMock()):
+                    await _track_usage(hass, None, "/states", 200)
+        key = "no_token"
+        stats = handler.data["stats"]
+        assert key in stats
+        assert stats[key]["total"] == 1
+
+    async def test_appends_to_usage_log(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=None):
+                with patch("custom_components.ha_read_only.api._fire_webhook", AsyncMock()):
+                    await _track_usage(hass, "tok_abc", "/states", 200, token_name="test", token_id="t1")
+        assert len(handler.data["usage_log"]) == 1
+        assert handler.data["usage_log"][0]["status"] == 200
+
+    async def test_401_goes_to_invalid_log(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=None):
+                with patch("custom_components.ha_read_only.api._fire_webhook", AsyncMock()):
+                    await _track_usage(hass, "tok_bad", "/states", 401)
+        assert len(handler.data["invalid_log"]) == 1
+        assert handler.data["invalid_log"][0]["status"] == 401
+
+    async def test_fires_webhook_on_200_with_token(self):
+        hass = MagicMock()
+        handler = self._make_handler()
+        with patch("custom_components.ha_read_only.api._get_handler", return_value=handler):
+            with patch("custom_components.ha_read_only.api._find_token_data", return_value=None):
+                with patch("custom_components.ha_read_only.api._fire_webhook", new_callable=AsyncMock) as mock_hook:
+                    await _track_usage(hass, "tok_abc", "/states", 200, token_name="test")
+                    mock_hook.assert_awaited_once_with(hass, "api_request", {"endpoint": "/states", "token_name": "test", "ip": ""})
+
+
+# --- _check_versions ---
+
+
+class TestCheckVersions:
+    def test_logs_warning_on_mismatch(self):
+        with patch("custom_components.ha_read_only.api.open") as mock_open:
+            mock_open.return_value.__enter__.return_value.read.return_value = '{"version": "9.9.9"}'
+            with patch("custom_components.ha_read_only.api._LOGGER.warning") as mock_log:
+                _check_versions(MagicMock())
+                mock_log.assert_called_once()
+
+    def test_no_warning_on_match(self):
+        with patch("custom_components.ha_read_only.api.open") as mock_open:
+            mock_open.return_value.__enter__.return_value.read.return_value = '{"version": "0.4.2"}'
+            with patch("custom_components.ha_read_only.api._LOGGER.warning") as mock_log:
+                _check_versions(MagicMock())
+                mock_log.assert_not_called()
+
+    def test_logs_warning_on_io_error(self):
+        with patch("custom_components.ha_read_only.api.open", side_effect=IOError("no file")):
+            with patch("custom_components.ha_read_only.api._LOGGER.warning") as mock_log:
+                _check_versions(MagicMock())
+                mock_log.assert_called_once()

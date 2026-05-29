@@ -6,4 +6,6 @@ Thumbs.db
 .idea/
 *.log
 improvement_suggestions.md
+security_suggestions.md
 AGENTS.md
+bump_version.ps1

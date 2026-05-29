@@ -54,9 +54,9 @@ class ReadOnlyDataHandler:
                 "rate_limit": {},
             }
 
-    async def async_save(self) -> None:
-        """Save data to storage."""
-        await self._cleanup_stats()
+    async def async_save(self, *, run_cleanup: bool = False) -> None:
+        if run_cleanup:
+            await self._cleanup_stats()
         await self.store.async_save(self.data)
 
     async def _cleanup_stats(self) -> None:

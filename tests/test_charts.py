@@ -4,8 +4,7 @@ from unittest.mock import patch
 
 from custom_components.ha_read_only.api import (
     _compute_daily_usage,
-    _compute_hourly_chart,
-    _compute_hourly_chart_by_color,
+    _compute_hourly_charts,
 )
 
 _NOW = 1700000000
@@ -13,20 +12,21 @@ _HOUR = 3600
 
 
 class TestHourlyChart:
-    def test_empty_log(self):
+    def _compute(self, entries):
         with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            assert _compute_hourly_chart([]) == [0] * 24
+            return _compute_hourly_charts(entries, {})[0]
+
+    def test_empty_log(self):
+        assert self._compute([]) == [0] * 24
 
     def test_single_entry_current_hour(self):
         entry = {"timestamp": _NOW}
-        with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            result = _compute_hourly_chart([entry])
+        result = self._compute([entry])
         assert result == [0] * 23 + [1]
 
     def test_single_entry_one_hour_ago(self):
         entry = {"timestamp": _NOW - _HOUR}
-        with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            result = _compute_hourly_chart([entry])
+        result = self._compute([entry])
         assert result == [0] * 22 + [1] + [0]
 
     def test_multiple_entries_different_hours(self):
@@ -36,32 +36,27 @@ class TestHourlyChart:
             {"timestamp": _NOW - 2 * _HOUR},
             {"timestamp": _NOW - 2 * _HOUR},
         ]
-        with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            result = _compute_hourly_chart(entries)
+        result = self._compute(entries)
         assert result == [0] * 21 + [2] + [1] + [1]
 
     def test_entry_older_than_24h_ignored(self):
         entry = {"timestamp": _NOW - 86401}
-        with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            result = _compute_hourly_chart([entry])
+        result = self._compute([entry])
         assert result == [0] * 24
 
     def test_entry_exactly_24h_included(self):
         entry = {"timestamp": _NOW - 86400}
-        with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            result = _compute_hourly_chart([entry])
+        result = self._compute([entry])
         assert result == [0] * 23 + [1]
 
     def test_entry_without_timestamp_ignored(self):
         entry = {"foo": "bar"}
-        with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            result = _compute_hourly_chart([entry])
+        result = self._compute([entry])
         assert result == [0] * 24
 
     def test_entry_with_none_timestamp_ignored(self):
         entry = {"timestamp": None}
-        with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            result = _compute_hourly_chart([entry])
+        result = self._compute([entry])
         assert result == [0] * 24
 
 
@@ -74,7 +69,7 @@ class TestHourlyChartByColor:
 
     def _make_buckets(self, *entries):
         with patch("custom_components.ha_read_only.api.time.time", return_value=_NOW):
-            return _compute_hourly_chart_by_color(list(entries), self.TOKENS)
+            return _compute_hourly_charts(list(entries), self.TOKENS)[1]
 
     def test_empty_log(self):
         result = self._make_buckets()
