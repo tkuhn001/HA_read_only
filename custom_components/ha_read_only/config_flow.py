@@ -35,16 +35,16 @@ class HaReadOnlyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> HaReadOnlyOptionsFlow:
         """Get the options flow for this handler."""
         return HaReadOnlyOptionsFlow(config_entry)
 
 class HaReadOnlyOptionsFlow(config_entries.OptionsFlow):
     """Options flow for HA Read-Only API."""
 
-    def __init__(self, config_entry) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         self._entry = config_entry
 
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Manage the options."""
         return self.async_show_form(step_id="init")
